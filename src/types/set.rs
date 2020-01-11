@@ -21,8 +21,13 @@ pub struct PySet(PyObject, Unsendable);
 #[repr(transparent)]
 pub struct PyFrozenSet(PyObject, Unsendable);
 
-pyobject_native_type!(PySet, ffi::PySet_Type, Some("builtins"), ffi::PySet_Check);
-pyobject_native_type!(PyFrozenSet, ffi::PyFrozenSet_Type, ffi::PyFrozenSet_Check);
+pyobject_native_type!(PySet, ffi::PySetObject, ffi::PySet_Type, ffi::PySet_Check);
+pyobject_native_type!(
+    PyFrozenSet,
+    ffi::PySetObject,
+    ffi::PyFrozenSet_Type,
+    ffi::PyFrozenSet_Check
+);
 
 impl PySet {
     /// Creates a new set.
@@ -93,7 +98,12 @@ impl PySet {
 
     /// Remove and return an arbitrary element from the set
     pub fn pop(&self) -> Option<PyObject> {
-        unsafe { PyObject::from_owned_ptr_or_opt(self.py(), ffi::PySet_Pop(self.as_ptr())) }
+        let element =
+            unsafe { PyObject::from_owned_ptr_or_err(self.py(), ffi::PySet_Pop(self.as_ptr())) };
+        match element {
+            Ok(e) => Some(e),
+            Err(_) => None,
+        }
     }
 
     /// Returns an iterator of values in this set.
@@ -324,6 +334,9 @@ mod test {
         assert!(val.is_some());
         let val2 = set.pop();
         assert!(val2.is_none());
+        assert!(py
+            .eval("print('Exception state should not be set.')", None, None)
+            .is_ok());
     }
 
     #[test]
