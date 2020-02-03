@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use pyo3::py_run;
-use pyo3::pyclass::initialize_type;
 
 mod common;
 
@@ -23,7 +22,19 @@ fn empty_class() {
 ///  Line3
 // this is not doc string
 #[pyclass]
-struct ClassWithDocs {}
+struct ClassWithDocs {
+    /// Property field
+    #[pyo3(get, set)]
+    value: i32,
+
+    /// Read-only property field
+    #[pyo3(get)]
+    readonly: i32,
+
+    /// Write-only property field
+    #[pyo3(set)]
+    writeonly: i32,
+}
 
 #[test]
 fn class_with_docstr() {
@@ -35,6 +46,21 @@ fn class_with_docstr() {
             py,
             typeobj,
             "assert typeobj.__doc__ == 'Line1\\nLine2\\n Line3'"
+        );
+        py_run!(
+            py,
+            typeobj,
+            "assert typeobj.value.__doc__ == 'Property field'"
+        );
+        py_run!(
+            py,
+            typeobj,
+            "assert typeobj.readonly.__doc__ == 'Read-only property field'"
+        );
+        py_run!(
+            py,
+            typeobj,
+            "assert typeobj.writeonly.__doc__ == 'Write-only property field'"
         );
     }
 }
@@ -111,9 +137,4 @@ fn empty_class_in_module() {
     // We currently have no way of determining a canonical module, so builtins is better
     // than using whatever calls init first.
     assert_eq!(module, "builtins");
-
-    // The module name can also be set manually by calling `initialize_type`.
-    initialize_type::<EmptyClassInModule>(py, Some("test_module.nested")).unwrap();
-    let module: String = ty.getattr("__module__").unwrap().extract().unwrap();
-    assert_eq!(module, "test_module.nested");
 }
