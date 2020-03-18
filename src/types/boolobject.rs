@@ -1,13 +1,9 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
-use crate::ffi;
 use crate::internal_tricks::Unsendable;
-use crate::object::PyObject;
-use crate::types::PyAny;
-use crate::FromPyObject;
-use crate::PyResult;
-use crate::Python;
-use crate::{AsPyPointer, FromPy};
-use crate::{PyTryFrom, ToPyObject};
+use crate::{
+    ffi, AsPyPointer, FromPy, FromPyObject, PyAny, PyObject, PyResult, PyTryFrom, Python,
+    ToPyObject,
+};
 
 /// Represents a Python `bool`.
 #[repr(transparent)]
@@ -16,7 +12,7 @@ pub struct PyBool(PyObject, Unsendable);
 pyobject_native_type!(PyBool, ffi::PyObject, ffi::PyBool_Type, ffi::PyBool_Check);
 
 impl PyBool {
-    /// Depending on `val`, returns `py.True()` or `py.False()`.
+    /// Depending on `val`, returns `true` or `false`.
     #[inline]
     pub fn new(py: Python, val: bool) -> &PyBool {
         unsafe { py.from_borrowed_ptr(if val { ffi::Py_True() } else { ffi::Py_False() }) }
@@ -29,7 +25,7 @@ impl PyBool {
     }
 }
 
-/// Converts a rust `bool` to a Python `bool`.
+/// Converts a Rust `bool` to a Python `bool`.
 impl ToPyObject for bool {
     #[inline]
     fn to_object(&self, py: Python) -> PyObject {
@@ -53,7 +49,7 @@ impl FromPy<bool> for PyObject {
     }
 }
 
-/// Converts a Python `bool` to a rust `bool`.
+/// Converts a Python `bool` to a Rust `bool`.
 ///
 /// Fails with `TypeError` if the input is not a Python `bool`.
 impl<'source> FromPyObject<'source> for bool {

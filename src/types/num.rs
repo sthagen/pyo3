@@ -2,21 +2,14 @@
 //
 // based on Daniel Grunwald's https://github.com/dgrunwald/rust-cpython
 
-use crate::err::{PyErr, PyResult};
-use crate::exceptions;
-use crate::ffi;
-use crate::instance::PyNativeType;
 use crate::internal_tricks::Unsendable;
-use crate::object::PyObject;
-use crate::types::PyAny;
-use crate::AsPyPointer;
-use crate::IntoPy;
-use crate::Python;
-use crate::{FromPyObject, ToPyObject};
+use crate::{
+    exceptions, ffi, AsPyPointer, FromPyObject, IntoPy, PyAny, PyErr, PyNativeType, PyObject,
+    PyResult, Python, ToPyObject,
+};
 use num_traits::cast::cast;
 use std::i64;
-use std::os::raw::c_int;
-use std::os::raw::{c_long, c_uchar};
+use std::os::raw::{c_int, c_long, c_uchar};
 
 fn err_if_invalid_value<T: PartialEq>(
     py: Python,
@@ -417,7 +410,7 @@ mod bigint_conversion {
             assert_eq!(zero, BigInt::from(0));
         }
 
-        /// `OverflowError` on converting python int to BigInt, see issue #629
+        /// `OverflowError` on converting Python int to BigInt, see issue #629
         #[test]
         fn check_overflow() {
             let gil = Python::acquire_gil();
