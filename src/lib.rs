@@ -52,7 +52,7 @@
 //! crate-type = ["cdylib"]
 //!
 //! [dependencies.pyo3]
-//! version = "0.9.1"
+//! version = "0.9.2"
 //! features = ["extension-module"]
 //! ```
 //!
@@ -109,7 +109,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! pyo3 = "0.9.1"
+//! pyo3 = "0.9.2"
 //! ```
 //!
 //! Example program displaying the value of `sys.version`:
@@ -133,13 +133,14 @@
 //! }
 //! ```
 
+pub use crate::callback::run_callback;
 pub use crate::class::*;
 pub use crate::conversion::{
     AsPyPointer, FromPy, FromPyObject, FromPyPointer, IntoPy, IntoPyPointer, PyTryFrom, PyTryInto,
     ToBorrowedObject, ToPyObject,
 };
 pub use crate::err::{PyDowncastError, PyErr, PyErrArguments, PyErrValue, PyResult};
-pub use crate::gil::{init_once, GILGuard, GILPool};
+pub use crate::gil::{GILGuard, GILPool};
 pub use crate::instance::{AsPyRef, ManagedPyRef, Py, PyNativeType};
 pub use crate::object::PyObject;
 pub use crate::objectprotocol::ObjectProtocol;

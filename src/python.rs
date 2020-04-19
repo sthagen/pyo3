@@ -9,8 +9,7 @@ use crate::instance::AsPyRef;
 use crate::object::PyObject;
 use crate::type_object::{PyDowncastImpl, PyTypeInfo, PyTypeObject};
 use crate::types::{PyAny, PyDict, PyModule, PyType};
-use crate::AsPyPointer;
-use crate::{FromPyPointer, IntoPyPointer, PyTryFrom};
+use crate::{AsPyPointer, FromPyPointer, IntoPyPointer, PyTryFrom};
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::os::raw::c_int;
@@ -58,6 +57,10 @@ impl<'p> Python<'p> {
     /// Because the output lifetime `'p` is not connected to any input parameter,
     /// care must be taken that the compiler infers an appropriate lifetime for `'p`
     /// when calling this function.
+    ///
+    /// # Safety
+    /// The lifetime `'p` must be shorter than the period you *assume* that you have GIL.
+    /// I.e., `Python<'static>` is always *really* unsafe.
     #[inline]
     pub unsafe fn assume_gil_acquired() -> Python<'p> {
         Python(PhantomData)

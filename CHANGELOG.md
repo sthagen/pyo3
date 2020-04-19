@@ -7,8 +7,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Changed
+
+* `PyObject` and `Py<T>` reference counts are now decremented sooner after `drop()`. [#851](https://github.com/PyO3/pyo3/pull/851)
+  * When the GIL is held, the refcount is now decreased immediately on drop. (Previously would wait until just before releasing the GIL.)
+  * When the GIL is not held, the refcount is now decreased when the GIL is next acquired. (Previously would wait until next time the GIL was released.)
+
+### Added
+* `_PyDict_NewPresized`. [#849](https://github.com/PyO3/pyo3/pull/849)
+* `IntoPy<PyObject>` for `HashSet` and `BTreeSet`. [#864](https://github.com/PyO3/pyo3/pull/864)
+
+### Fixed
+* `__radd__` and other `__r*__` methods now correctly work with operators. [#839](https://github.com/PyO3/pyo3/pull/839)
+* Garbage Collector causing random panics when traversing objects that were mutably borrowed. [#855](https://github.com/PyO3/pyo3/pull/855)
+* `&'static Py~` being allowed as arguments. [#869](https://github.com/PyO3/pyo3/pull/869)
+
+## [0.9.2]
+
 ### Added
 * `FromPyObject` implementations for `HashSet` and `BTreeSet`. [#842](https://github.com/PyO3/pyo3/pull/842)
+
+### Fixed
+* Correctly detect 32bit architecture. [#830](https://github.com/PyO3/pyo3/pull/830)
 
 ## [0.9.1]
 
@@ -31,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * `PyAny` is now on the top level module and prelude. [#816](https://github.com/PyO3/pyo3/pull/816)
 
 ### Added
+
 * `PyCell`, which has RefCell-like features. [#770](https://github.com/PyO3/pyo3/pull/770)
 * `PyClass`, `PyLayout`, `PyClassInitializer`. [#683](https://github.com/PyO3/pyo3/pull/683)
 * Implemented `IntoIterator` for `PySet` and `PyFrozenSet`. [#716](https://github.com/PyO3/pyo3/pull/716)
@@ -102,13 +123,11 @@ and `PyString::to_string_lossy` [#642](https://github.com/PyO3/pyo3/pull/642).
 * Remove `__contains__` and `__iter__` from PyMappingProtocol. [#644](https://github.com/PyO3/pyo3/pull/644)
 * Fix proc-macro definition of PySetAttrProtocol. [#645](https://github.com/PyO3/pyo3/pull/645)
 
-
 ## [0.8.1]
 
 ### Added
 
  * Conversion between [num-bigint](https://github.com/rust-num/num-bigint) and Python int. [#608](https://github.com/PyO3/pyo3/pull/608)
-
 
 ### Fixed
 
@@ -391,7 +410,6 @@ Yanked
 ### Removed
 
 * Remove use of now unneeded 'AsciiExt' trait
-
 
 ## [0.2.2] - 09-26-2017
 
