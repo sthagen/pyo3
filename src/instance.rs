@@ -167,7 +167,7 @@ impl<T> Py<T> {
 pub trait AsPyRef: Sized {
     type Target;
     /// Return reference to object.
-    fn as_ref(&self, py: Python<'_>) -> &Self::Target;
+    fn as_ref<'p>(&'p self, py: Python<'p>) -> &'p Self::Target;
 }
 
 impl<T> AsPyRef for Py<T>
@@ -175,7 +175,7 @@ where
     T: PyTypeInfo,
 {
     type Target = T::AsRefTarget;
-    fn as_ref(&self, _py: Python) -> &Self::Target {
+    fn as_ref<'p>(&'p self, _py: Python<'p>) -> &'p Self::Target {
         let any = self as *const Py<T> as *const PyAny;
         unsafe { PyDowncastImpl::unchecked_downcast(&*any) }
     }
@@ -295,13 +295,14 @@ where
 
 impl<'a, T> FromPyObject<'a> for Py<T>
 where
-    T: AsPyPointer,
-    &'a T: 'a + FromPyObject<'a>,
+    T: PyTypeInfo,
+    &'a T::AsRefTarget: FromPyObject<'a>,
+    T::AsRefTarget: 'a + AsPyPointer,
 {
     /// Extracts `Self` from the source `PyObject`.
     fn extract(ob: &'a PyAny) -> PyResult<Self> {
         unsafe {
-            ob.extract::<&T>()
+            ob.extract::<&T::AsRefTarget>()
                 .map(|val| Py::from_borrowed_ptr(val.as_ptr()))
         }
     }
