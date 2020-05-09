@@ -8,11 +8,9 @@ macro_rules! py_unary_func {
         where
             T: for<'p> $trait<'p>,
         {
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
-                $crate::callback::convert(py, $call!(slf, $f)$(.map($conv))?)
+                $call!(slf, $f)$(.map($conv))?
             })
         }
         Some(wrap::<$class>)
@@ -34,14 +32,12 @@ macro_rules! py_unarys_func {
         where
             T: for<'p> $trait<'p>,
         {
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
                 let borrow = <T::Receiver>::try_from_pycell(slf)
                     .map_err(|e| e.into())?;
-                let res = $class::$f(borrow).into();
-                $crate::callback::convert(py, res $(.map($conv))?)
+
+                $class::$f(borrow).into()$(.map($conv))?
             })
         }
         Some(wrap::<$class>)
@@ -70,13 +66,10 @@ macro_rules! py_binary_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
                 let arg = py.from_borrowed_ptr::<$crate::PyAny>(arg);
-                $crate::callback::convert(py, $call!(slf, $f, arg)$(.map($conv))?)
+                $call!(slf, $f, arg)$(.map($conv))?
             })
         }
         Some(wrap::<$class>)
@@ -100,15 +93,11 @@ macro_rules! py_binary_num_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let lhs = py.from_borrowed_ptr::<$crate::PyAny>(lhs);
                 let rhs = py.from_borrowed_ptr::<$crate::PyAny>(rhs);
 
-                let result = $class::$f(lhs.extract()?, rhs.extract()?).into();
-                $crate::callback::convert(py, result)
+                $class::$f(lhs.extract()?, rhs.extract()?).into()
             })
         }
         Some(wrap::<$class>)
@@ -126,17 +115,12 @@ macro_rules! py_binary_reverse_num_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 // Swap lhs <-> rhs
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(rhs);
                 let arg = py.from_borrowed_ptr::<$crate::PyAny>(lhs);
-                $crate::callback::convert(
-                    py,
-                    $class::$f(&*slf.try_borrow()?, arg.extract()?).into(),
-                )
+
+                $class::$f(&*slf.try_borrow()?, arg.extract()?).into()
             })
         }
         Some(wrap::<$class>)
@@ -155,11 +139,7 @@ macro_rules! py_binary_self_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf_ = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
                 let arg = py.from_borrowed_ptr::<$crate::PyAny>(arg);
                 call_mut!(slf_, $f, arg)?;
@@ -186,11 +166,9 @@ macro_rules! py_ssizearg_func {
         where
             T: for<'p> $trait<'p>,
         {
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
-                $crate::callback::convert(py, $call!(slf, $f; arg.into()))
+                $call!(slf, $f; arg.into())
             })
         }
         Some(wrap::<$class>)
@@ -209,11 +187,7 @@ macro_rules! py_ternary_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
                 let arg1 = py
                     .from_borrowed_ptr::<$crate::types::PyAny>(arg1)
@@ -222,7 +196,7 @@ macro_rules! py_ternary_func {
                     .from_borrowed_ptr::<$crate::types::PyAny>(arg2)
                     .extract()?;
 
-                $crate::callback::convert(py, slf.try_borrow()?.$f(arg1, arg2).into())
+                slf.try_borrow()?.$f(arg1, arg2).into()
             })
         }
 
@@ -245,11 +219,7 @@ macro_rules! py_ternary_num_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let arg1 = py
                     .from_borrowed_ptr::<$crate::types::PyAny>(arg1)
                     .extract()?;
@@ -260,8 +230,7 @@ macro_rules! py_ternary_num_func {
                     .from_borrowed_ptr::<$crate::types::PyAny>(arg3)
                     .extract()?;
 
-                let result = $class::$f(arg1, arg2, arg3).into();
-                $crate::callback::convert(py, result)
+                $class::$f(arg1, arg2, arg3).into()
             })
         }
 
@@ -281,17 +250,13 @@ macro_rules! py_ternary_reverse_num_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 // Swap lhs <-> rhs
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<T>>(arg2);
-                let slf = slf.try_borrow()?;
                 let arg1 = py.from_borrowed_ptr::<$crate::PyAny>(arg1);
                 let arg2 = py.from_borrowed_ptr::<$crate::PyAny>(arg3);
-                let result = $class::$f(&*slf, arg1.extract()?, arg2.extract()?).into();
-                $crate::callback::convert(py, result)
+
+                $class::$f(&*slf.try_borrow()?, arg1.extract()?, arg2.extract()?).into()
             })
         }
         Some(wrap::<$class>)
@@ -312,11 +277,7 @@ macro_rules! py_dummy_ternary_self_func {
         where
             T: for<'p> $trait<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf_cell = py.from_borrowed_ptr::<$crate::PyCell<T>>(slf);
                 let arg1 = py.from_borrowed_ptr::<$crate::PyAny>(arg1);
                 call_mut!(slf_cell, $f, arg1)?;
@@ -338,11 +299,7 @@ macro_rules! py_func_set {
         where
             T: for<'p> $trait_name<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<$generic>>(slf);
 
                 if value.is_null() {
@@ -355,7 +312,7 @@ macro_rules! py_func_set {
                 } else {
                     let name = py.from_borrowed_ptr::<$crate::PyAny>(name);
                     let value = py.from_borrowed_ptr::<$crate::PyAny>(value);
-                    crate::callback::convert(py, call_mut!(slf, $fn_set, name, value))
+                    call_mut!(slf, $fn_set, name, value)
                 }
             })
         }
@@ -374,17 +331,13 @@ macro_rules! py_func_del {
         where
             U: for<'p> $trait_name<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 if value.is_null() {
                     let slf = py.from_borrowed_ptr::<$crate::PyCell<U>>(slf);
                     let name = py
                         .from_borrowed_ptr::<$crate::types::PyAny>(name)
                         .extract()?;
-                    $crate::callback::convert(py, slf.try_borrow_mut()?.$fn_del(name).into())
+                    slf.try_borrow_mut()?.$fn_del(name).into()
                 } else {
                     Err(PyErr::new::<exceptions::NotImplementedError, _>(
                         "Subscript assignment not supported",
@@ -407,21 +360,16 @@ macro_rules! py_func_set_del {
         where
             T: for<'p> $trait1<'p> + for<'p> $trait2<'p>,
         {
-            use $crate::ObjectProtocol;
-
-            let pool = $crate::GILPool::new();
-            let py = pool.python();
-            $crate::run_callback(py, || {
+            $crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<$crate::PyCell<$generic>>(slf);
                 let name = py.from_borrowed_ptr::<$crate::PyAny>(name);
 
-                let result = if value.is_null() {
+                if value.is_null() {
                     call_mut!(slf, $fn_del, name)
                 } else {
                     let value = py.from_borrowed_ptr::<$crate::PyAny>(value);
                     call_mut!(slf, $fn_set, name, value)
-                };
-                $crate::callback::convert(py, result)
+                }
             })
         }
         Some(wrap::<$generic>)

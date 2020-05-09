@@ -11,8 +11,7 @@
 use crate::callback::HashCallbackOutput;
 use crate::class::methods::PyMethodDef;
 use crate::{
-    callback, exceptions, ffi, run_callback, FromPyObject, GILPool, IntoPy, ObjectProtocol, PyAny,
-    PyCell, PyClass, PyErr, PyObject, PyResult,
+    exceptions, ffi, FromPyObject, IntoPy, PyAny, PyCell, PyClass, PyErr, PyObject, PyResult,
 };
 use std::os::raw::c_int;
 
@@ -218,9 +217,7 @@ where
         where
             T: for<'p> PyObjectGetAttrProtocol<'p>,
         {
-            let pool = GILPool::new();
-            let py = pool.python();
-            run_callback(py, || {
+            crate::callback_body!(py, {
                 // Behave like python's __getattr__ (as opposed to __getattribute__) and check
                 // for existing fields and methods first
                 let existing = ffi::PyObject_GenericGetAttr(slf, arg);
@@ -233,7 +230,7 @@ where
 
                 let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
                 let arg = py.from_borrowed_ptr::<PyAny>(arg);
-                callback::convert(py, call_ref!(slf, __getattr__, arg))
+                call_ref!(slf, __getattr__, arg)
             })
         }
         Some(wrap::<T>)
@@ -484,17 +481,14 @@ where
         where
             T: for<'p> PyObjectRichcmpProtocol<'p>,
         {
-            let pool = GILPool::new();
-            let py = pool.python();
-            run_callback(py, || {
+            crate::callback_body!(py, {
                 let slf = py.from_borrowed_ptr::<crate::PyCell<T>>(slf);
                 let arg = py.from_borrowed_ptr::<PyAny>(arg);
 
-                let borrowed_slf = slf.try_borrow()?;
                 let op = extract_op(op)?;
                 let arg = arg.extract()?;
-                let result = borrowed_slf.__richcmp__(arg, op).into();
-                callback::convert(py, result)
+
+                slf.try_borrow()?.__richcmp__(arg, op).into()
             })
         }
         Some(wrap::<T>)

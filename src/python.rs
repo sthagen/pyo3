@@ -3,7 +3,7 @@
 // based on Daniel Grunwald's https://github.com/dgrunwald/rust-cpython
 
 use crate::err::{PyDowncastError, PyErr, PyResult};
-use crate::gil::{self, GILGuard};
+use crate::gil::{self, GILGuard, GILPool};
 use crate::type_object::{PyTypeInfo, PyTypeObject};
 use crate::types::{PyAny, PyDict, PyModule, PyType};
 use crate::{
@@ -135,10 +135,19 @@ impl<'p> Python<'p> {
         // The `Send` bound on the closure prevents the user from
         // transferring the `Python` token into the closure.
         unsafe {
+            let count = gil::GIL_COUNT.with(|c| c.replace(0));
             let save = ffi::PyEval_SaveThread();
-            let result = f();
+            // Unwinding right here corrupts the Python interpreter state and leads to weird
+            // crashes such as stack overflows. We will catch the unwind and resume as soon as
+            // we've restored the GIL state.
+            //
+            // Because we will resume unwinding as soon as the GIL state is fixed, we can assert
+            // that the closure is unwind safe.
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f));
             ffi::PyEval_RestoreThread(save);
-            result
+            gil::GIL_COUNT.with(|c| c.set(count));
+            // Now that the GIL state has been safely reset, we can unwind if a panic was caught.
+            result.unwrap_or_else(|payload| std::panic::resume_unwind(payload))
         }
     }
 
@@ -197,7 +206,7 @@ impl<'p> Python<'p> {
     ) -> PyResult<()> {
         let res = self.run_code(code, ffi::Py_file_input, globals, locals);
         res.map(|obj| {
-            debug_assert!(crate::ObjectProtocol::is_none(obj));
+            debug_assert!(obj.is_none());
         })
     }
 
@@ -282,6 +291,62 @@ impl<'p> Python<'p> {
     #[inline]
     pub fn NotImplemented(self) -> PyObject {
         unsafe { PyObject::from_borrowed_ptr(self, ffi::Py_NotImplemented()) }
+    }
+
+    /// Create a new pool for managing PyO3's owned references.
+    ///
+    /// When this `GILPool` is dropped, all PyO3 owned references created after this `GILPool` will
+    /// all have their Python reference counts decremented, potentially allowing Python to drop
+    /// the corresponding Python objects.
+    ///
+    /// Typical usage of PyO3 will not need this API, as `Python::acquire_gil` automatically
+    /// creates a `GILPool` where appropriate.
+    ///
+    /// Advanced uses of PyO3 which perform long-running tasks which never free the GIL may need
+    /// to use this API to clear memory, as PyO3 usually does not clear memory until the GIL is
+    /// released.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use pyo3::prelude::*;
+    /// let gil = Python::acquire_gil();
+    /// let py = gil.python();
+    ///
+    /// // Some long-running process like a webserver, which never releases the GIL.
+    /// loop {
+    ///     // Create a new pool, so that PyO3 can clear memory at the end of the loop.
+    ///     let pool = unsafe { py.new_pool() };
+    ///
+    ///     // It is recommended to *always* immediately set py to the pool's Python, to help
+    ///     // avoid creating references with invalid lifetimes.
+    ///     let py = unsafe { pool.python() };
+    ///
+    ///     // do stuff...
+    /// # break;  // Exit the loop so that doctest terminates!
+    /// }
+    /// ```
+    ///
+    /// # Safety
+    /// Extreme care must be taken when using this API, as misuse can lead to accessing invalid
+    /// memory. In addition, the caller is responsible for guaranteeing that the GIL remains held
+    /// for the entire lifetime of the returned `GILPool`.
+    ///
+    /// Two best practices are required when using this API:
+    /// - From the moment `new_pool()` is called, only the `Python` token from the returned
+    ///   `GILPool` (accessible using `.python()`) should be used in PyO3 APIs. All other older
+    ///   `Python` tokens with longer lifetimes are unsafe to use until the `GILPool` is dropped,
+    ///   because they can be used to create PyO3 owned references which have lifetimes which
+    ///   outlive the `GILPool`.
+    /// - Similarly, methods on existing owned references will implicitly refer back to the
+    ///   `Python` token which that reference was originally created with. If the returned values
+    ///   from these methods are owned references they will inherit the same lifetime. As a result,
+    ///   Rust's lifetime rules may allow them to outlive the `GILPool`, even though this is not
+    ///   safe for reasons discussed above. Care must be taken to never access these return values
+    ///   after the `GILPool` is dropped, unless they are converted to `Py<T>` *before* the pool
+    ///   is dropped.
+    #[inline]
+    pub unsafe fn new_pool(self) -> GILPool {
+        GILPool::new()
     }
 }
 
@@ -405,7 +470,6 @@ impl<'p> Python<'p> {
 
 #[cfg(test)]
 mod test {
-    use crate::objectprotocol::ObjectProtocol;
     use crate::types::{IntoPyDict, PyAny, PyBool, PyInt, PyList};
     use crate::Python;
 
@@ -468,5 +532,34 @@ mod test {
         let py = gil.python();
         assert!(py.is_subclass::<PyBool, PyInt>().unwrap());
         assert!(!py.is_subclass::<PyBool, PyList>().unwrap());
+    }
+
+    #[test]
+    fn test_allow_threads_panics_safely() {
+        // If -Cpanic=abort is specified, we can't catch panic.
+        if option_env!("RUSTFLAGS")
+            .map(|s| s.contains("-Cpanic=abort"))
+            .unwrap_or(false)
+        {
+            return;
+        }
+
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+
+        let result = std::panic::catch_unwind(|| unsafe {
+            let py = Python::assume_gil_acquired();
+            py.allow_threads(|| {
+                panic!("There was a panic!");
+            });
+        });
+
+        // Check panic was caught
+        assert!(result.is_err());
+
+        // If allow_threads is implemented correctly, this thread still owns the GIL here
+        // so the following Python calls should not cause crashes.
+        let list = PyList::new(py, &[1, 2, 3, 4]);
+        assert_eq!(list.extract::<Vec<i32>>().unwrap(), vec![1, 2, 3, 4]);
     }
 }

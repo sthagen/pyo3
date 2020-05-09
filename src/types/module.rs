@@ -7,7 +7,6 @@ use crate::exceptions;
 use crate::ffi;
 use crate::instance::PyNativeType;
 use crate::object::PyObject;
-use crate::objectprotocol::ObjectProtocol;
 use crate::pyclass::PyClass;
 use crate::type_object::PyTypeObject;
 use crate::types::PyTuple;
@@ -71,8 +70,10 @@ impl PyModule {
     /// this object is the same as the `__dict__` attribute of the module object.
     pub fn dict(&self) -> &PyDict {
         unsafe {
-            self.py()
-                .from_borrowed_ptr::<PyDict>(ffi::PyModule_GetDict(self.as_ptr()))
+            // PyModule_GetDict returns borrowed ptr; must make owned for safety (see #890).
+            let ptr = ffi::PyModule_GetDict(self.as_ptr());
+            ffi::Py_INCREF(ptr);
+            self.py().from_owned_ptr(ptr)
         }
     }
 
