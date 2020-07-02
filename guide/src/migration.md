@@ -3,6 +3,102 @@
 This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see [CHANGELOG.md](https://github.com/PyO3/pyo3/blob/master/CHANGELOG.md)
 
+## from 0.10.* to 0.11
+
+### Stable Rust
+PyO3 now supports the stable Rust toolchain. The minimum required version is 1.39.0.
+
+### `#[pyclass]` structs must now be `Send` or `unsendable`
+Because `#[pyclass]` structs can be sent between threads by the Python interpreter, they must implement
+`Send` or declared as `unsendable` (by `#[pyclass(unsendable)]`).
+Note that `unsendable` is added in PyO3 `0.11.1` and `Send` is always required in PyO3 `0.11.0`.
+
+This may "break" some code which previously was accepted, even though it could be unsound.
+There can be two fixes:
+
+1. If you think that your `#[pyclass]` actually must be `Send`able, then let's implement `Send`.
+   A common, safer way is using thread-safe types. E.g., `Arc` instead of `Rc`, `Mutex` instead of
+   `RefCell`, and `Box<dyn Send + T>` instead of `Box<dyn T>`.
+
+   Before:
+   ```rust,compile_fail
+   use pyo3::prelude::*;
+   use std::rc::Rc;
+   use std::cell::RefCell;
+
+   #[pyclass]
+   struct NotThreadSafe {
+       shared_bools: Rc<RefCell<Vec<bool>>>,
+       closure: Box<dyn Fn()>
+   }
+   ```
+
+   After:
+   ```rust
+   use pyo3::prelude::*;
+   use std::sync::{Arc, Mutex};
+
+   #[pyclass]
+   struct ThreadSafe {
+       shared_bools: Arc<Mutex<Vec<bool>>>,
+       closure: Box<dyn Fn() + Send>
+   }
+   ```
+
+   In situations where you cannot change your `#[pyclass]` to automatically implement `Send`
+   (e.g., when it contains a raw pointer), you can use `unsafe impl Send`. 
+   In such cases, care should be taken to ensure the struct is actually thread safe.
+   See [the Rustnomicon](https://doc.rust-lang.org/nomicon/send-and-sync.html) for more.
+
+2. If you think that your `#[pyclass]` should not be accessed by another thread, you can use
+   `unsendable` flag. A class marked with `unsendable` panics when accessed by another thread,
+   making it thread-safe to expose an unsendable object to the Python interpreter.
+
+   Before:
+   ```rust,compile_fail
+   use pyo3::prelude::*;
+
+   #[pyclass]
+   struct Unsendable {
+       pointers: Vec<*mut std::os::raw::c_char>,
+   }
+   ```
+
+   After:
+   ```rust
+   use pyo3::prelude::*;
+
+   #[pyclass(unsendable)]
+   struct Unsendable {
+       pointers: Vec<*mut std::os::raw::c_char>,
+   }
+   ```
+
+### All `PyObject` and `Py<T>` methods now take `Python` as an argument
+Previously, a few methods such as `Object::get_refcnt` did not take `Python` as an argument (to
+ensure that the Python GIL was held by the current thread). Technically, this was not sound.
+To migrate, just pass a `py` argument to any calls to these methods.
+
+Before:
+```rust,compile_fail
+use pyo3::prelude::*;
+
+let gil = Python::acquire_gil();
+let py = gil.python();
+
+py.None().get_refcnt();
+```
+
+After:
+```rust
+use pyo3::prelude::*;
+
+let gil = Python::acquire_gil();
+let py = gil.python();
+
+py.None().get_refcnt(py);
+```
+
 ## from 0.9.* to 0.10
 
 ### `ObjectProtocol` is removed

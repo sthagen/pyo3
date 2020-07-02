@@ -75,6 +75,7 @@ macro_rules! pyobject_native_type {
             type WeakRef = $crate::pyclass_slots::PyClassDummySlot;
             type LayoutAsBase = $crate::pycell::PyCellBase<$name>;
             type BaseNativeType = $name;
+            type ThreadChecker = $crate::pyclass::ThreadCheckerStub<$crate::PyObject>;
         }
         pyobject_native_type_named!($name $(,$type_param)*);
         pyobject_native_type_convert!($name, $layout, $typeobject, $module, $checkfunction $(,$type_param)*);
@@ -143,8 +144,11 @@ macro_rules! pyobject_native_type_convert(
             const MODULE: Option<&'static str> = $module;
 
             #[inline]
-            fn type_object() -> &'static $crate::ffi::PyTypeObject {
-                unsafe{ &$typeobject }
+            fn type_object_raw(_py: Python) -> *mut $crate::ffi::PyTypeObject {
+                // Create a very short lived mutable reference and directly
+                // cast it to a pointer: no mutable references can be aliasing
+                // because we hold the GIL.
+                unsafe { &mut $typeobject }
             }
 
             #[allow(unused_unsafe)]

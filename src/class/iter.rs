@@ -11,6 +11,39 @@ use crate::{ffi, IntoPy, IntoPyPointer, PyClass, PyObject, Python};
 ///
 /// Check [CPython doc](https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter)
 /// for more.
+///
+/// # Example
+/// The following example shows how to implement a simple Python iterator in Rust which yields
+/// the integers 1 to 5, before raising `StopIteration("Ended")`.
+///
+/// ```rust
+/// use pyo3::prelude::*;
+/// use pyo3::PyIterProtocol;
+/// use pyo3::class::iter::IterNextOutput;
+///
+/// #[pyclass]
+/// struct Iter {
+///     count: usize
+/// }
+///
+/// #[pyproto]
+/// impl PyIterProtocol for Iter {
+///     fn __next__(mut slf: PyRefMut<Self>) -> IterNextOutput<usize, &'static str> {
+///         if slf.count < 5 {
+///             slf.count += 1;
+///             IterNextOutput::Yield(slf.count)
+///         } else {
+///             IterNextOutput::Return("Ended")
+///         }
+///     }
+/// }
+///
+/// # let gil = Python::acquire_gil();
+/// # let py = gil.python();
+/// # let inst = Py::new(py, Iter { count: 0 }).unwrap();
+/// # pyo3::py_run!(py, inst, "assert next(inst) == 1");
+/// # // test of StopIteration is done in examples/rustapi_module/pyclass_iter.rs
+/// ```
 #[allow(unused_variables)]
 pub trait PyIterProtocol<'p>: PyClass {
     fn __iter__(slf: Self::Receiver) -> Self::Result
@@ -30,92 +63,81 @@ pub trait PyIterProtocol<'p>: PyClass {
 
 pub trait PyIterIterProtocol<'p>: PyIterProtocol<'p> {
     type Receiver: TryFromPyCell<'p, Self>;
-    type Success: crate::IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 
 pub trait PyIterNextProtocol<'p>: PyIterProtocol<'p> {
     type Receiver: TryFromPyCell<'p, Self>;
-    type Success: crate::IntoPy<PyObject>;
-    type Result: Into<PyResult<Option<Self::Success>>>;
+    type Result: IntoPyCallbackOutput<PyIterNextOutput>;
+}
+
+#[derive(Default)]
+pub struct PyIterMethods {
+    pub tp_iter: Option<ffi::getiterfunc>,
+    pub tp_iternext: Option<ffi::iternextfunc>,
 }
 
 #[doc(hidden)]
-pub trait PyIterProtocolImpl {
-    fn tp_as_iter(_typeob: &mut ffi::PyTypeObject);
-}
-
-impl<T> PyIterProtocolImpl for T {
-    default fn tp_as_iter(_typeob: &mut ffi::PyTypeObject) {}
-}
-
-impl<'p, T> PyIterProtocolImpl for T
-where
-    T: PyIterProtocol<'p>,
-{
-    #[inline]
-    fn tp_as_iter(typeob: &mut ffi::PyTypeObject) {
-        typeob.tp_iter = Self::tp_iter();
-        typeob.tp_iternext = Self::tp_iternext();
+impl PyIterMethods {
+    pub(crate) fn update_typeobj(&self, type_object: &mut ffi::PyTypeObject) {
+        type_object.tp_iter = self.tp_iter;
+        type_object.tp_iternext = self.tp_iternext;
+    }
+    pub fn set_iter<T>(&mut self)
+    where
+        T: for<'p> PyIterIterProtocol<'p>,
+    {
+        self.tp_iter = py_unarys_func!(PyIterIterProtocol, T::__iter__);
+    }
+    pub fn set_iternext<T>(&mut self)
+    where
+        T: for<'p> PyIterNextProtocol<'p>,
+    {
+        self.tp_iternext = py_unarys_func!(PyIterNextProtocol, T::__next__);
     }
 }
 
-trait PyIterIterProtocolImpl {
-    fn tp_iter() -> Option<ffi::getiterfunc>;
+/// Output of `__next__` which can either `yield` the next value in the iteration, or
+/// `return` a value to raise `StopIteration` in Python.
+///
+/// See [`PyIterProtocol`](trait.PyIterProtocol.html) for an example.
+pub enum IterNextOutput<T, U> {
+    Yield(T),
+    Return(U),
 }
 
-impl<'p, T> PyIterIterProtocolImpl for T
-where
-    T: PyIterProtocol<'p>,
-{
-    default fn tp_iter() -> Option<ffi::getiterfunc> {
-        None
+pub type PyIterNextOutput = IterNextOutput<PyObject, PyObject>;
+
+impl IntoPyCallbackOutput<*mut ffi::PyObject> for PyIterNextOutput {
+    fn convert(self, _py: Python) -> PyResult<*mut ffi::PyObject> {
+        match self {
+            IterNextOutput::Yield(o) => Ok(o.into_ptr()),
+            IterNextOutput::Return(opt) => Err(crate::exceptions::StopIteration::py_err((opt,))),
+        }
     }
 }
 
-impl<T> PyIterIterProtocolImpl for T
+impl<T, U> IntoPyCallbackOutput<PyIterNextOutput> for IterNextOutput<T, U>
 where
-    T: for<'p> PyIterIterProtocol<'p>,
+    T: IntoPy<PyObject>,
+    U: IntoPy<PyObject>,
 {
-    #[inline]
-    fn tp_iter() -> Option<ffi::getiterfunc> {
-        py_unarys_func!(PyIterIterProtocol, T::__iter__)
+    fn convert(self, py: Python) -> PyResult<PyIterNextOutput> {
+        match self {
+            IterNextOutput::Yield(o) => Ok(IterNextOutput::Yield(o.into_py(py))),
+            IterNextOutput::Return(o) => Ok(IterNextOutput::Return(o.into_py(py))),
+        }
     }
 }
 
-trait PyIterNextProtocolImpl {
-    fn tp_iternext() -> Option<ffi::iternextfunc>;
-}
-
-impl<'p, T> PyIterNextProtocolImpl for T
-where
-    T: PyIterProtocol<'p>,
-{
-    default fn tp_iternext() -> Option<ffi::iternextfunc> {
-        None
-    }
-}
-
-impl<T> PyIterNextProtocolImpl for T
-where
-    T: for<'p> PyIterNextProtocol<'p>,
-{
-    #[inline]
-    fn tp_iternext() -> Option<ffi::iternextfunc> {
-        py_unarys_func!(PyIterNextProtocol, T::__next__, IterNextConverter)
-    }
-}
-
-struct IterNextConverter<T>(Option<T>);
-
-impl<T> IntoPyCallbackOutput<*mut ffi::PyObject> for IterNextConverter<T>
+impl<T> IntoPyCallbackOutput<PyIterNextOutput> for Option<T>
 where
     T: IntoPy<PyObject>,
 {
-    fn convert(self, py: Python) -> PyResult<*mut ffi::PyObject> {
-        match self.0 {
-            Some(val) => Ok(val.into_py(py).into_ptr()),
-            None => Err(crate::exceptions::StopIteration::py_err(())),
+    fn convert(self, py: Python) -> PyResult<PyIterNextOutput> {
+        match self {
+            Some(o) => Ok(PyIterNextOutput::Yield(o.into_py(py))),
+            None => Ok(PyIterNextOutput::Return(py.None())),
         }
     }
 }

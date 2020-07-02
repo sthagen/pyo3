@@ -8,10 +8,8 @@
 //! Parts of the documentation are copied from the respective methods from the
 //! [typeobj docs](https://docs.python.org/3/c-api/typeobj.html)
 
-use crate::callback::HashCallbackOutput;
-use crate::{
-    exceptions, ffi, FromPyObject, IntoPy, PyAny, PyCell, PyClass, PyErr, PyObject, PyResult,
-};
+use crate::callback::{HashCallbackOutput, IntoPyCallbackOutput};
+use crate::{exceptions, ffi, FromPyObject, PyAny, PyCell, PyClass, PyErr, PyObject, PyResult};
 use std::os::raw::c_int;
 
 /// Operators for the __richcmp__ method
@@ -77,13 +75,6 @@ pub trait PyObjectProtocol<'p>: PyClass {
         unimplemented!()
     }
 
-    fn __bool__(&'p self) -> Self::Result
-    where
-        Self: PyObjectBoolProtocol<'p>,
-    {
-        unimplemented!()
-    }
-
     fn __bytes__(&'p self) -> Self::Result
     where
         Self: PyObjectBytesProtocol<'p>,
@@ -97,356 +88,200 @@ pub trait PyObjectProtocol<'p>: PyClass {
     {
         unimplemented!()
     }
+    fn __bool__(&'p self) -> Self::Result
+    where
+        Self: PyObjectBoolProtocol<'p>,
+    {
+        unimplemented!()
+    }
 }
 
 pub trait PyObjectGetAttrProtocol<'p>: PyObjectProtocol<'p> {
     type Name: FromPyObject<'p>;
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 pub trait PyObjectSetAttrProtocol<'p>: PyObjectProtocol<'p> {
     type Name: FromPyObject<'p>;
     type Value: FromPyObject<'p>;
-    type Result: Into<PyResult<()>>;
+    type Result: IntoPyCallbackOutput<()>;
 }
 pub trait PyObjectDelAttrProtocol<'p>: PyObjectProtocol<'p> {
     type Name: FromPyObject<'p>;
-    type Result: Into<PyResult<()>>;
+    type Result: IntoPyCallbackOutput<()>;
 }
 pub trait PyObjectStrProtocol<'p>: PyObjectProtocol<'p> {
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 pub trait PyObjectReprProtocol<'p>: PyObjectProtocol<'p> {
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 pub trait PyObjectFormatProtocol<'p>: PyObjectProtocol<'p> {
     type Format: FromPyObject<'p>;
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 pub trait PyObjectHashProtocol<'p>: PyObjectProtocol<'p> {
-    type Result: Into<PyResult<isize>>;
+    type Result: IntoPyCallbackOutput<HashCallbackOutput>;
 }
 pub trait PyObjectBoolProtocol<'p>: PyObjectProtocol<'p> {
-    type Result: Into<PyResult<bool>>;
+    type Result: IntoPyCallbackOutput<bool>;
 }
 pub trait PyObjectBytesProtocol<'p>: PyObjectProtocol<'p> {
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
 }
 pub trait PyObjectRichcmpProtocol<'p>: PyObjectProtocol<'p> {
     type Other: FromPyObject<'p>;
-    type Success: IntoPy<PyObject>;
-    type Result: Into<PyResult<Self::Success>>;
+    type Result: IntoPyCallbackOutput<PyObject>;
+}
+
+/// All FFI functions for basic protocols.
+#[derive(Default)]
+pub struct PyObjectMethods {
+    pub tp_str: Option<ffi::reprfunc>,
+    pub tp_repr: Option<ffi::reprfunc>,
+    pub tp_hash: Option<ffi::hashfunc>,
+    pub tp_getattro: Option<ffi::getattrofunc>,
+    pub tp_richcompare: Option<ffi::richcmpfunc>,
+    pub tp_setattro: Option<ffi::setattrofunc>,
+    pub nb_bool: Option<ffi::inquiry>,
 }
 
 #[doc(hidden)]
-pub trait PyObjectProtocolImpl {
-    fn tp_as_object(_type_object: &mut ffi::PyTypeObject);
-    fn nb_bool_fn() -> Option<ffi::inquiry>;
-}
-
-impl<T> PyObjectProtocolImpl for T {
-    default fn tp_as_object(_type_object: &mut ffi::PyTypeObject) {}
-    default fn nb_bool_fn() -> Option<ffi::inquiry> {
-        None
+impl PyObjectMethods {
+    pub(crate) fn update_typeobj(&self, type_object: &mut ffi::PyTypeObject) {
+        type_object.tp_str = self.tp_str;
+        type_object.tp_repr = self.tp_repr;
+        type_object.tp_hash = self.tp_hash;
+        type_object.tp_getattro = self.tp_getattro;
+        type_object.tp_richcompare = self.tp_richcompare;
+        type_object.tp_setattro = self.tp_setattro;
     }
-}
-
-impl<'p, T> PyObjectProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    fn tp_as_object(type_object: &mut ffi::PyTypeObject) {
-        type_object.tp_str = Self::tp_str();
-        type_object.tp_repr = Self::tp_repr();
-        type_object.tp_hash = Self::tp_hash();
-        type_object.tp_getattro = Self::tp_getattro();
-        type_object.tp_richcompare = Self::tp_richcompare();
-        type_object.tp_setattro = tp_setattro_impl::tp_setattro::<Self>();
+    // Set functions used by `#[pyproto]`.
+    pub fn set_str<T>(&mut self)
+    where
+        T: for<'p> PyObjectStrProtocol<'p>,
+    {
+        self.tp_str = py_unary_func!(PyObjectStrProtocol, T::__str__);
     }
-    fn nb_bool_fn() -> Option<ffi::inquiry> {
-        Self::nb_bool()
+    pub fn set_repr<T>(&mut self)
+    where
+        T: for<'p> PyObjectReprProtocol<'p>,
+    {
+        self.tp_repr = py_unary_func!(PyObjectReprProtocol, T::__repr__);
     }
-}
-
-trait GetAttrProtocolImpl {
-    fn tp_getattro() -> Option<ffi::binaryfunc>;
-}
-
-impl<'p, T> GetAttrProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    default fn tp_getattro() -> Option<ffi::binaryfunc> {
-        None
+    pub fn set_hash<T>(&mut self)
+    where
+        T: for<'p> PyObjectHashProtocol<'p>,
+    {
+        self.tp_hash = py_unary_func!(PyObjectHashProtocol, T::__hash__, ffi::Py_hash_t);
     }
-}
-
-impl<T> GetAttrProtocolImpl for T
-where
-    T: for<'p> PyObjectGetAttrProtocol<'p>,
-{
-    fn tp_getattro() -> Option<ffi::binaryfunc> {
-        #[allow(unused_mut)]
-        unsafe extern "C" fn wrap<T>(
-            slf: *mut ffi::PyObject,
-            arg: *mut ffi::PyObject,
-        ) -> *mut ffi::PyObject
-        where
-            T: for<'p> PyObjectGetAttrProtocol<'p>,
-        {
-            crate::callback_body!(py, {
-                // Behave like python's __getattr__ (as opposed to __getattribute__) and check
-                // for existing fields and methods first
-                let existing = ffi::PyObject_GenericGetAttr(slf, arg);
-                if existing.is_null() {
-                    // PyObject_HasAttr also tries to get an object and clears the error if it fails
-                    ffi::PyErr_Clear();
-                } else {
-                    return Ok(existing);
-                }
-
-                let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
-                let arg = py.from_borrowed_ptr::<PyAny>(arg);
-                call_ref!(slf, __getattr__, arg)
-            })
-        }
-        Some(wrap::<T>)
+    pub fn set_getattr<T>(&mut self)
+    where
+        T: for<'p> PyObjectGetAttrProtocol<'p>,
+    {
+        self.tp_getattro = tp_getattro::<T>();
     }
-}
-
-/// An object may support setting attributes (by implementing PyObjectSetAttrProtocol)
-/// and may support deleting attributes (by implementing PyObjectDelAttrProtocol).
-/// We need to generate a single "extern C" function that supports only setting, only deleting
-/// or both, and return None in case none of the two is supported.
-mod tp_setattro_impl {
-    use super::*;
-
-    /// setattrofunc PyTypeObject.tp_setattro
-    ///
-    /// An optional pointer to the function for setting and deleting attributes.
-    ///
-    /// The signature is the same as for PyObject_SetAttr(), but setting v to NULL to delete an
-    /// attribute must be supported. It is usually convenient to set this field to
-    /// PyObject_GenericSetAttr(), which implements the normal way of setting object attributes.
-    pub(super) fn tp_setattro<'p, T: PyObjectProtocol<'p>>() -> Option<ffi::setattrofunc> {
-        if let Some(set_del) = T::set_del_attr() {
-            Some(set_del)
-        } else if let Some(set) = T::set_attr() {
-            Some(set)
-        } else if let Some(del) = T::del_attr() {
-            Some(del)
-        } else {
-            None
-        }
+    pub fn set_richcompare<T>(&mut self)
+    where
+        T: for<'p> PyObjectRichcmpProtocol<'p>,
+    {
+        self.tp_richcompare = tp_richcompare::<T>();
     }
-
-    trait SetAttr {
-        fn set_attr() -> Option<ffi::setattrofunc>;
-    }
-
-    impl<'p, T: PyObjectProtocol<'p>> SetAttr for T {
-        default fn set_attr() -> Option<ffi::setattrofunc> {
-            None
-        }
-    }
-
-    impl<T> SetAttr for T
+    pub fn set_setattr<T>(&mut self)
     where
         T: for<'p> PyObjectSetAttrProtocol<'p>,
     {
-        fn set_attr() -> Option<ffi::setattrofunc> {
-            py_func_set!(PyObjectSetAttrProtocol, T, __setattr__)
-        }
+        self.tp_setattro = py_func_set!(PyObjectSetAttrProtocol, T, __setattr__);
     }
-
-    trait DelAttr {
-        fn del_attr() -> Option<ffi::setattrofunc>;
-    }
-
-    impl<'p, T> DelAttr for T
-    where
-        T: PyObjectProtocol<'p>,
-    {
-        default fn del_attr() -> Option<ffi::setattrofunc> {
-            None
-        }
-    }
-
-    impl<T> DelAttr for T
+    pub fn set_delattr<T>(&mut self)
     where
         T: for<'p> PyObjectDelAttrProtocol<'p>,
     {
-        fn del_attr() -> Option<ffi::setattrofunc> {
-            py_func_del!(PyObjectDelAttrProtocol, T, __delattr__)
-        }
+        self.tp_setattro = py_func_del!(PyObjectDelAttrProtocol, T, __delattr__);
     }
-
-    trait SetDelAttr {
-        fn set_del_attr() -> Option<ffi::setattrofunc>;
-    }
-
-    impl<'p, T> SetDelAttr for T
-    where
-        T: PyObjectProtocol<'p>,
-    {
-        default fn set_del_attr() -> Option<ffi::setattrofunc> {
-            None
-        }
-    }
-
-    impl<T> SetDelAttr for T
+    pub fn set_setdelattr<T>(&mut self)
     where
         T: for<'p> PyObjectSetAttrProtocol<'p> + for<'p> PyObjectDelAttrProtocol<'p>,
     {
-        fn set_del_attr() -> Option<ffi::setattrofunc> {
-            py_func_set_del!(
-                PyObjectSetAttrProtocol,
-                PyObjectDelAttrProtocol,
-                T,
-                __setattr__,
-                __delattr__
-            )
-        }
-    }
-}
-
-trait StrProtocolImpl {
-    fn tp_str() -> Option<ffi::unaryfunc>;
-}
-impl<'p, T> StrProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    default fn tp_str() -> Option<ffi::unaryfunc> {
-        None
-    }
-}
-impl<T> StrProtocolImpl for T
-where
-    T: for<'p> PyObjectStrProtocol<'p>,
-{
-    fn tp_str() -> Option<ffi::unaryfunc> {
-        py_unary_func!(PyObjectStrProtocol, T::__str__)
-    }
-}
-
-trait ReprProtocolImpl {
-    fn tp_repr() -> Option<ffi::unaryfunc>;
-}
-impl<'p, T> ReprProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    default fn tp_repr() -> Option<ffi::unaryfunc> {
-        None
-    }
-}
-impl<T> ReprProtocolImpl for T
-where
-    T: for<'p> PyObjectReprProtocol<'p>,
-{
-    fn tp_repr() -> Option<ffi::unaryfunc> {
-        py_unary_func!(PyObjectReprProtocol, T::__repr__)
-    }
-}
-
-trait HashProtocolImpl {
-    fn tp_hash() -> Option<ffi::hashfunc>;
-}
-impl<'p, T> HashProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    default fn tp_hash() -> Option<ffi::hashfunc> {
-        None
-    }
-}
-impl<T> HashProtocolImpl for T
-where
-    T: for<'p> PyObjectHashProtocol<'p>,
-{
-    fn tp_hash() -> Option<ffi::hashfunc> {
-        py_unary_func!(
-            PyObjectHashProtocol,
-            T::__hash__,
-            ffi::Py_hash_t,
-            HashCallbackOutput
+        self.tp_setattro = py_func_set_del!(
+            PyObjectSetAttrProtocol,
+            PyObjectDelAttrProtocol,
+            T,
+            __setattr__,
+            __delattr__
         )
     }
-}
-
-trait BoolProtocolImpl {
-    fn nb_bool() -> Option<ffi::inquiry>;
-}
-impl<'p, T> BoolProtocolImpl for T
-where
-    T: PyObjectProtocol<'p>,
-{
-    default fn nb_bool() -> Option<ffi::inquiry> {
-        None
-    }
-}
-impl<T> BoolProtocolImpl for T
-where
-    T: for<'p> PyObjectBoolProtocol<'p>,
-{
-    fn nb_bool() -> Option<ffi::inquiry> {
-        py_unary_func!(PyObjectBoolProtocol, T::__bool__, c_int)
+    pub fn set_bool<T>(&mut self)
+    where
+        T: for<'p> PyObjectBoolProtocol<'p>,
+    {
+        self.nb_bool = py_unary_func!(PyObjectBoolProtocol, T::__bool__, c_int);
     }
 }
 
-trait RichcmpProtocolImpl {
-    fn tp_richcompare() -> Option<ffi::richcmpfunc>;
-}
-impl<'p, T> RichcmpProtocolImpl for T
+fn tp_getattro<T>() -> Option<ffi::binaryfunc>
 where
-    T: PyObjectProtocol<'p>,
+    T: for<'p> PyObjectGetAttrProtocol<'p>,
 {
-    default fn tp_richcompare() -> Option<ffi::richcmpfunc> {
-        None
+    unsafe extern "C" fn wrap<T>(
+        slf: *mut ffi::PyObject,
+        arg: *mut ffi::PyObject,
+    ) -> *mut ffi::PyObject
+    where
+        T: for<'p> PyObjectGetAttrProtocol<'p>,
+    {
+        crate::callback_body!(py, {
+            // Behave like python's __getattr__ (as opposed to __getattribute__) and check
+            // for existing fields and methods first
+            let existing = ffi::PyObject_GenericGetAttr(slf, arg);
+            if existing.is_null() {
+                // PyObject_HasAttr also tries to get an object and clears the error if it fails
+                ffi::PyErr_Clear();
+            } else {
+                return Ok(existing);
+            }
+
+            let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
+            let arg = py.from_borrowed_ptr::<PyAny>(arg);
+            call_ref!(slf, __getattr__, arg).convert(py)
+        })
     }
+    Some(wrap::<T>)
 }
-impl<T> RichcmpProtocolImpl for T
+
+fn tp_richcompare<T>() -> Option<ffi::richcmpfunc>
 where
     T: for<'p> PyObjectRichcmpProtocol<'p>,
 {
-    fn tp_richcompare() -> Option<ffi::richcmpfunc> {
-        unsafe extern "C" fn wrap<T>(
-            slf: *mut ffi::PyObject,
-            arg: *mut ffi::PyObject,
-            op: c_int,
-        ) -> *mut ffi::PyObject
-        where
-            T: for<'p> PyObjectRichcmpProtocol<'p>,
-        {
-            crate::callback_body!(py, {
-                let slf = py.from_borrowed_ptr::<crate::PyCell<T>>(slf);
-                let arg = py.from_borrowed_ptr::<PyAny>(arg);
-
-                let op = extract_op(op)?;
-                let arg = arg.extract()?;
-
-                slf.try_borrow()?.__richcmp__(arg, op).into()
-            })
+    fn extract_op(op: c_int) -> PyResult<CompareOp> {
+        match op {
+            ffi::Py_LT => Ok(CompareOp::Lt),
+            ffi::Py_LE => Ok(CompareOp::Le),
+            ffi::Py_EQ => Ok(CompareOp::Eq),
+            ffi::Py_NE => Ok(CompareOp::Ne),
+            ffi::Py_GT => Ok(CompareOp::Gt),
+            ffi::Py_GE => Ok(CompareOp::Ge),
+            _ => Err(PyErr::new::<exceptions::ValueError, _>(
+                "tp_richcompare called with invalid comparison operator",
+            )),
         }
-        Some(wrap::<T>)
     }
-}
+    unsafe extern "C" fn wrap<T>(
+        slf: *mut ffi::PyObject,
+        arg: *mut ffi::PyObject,
+        op: c_int,
+    ) -> *mut ffi::PyObject
+    where
+        T: for<'p> PyObjectRichcmpProtocol<'p>,
+    {
+        crate::callback_body!(py, {
+            let slf = py.from_borrowed_ptr::<crate::PyCell<T>>(slf);
+            let arg = py.from_borrowed_ptr::<PyAny>(arg);
 
-fn extract_op(op: c_int) -> PyResult<CompareOp> {
-    match op {
-        ffi::Py_LT => Ok(CompareOp::Lt),
-        ffi::Py_LE => Ok(CompareOp::Le),
-        ffi::Py_EQ => Ok(CompareOp::Eq),
-        ffi::Py_NE => Ok(CompareOp::Ne),
-        ffi::Py_GT => Ok(CompareOp::Gt),
-        ffi::Py_GE => Ok(CompareOp::Ge),
-        _ => Err(PyErr::new::<exceptions::ValueError, _>(
-            "tp_richcompare called with invalid comparison operator",
-        )),
+            let op = extract_op(op)?;
+            let arg = arg.extract()?;
+
+            slf.try_borrow()?.__richcmp__(arg, op).convert(py)
+        })
     }
+    Some(wrap::<T>)
 }

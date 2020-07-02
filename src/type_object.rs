@@ -1,13 +1,14 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
 //! Python type object information
 
-use crate::pyclass::{initialize_type_object, PyClass};
+use crate::conversion::IntoPyPointer;
+use crate::once_cell::GILOnceCell;
+use crate::pyclass::{initialize_type_object, py_class_attributes, PyClass};
 use crate::pyclass_init::PyObjectInit;
 use crate::types::{PyAny, PyType};
-use crate::{ffi, AsPyPointer, Py, Python};
-use std::cell::UnsafeCell;
-use std::ptr::NonNull;
-use std::sync::atomic::{AtomicBool, Ordering};
+use crate::{ffi, AsPyPointer, PyErr, PyNativeType, PyObject, PyResult, Python};
+use parking_lot::{const_mutex, Mutex};
+use std::thread::{self, ThreadId};
 
 /// `T: PyLayout<U>` represents that `T` is a concrete representaion of `U` in Python heap.
 /// E.g., `PyCell` is a concrete representaion of all `pyclass`es, and `ffi::PyObject`
@@ -101,18 +102,16 @@ pub unsafe trait PyTypeInfo: Sized {
     type AsRefTarget: crate::PyNativeType;
 
     /// PyTypeObject instance for this type.
-    fn type_object() -> &'static ffi::PyTypeObject;
+    fn type_object_raw(py: Python) -> *mut ffi::PyTypeObject;
 
     /// Check if `*mut ffi::PyObject` is instance of this type
     fn is_instance(object: &PyAny) -> bool {
-        unsafe {
-            ffi::PyObject_TypeCheck(object.as_ptr(), Self::type_object() as *const _ as _) != 0
-        }
+        unsafe { ffi::PyObject_TypeCheck(object.as_ptr(), Self::type_object_raw(object.py())) != 0 }
     }
 
     /// Check if `*mut ffi::PyObject` is exact instance of this type
     fn is_exact_instance(object: &PyAny) -> bool {
-        unsafe { (*object.as_ptr()).ob_type == Self::type_object() as *const _ as _ }
+        unsafe { (*object.as_ptr()).ob_type == Self::type_object_raw(object.py()) }
     }
 }
 
@@ -124,87 +123,125 @@ pub unsafe trait PyTypeInfo: Sized {
 /// See [PyTypeInfo::type_object]
 pub unsafe trait PyTypeObject {
     /// Returns the safe abstraction over the type object.
-    fn type_object() -> Py<PyType>;
+    fn type_object(py: Python) -> &PyType;
 }
 
 unsafe impl<T> PyTypeObject for T
 where
     T: PyTypeInfo,
 {
-    fn type_object() -> Py<PyType> {
-        unsafe { Py::from_borrowed_ptr(<Self as PyTypeInfo>::type_object() as *const _ as _) }
+    fn type_object(py: Python) -> &PyType {
+        unsafe { py.from_borrowed_ptr(Self::type_object_raw(py) as _) }
     }
 }
-
-/// Lazy type object for Exceptions
-#[doc(hidden)]
-pub struct LazyHeapType {
-    value: UnsafeCell<Option<NonNull<ffi::PyTypeObject>>>,
-    initialized: AtomicBool,
-}
-
-impl LazyHeapType {
-    pub const fn new() -> Self {
-        LazyHeapType {
-            value: UnsafeCell::new(None),
-            initialized: AtomicBool::new(false),
-        }
-    }
-
-    pub fn get_or_init<F>(&self, constructor: F) -> NonNull<ffi::PyTypeObject>
-    where
-        F: Fn(Python) -> NonNull<ffi::PyTypeObject>,
-    {
-        if !self
-            .initialized
-            .compare_and_swap(false, true, Ordering::Acquire)
-        {
-            // We have to get the GIL before setting the value to the global!!!
-            let gil = Python::acquire_gil();
-            unsafe {
-                *self.value.get() = Some(constructor(gil.python()));
-            }
-        }
-        unsafe { (*self.value.get()).unwrap() }
-    }
-}
-
-// This is necessary for making static `LazyHeapType`s
-//
-// Type objects are shared between threads by the Python interpreter anyway, so it is no worse
-// to allow sharing on the Rust side too.
-unsafe impl Sync for LazyHeapType {}
 
 /// Lazy type object for PyClass
 #[doc(hidden)]
 pub struct LazyStaticType {
-    value: UnsafeCell<ffi::PyTypeObject>,
-    initialized: AtomicBool,
+    // Boxed because Python expects the type object to have a stable address.
+    value: GILOnceCell<*mut ffi::PyTypeObject>,
+    // Threads which have begun initialization of the `tp_dict`. Used for
+    // reentrant initialization detection.
+    initializing_threads: Mutex<Vec<ThreadId>>,
+    tp_dict_filled: GILOnceCell<PyResult<()>>,
 }
 
 impl LazyStaticType {
     pub const fn new() -> Self {
         LazyStaticType {
-            value: UnsafeCell::new(ffi::PyTypeObject_INIT),
-            initialized: AtomicBool::new(false),
+            value: GILOnceCell::new(),
+            initializing_threads: const_mutex(Vec::new()),
+            tp_dict_filled: GILOnceCell::new(),
         }
     }
 
-    pub fn get_or_init<T: PyClass>(&self) -> &ffi::PyTypeObject {
-        if !self
-            .initialized
-            .compare_and_swap(false, true, Ordering::Acquire)
-        {
-            let gil = Python::acquire_gil();
-            let py = gil.python();
-            initialize_type_object::<T>(py, T::MODULE, unsafe { &mut *self.value.get() })
-                .unwrap_or_else(|e| {
-                    e.print(py);
-                    panic!("An error occurred while initializing class {}", T::NAME)
-                });
+    pub fn get_or_init<T: PyClass>(&self, py: Python) -> *mut ffi::PyTypeObject {
+        let type_object = *self.value.get_or_init(py, || {
+            let mut type_object = Box::new(ffi::PyTypeObject_INIT);
+            initialize_type_object::<T>(py, T::MODULE, type_object.as_mut()).unwrap_or_else(|e| {
+                e.print(py);
+                panic!("An error occurred while initializing class {}", T::NAME)
+            });
+            Box::into_raw(type_object)
+        });
+
+        // We might want to fill the `tp_dict` with python instances of `T`
+        // itself. In order to do so, we must first initialize the type object
+        // with an empty `tp_dict`: now we can create instances of `T`.
+        //
+        // Then we fill the `tp_dict`. Multiple threads may try to fill it at
+        // the same time, but only one of them will succeed.
+        //
+        // More importantly, if a thread is performing initialization of the
+        // `tp_dict`, it can still request the type object through `get_or_init`,
+        // but the `tp_dict` may appear empty of course.
+
+        if self.tp_dict_filled.get(py).is_some() {
+            // `tp_dict` is already filled: ok.
+            return type_object;
         }
-        unsafe { &*self.value.get() }
+
+        {
+            let thread_id = thread::current().id();
+            let mut threads = self.initializing_threads.lock();
+            if threads.contains(&thread_id) {
+                // Reentrant call: just return the type object, even if the
+                // `tp_dict` is not filled yet.
+                return type_object;
+            }
+            threads.push(thread_id);
+        }
+
+        // Pre-compute the class attribute objects: this can temporarily
+        // release the GIL since we're calling into arbitrary user code. It
+        // means that another thread can continue the initialization in the
+        // meantime: at worst, we'll just make a useless computation.
+        let mut items = vec![];
+        for attr in py_class_attributes::<T>() {
+            items.push((attr.name, (attr.meth)(py)));
+        }
+
+        // Now we hold the GIL and we can assume it won't be released until we
+        // return from the function.
+        let result = self.tp_dict_filled.get_or_init(py, move || {
+            let tp_dict = unsafe { (*type_object).tp_dict };
+            let result = initialize_tp_dict(py, tp_dict, items);
+            // See discussion on #982 for why we need this.
+            unsafe { ffi::PyType_Modified(type_object) };
+
+            // Initialization successfully complete, can clear the thread list.
+            // (No further calls to get_or_init() will try to init, on any thread.)
+            *self.initializing_threads.lock() = Vec::new();
+            result
+        });
+
+        if let Err(err) = result {
+            err.clone_ref(py).print(py);
+            panic!("An error occured while initializing `{}.__dict__`", T::NAME);
+        }
+
+        type_object
     }
+}
+
+fn initialize_tp_dict(
+    py: Python,
+    tp_dict: *mut ffi::PyObject,
+    items: Vec<(&'static str, PyObject)>,
+) -> PyResult<()> {
+    use std::ffi::CString;
+
+    // We hold the GIL: the dictionary update can be considered atomic from
+    // the POV of other threads.
+    for (key, val) in items {
+        let ret = unsafe {
+            ffi::PyDict_SetItemString(tp_dict, CString::new(key)?.as_ptr(), val.into_ptr())
+        };
+        if ret < 0 {
+            return Err(PyErr::fetch(py));
+        }
+    }
+    Ok(())
 }
 
 // This is necessary for making static `LazyStaticType`s

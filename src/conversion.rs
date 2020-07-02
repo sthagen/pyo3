@@ -95,13 +95,22 @@ pub trait ToBorrowedObject: ToPyObject {
     /// to touch any reference counts when the input object already is a Python object.
     fn with_borrowed_ptr<F, R>(&self, py: Python, f: F) -> R
     where
-        F: FnOnce(*mut ffi::PyObject) -> R;
+        F: FnOnce(*mut ffi::PyObject) -> R,
+    {
+        let ptr = self.to_object(py).into_ptr();
+        let result = f(ptr);
+        unsafe {
+            ffi::Py_XDECREF(ptr);
+        }
+        result
+    }
 }
 
 impl<T> ToBorrowedObject for T
 where
     T: ToPyObject,
 {
+    #[cfg(feature = "nightly")]
     default fn with_borrowed_ptr<F, R>(&self, py: Python, f: F) -> R
     where
         F: FnOnce(*mut ffi::PyObject) -> R,
@@ -115,6 +124,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T> ToBorrowedObject for T
 where
     T: ToPyObject + AsPyPointer,
@@ -419,7 +429,7 @@ pub unsafe trait FromPyPointer<'p>: Sized {
     unsafe fn from_owned_ptr_or_panic(py: Python<'p>, ptr: *mut ffi::PyObject) -> &'p Self {
         match Self::from_owned_ptr_or_opt(py, ptr) {
             Some(s) => s,
-            None => err::panic_after_error(),
+            None => err::panic_after_error(py),
         }
     }
     unsafe fn from_owned_ptr(py: Python<'p>, ptr: *mut ffi::PyObject) -> &'p Self {
@@ -436,7 +446,7 @@ pub unsafe trait FromPyPointer<'p>: Sized {
     unsafe fn from_borrowed_ptr_or_panic(py: Python<'p>, ptr: *mut ffi::PyObject) -> &'p Self {
         match Self::from_borrowed_ptr_or_opt(py, ptr) {
             Some(s) => s,
-            None => err::panic_after_error(),
+            None => err::panic_after_error(py),
         }
     }
     unsafe fn from_borrowed_ptr(py: Python<'p>, ptr: *mut ffi::PyObject) -> &'p Self {

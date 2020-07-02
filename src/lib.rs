@@ -1,4 +1,4 @@
-#![feature(specialization)]
+#![cfg_attr(feature = "nightly", feature(specialization))]
 #![allow(clippy::missing_safety_doc)] // FIXME (#698)
 
 //! Rust bindings to the Python interpreter.
@@ -52,7 +52,7 @@
 //! crate-type = ["cdylib"]
 //!
 //! [dependencies.pyo3]
-//! version = "0.10.1"
+//! version = "0.11.1"
 //! features = ["extension-module"]
 //! ```
 //!
@@ -109,7 +109,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! pyo3 = "0.10.1"
+//! pyo3 = "0.11.1"
 //! ```
 //!
 //! Example program displaying the value of `sys.version`:
@@ -153,6 +153,7 @@ pub use crate::types::PyAny;
 #[cfg(feature = "macros")]
 #[doc(hidden)]
 pub use {
+    ctor,      // Re-exported for pyproto
     indoc,     // Re-exported for py_run
     inventory, // Re-exported for pymethods
     paste,     // Re-exported for wrap_function
@@ -183,6 +184,7 @@ mod instance;
 mod internal_tricks;
 pub mod marshal;
 mod object;
+pub mod once_cell;
 pub mod panic;
 pub mod prelude;
 pub mod pycell;
@@ -192,6 +194,12 @@ pub mod pyclass_slots;
 mod python;
 pub mod type_object;
 pub mod types;
+
+/// Internal utilities exposed for rust-numpy
+#[doc(hidden)]
+pub mod internal_utils {
+    pub use crate::gil::{ensure_gil, EnsureGIL};
+}
 
 /// The proc macros, which are also part of the prelude.
 #[cfg(feature = "macros")]
@@ -335,7 +343,6 @@ pub mod doc_test {
     doctest!("../guide/src/debugging.md", guide_debugging_md);
     doctest!("../guide/src/exception.md", guide_exception_md);
     doctest!("../guide/src/function.md", guide_function_md);
-    doctest!("../guide/src/get_started.md", guide_get_started_md);
     doctest!("../guide/src/migration.md", guide_migration_md);
     doctest!("../guide/src/module.md", guide_module_md);
     doctest!(
@@ -346,4 +353,5 @@ pub mod doc_test {
     doctest!("../guide/src/pypy.md", guide_pypy_md);
     doctest!("../guide/src/rust_cpython.md", guide_rust_cpython_md);
     doctest!("../guide/src/types.md", guide_types_md);
+    doctest!("../guide/src/trait_bounds.md", guide_trait_bounds_md);
 }

@@ -4,6 +4,7 @@
 [![Actions Status](https://github.com/PyO3/pyo3/workflows/Test/badge.svg)](https://github.com/PyO3/pyo3/actions)
 [![codecov](https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg)](https://codecov.io/gh/PyO3/pyo3)
 [![crates.io](http://meritbadge.herokuapp.com/pyo3)](https://crates.io/crates/pyo3)
+[![minimum rustc 1.39](https://img.shields.io/badge/rustc-1.39+-blue.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
 [![Join the dev chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/PyO3/Lobby)
 
 [Rust](http://www.rust-lang.org/) bindings for [Python](https://www.python.org/). This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.
@@ -16,14 +17,10 @@ A comparison with rust-cpython can be found [in the guide](https://pyo3.rs/maste
 
 ## Usage
 
-PyO3 supports Python 3.5 and up. The minimum required Rust version is 1.42.0-nightly 2020-01-21.
-
-If you have never used nightly Rust, the official guide has
-[a great section](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html#rustup-and-the-role-of-rust-nightly)
-about installing it.
+PyO3 supports Python 3.5 and up. The minimum required Rust version is 1.39.0.
 
 PyPy is also supported (via cpyext) for Python 3.5 only, targeted PyPy version is 7.0.0.
-Please refer to the guide for installation instruction against PyPy.
+Please refer to the [pypy section in the guide](https://pyo3.rs/master/pypy.html).
 
 You can either write a native Python module in Rust, or use Python from a Rust binary.
 
@@ -50,7 +47,7 @@ name = "string_sum"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.10.1"
+version = "0.11.1"
 features = ["extension-module"]
 ```
 
@@ -60,13 +57,13 @@ features = ["extension-module"]
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
+/// Formats the sum of two numbers as string.
 #[pyfunction]
-/// Formats the sum of two numbers as string
 fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
 
-/// This module is a python module implemented in Rust.
+/// A Python module implemented in Rust.
 #[pymodule]
 fn string_sum(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(sum_as_string))?;
@@ -85,17 +82,23 @@ rustflags = [
 ]
 ```
 
-For developing, you can copy and rename the shared library from the target folder: On MacOS, rename `libstring_sum.dylib` to `string_sum.so`, on Windows `libstring_sum.dll` to `string_sum.pyd` and on Linux `libstring_sum.so` to `string_sum.so`. Then open a Python shell in the same folder and you'll be able to `import string_sum`.
+While developing, you can symlink (or copy) and rename the shared library from the target folder: On MacOS, rename `libstring_sum.dylib` to `string_sum.so`, on Windows `libstring_sum.dll` to `string_sum.pyd`, and on Linux `libstring_sum.so` to `string_sum.so`. Then open a Python shell in the same folder and you'll be able to `import string_sum`.
 
-To build, test and publish your crate as a Python module, you can use [maturin](https://github.com/PyO3/maturin) or [setuptools-rust](https://github.com/PyO3/setuptools-rust). You can find an example for setuptools-rust in [examples/word-count](examples/word-count), while maturin should work on your crate without any configuration.
+Adding the `cdylib` arguments in the `Cargo.toml` files changes the way your crate is compiled.
+Other Rust projects using your crate will have to link against the `.so` or `.pyd` file rather than include your library directly as normal.
+In order to make available your crate in the usual way for Rust user, you you might want to consider using both `crate-type = ["cdylib", "rlib"]` so that Rust users can use the `rlib` (the default lib crate type).
+Another possibility is to create a new crate to perform the binding.
+
+To build, test and publish your crate as a Python module, you can use [maturin](https://github.com/PyO3/maturin) or [setuptools-rust](https://github.com/PyO3/setuptools-rust). You can find an example for setuptools-rust in [examples/word-count](https://github.com/PyO3/pyo3/tree/master/examples/word-count), while maturin should work on your crate without any configuration.
 
 ## Using Python from Rust
 
-Add `pyo3` to your `Cargo.toml` like this:
+If you want your Rust application to create a Python interpreter internally and
+use it to run Python code, add `pyo3` to your `Cargo.toml` like this:
 
 ```toml
 [dependencies]
-pyo3 = "0.10.1"
+pyo3 = "0.11.1"
 ```
 
 Example program displaying the value of `sys.version` and the current user name:
@@ -108,8 +111,8 @@ fn main() -> Result<(), ()> {
     let gil = Python::acquire_gil();
     let py = gil.python();
     main_(py).map_err(|e| {
-        // We can't display python error type via ::std::fmt::Display,
-        // so print error here manually.
+        // We can't display Python exceptions via std::fmt::Display,
+        // so print the error here manually.
         e.print_and_set_sys_last_vars(py);
     })
 }
@@ -137,7 +140,6 @@ about this topic.
 
 ## Examples
 
- * [examples/word-count](examples/word-count) _Counting the occurrences of a word in a text file_
  * [hyperjson](https://github.com/mre/hyperjson) _A hyper-fast Python module for reading/writing JSON data using Rust's serde-json_
  * [html-py-ever](https://github.com/PyO3/setuptools-rust/tree/master/html-py-ever) _Using [html5ever](https://github.com/servo/html5ever) through [kuchiki](https://github.com/kuchiki-rs/kuchiki) to speed up html parsing and css-selecting._
  * [point-process](https://github.com/ManifoldFR/point-process-rust/tree/master/pylib) _High level API for pointprocesses as a Python library_

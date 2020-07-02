@@ -1,6 +1,6 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
 
-use crate::method::FnType;
+use crate::method::{FnType, SelfType};
 use crate::pymethod::{
     impl_py_getter_def, impl_py_setter_def, impl_wrap_getter, impl_wrap_setter, PropertyType,
 };
@@ -19,6 +19,7 @@ pub struct PyClassArgs {
     pub flags: Vec<syn::Expr>,
     pub base: syn::TypePath,
     pub has_extends: bool,
+    pub has_unsendable: bool,
     pub module: Option<syn::LitStr>,
 }
 
@@ -45,6 +46,7 @@ impl Default for PyClassArgs {
             flags: vec![parse_quote! { 0 }],
             base: parse_quote! { pyo3::PyAny },
             has_extends: false,
+            has_unsendable: false,
         }
     }
 }
@@ -60,7 +62,7 @@ impl PyClassArgs {
         }
     }
 
-    /// Match a single flag
+    /// Match a key/value flag
     fn add_assign(&mut self, assign: &syn::ExprAssign) -> syn::Result<()> {
         let syn::ExprAssign { left, right, .. } = assign;
         let key = match &**left {
@@ -120,31 +122,27 @@ impl PyClassArgs {
         Ok(())
     }
 
-    /// Match a key/value flag
+    /// Match a single flag
     fn add_path(&mut self, exp: &syn::ExprPath) -> syn::Result<()> {
         let flag = exp.path.segments.first().unwrap().ident.to_string();
-        let path = match flag.as_str() {
-            "gc" => {
-                parse_quote! {pyo3::type_flags::GC}
-            }
-            "weakref" => {
-                parse_quote! {pyo3::type_flags::WEAKREF}
-            }
-            "subclass" => {
-                parse_quote! {pyo3::type_flags::BASETYPE}
-            }
-            "dict" => {
-                parse_quote! {pyo3::type_flags::DICT}
+        let mut push_flag = |flag| {
+            self.flags.push(syn::Expr::Path(flag));
+        };
+        match flag.as_str() {
+            "gc" => push_flag(parse_quote! {pyo3::type_flags::GC}),
+            "weakref" => push_flag(parse_quote! {pyo3::type_flags::WEAKREF}),
+            "subclass" => push_flag(parse_quote! {pyo3::type_flags::BASETYPE}),
+            "dict" => push_flag(parse_quote! {pyo3::type_flags::DICT}),
+            "unsendable" => {
+                self.has_unsendable = true;
             }
             _ => {
                 return Err(syn::Error::new_spanned(
                     &exp.path,
-                    "Expected one of gc/weakref/subclass/dict",
+                    "Expected one of gc/weakref/subclass/dict/unsendable",
                 ))
             }
         };
-
-        self.flags.push(syn::Expr::Path(path));
         Ok(())
     }
 }
@@ -185,9 +183,9 @@ fn parse_descriptors(item: &mut syn::Field) -> syn::Result<Vec<FnType>> {
                 for meta in list.nested.iter() {
                     if let syn::NestedMeta::Meta(ref metaitem) = meta {
                         if metaitem.path().is_ident("get") {
-                            descs.push(FnType::Getter);
+                            descs.push(FnType::Getter(SelfType::Receiver { mutable: false }));
                         } else if metaitem.path().is_ident("set") {
-                            descs.push(FnType::Setter);
+                            descs.push(FnType::Setter(SelfType::Receiver { mutable: true }));
                         } else {
                             return Err(syn::Error::new_spanned(
                                 metaitem,
@@ -233,6 +231,19 @@ fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
         }
 
         pyo3::inventory::collect!(#inventory_cls);
+    }
+}
+
+/// Implement `HasProtoRegistry` for the class for lazy protocol initialization.
+fn impl_proto_registry(cls: &syn::Ident) -> TokenStream {
+    quote! {
+        impl pyo3::class::proto_methods::HasProtoRegistry for #cls {
+            fn registry() -> &'static pyo3::class::proto_methods::PyProtoRegistry {
+                static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
+                    = pyo3::class::proto_methods::PyProtoRegistry::new();
+                &REGISTRY
+            }
+        }
     }
 }
 
@@ -340,6 +351,7 @@ fn impl_class(
     };
 
     let impl_inventory = impl_methods_inventory(&cls);
+    let impl_proto_registry = impl_proto_registry(&cls);
 
     let base = &attr.base;
     let flags = &attr.flags;
@@ -372,6 +384,16 @@ fn impl_class(
         quote! {}
     };
 
+    let thread_checker = if attr.has_unsendable {
+        quote! { pyo3::pyclass::ThreadCheckerImpl<#cls> }
+    } else if attr.has_extends {
+        quote! {
+            pyo3::pyclass::ThreadCheckerInherited<#cls, <#cls as pyo3::type_object::PyTypeInfo>::BaseType>
+        }
+    } else {
+        quote! { pyo3::pyclass::ThreadCheckerStub<#cls> }
+    };
+
     Ok(quote! {
         unsafe impl pyo3::type_object::PyTypeInfo for #cls {
             type Type = #cls;
@@ -387,10 +409,10 @@ fn impl_class(
             const FLAGS: usize = #(#flags)|* | #extended;
 
             #[inline]
-            fn type_object() -> &'static pyo3::ffi::PyTypeObject {
+            fn type_object_raw(py: pyo3::Python) -> *mut pyo3::ffi::PyTypeObject {
                 use pyo3::type_object::LazyStaticType;
                 static TYPE_OBJECT: LazyStaticType = LazyStaticType::new();
-                TYPE_OBJECT.get_or_init::<Self>()
+                TYPE_OBJECT.get_or_init::<Self>(py)
             }
         }
 
@@ -410,14 +432,19 @@ fn impl_class(
             type Target = pyo3::PyRefMut<'a, #cls>;
         }
 
+        impl pyo3::pyclass::PyClassSend for #cls {
+            type ThreadChecker = #thread_checker;
+        }
+
         #into_pyobject
 
         #impl_inventory
 
+        #impl_proto_registry
+
         #extra
 
         #gc_impl
-
     })
 }
 
@@ -434,16 +461,16 @@ fn impl_descriptors(
                     let doc = utils::get_doc(&field.attrs, None, true)
                         .unwrap_or_else(|_| syn::LitStr::new(&name.to_string(), name.span()));
 
-                    match *desc {
-                        FnType::Getter => Ok(impl_py_getter_def(
+                    match desc {
+                        FnType::Getter(self_ty) => Ok(impl_py_getter_def(
                             &name,
                             &doc,
-                            &impl_wrap_getter(&cls, PropertyType::Descriptor(&field))?,
+                            &impl_wrap_getter(&cls, PropertyType::Descriptor(&field), &self_ty)?,
                         )),
-                        FnType::Setter => Ok(impl_py_setter_def(
+                        FnType::Setter(self_ty) => Ok(impl_py_setter_def(
                             &name,
                             &doc,
-                            &impl_wrap_setter(&cls, PropertyType::Descriptor(&field))?,
+                            &impl_wrap_setter(&cls, PropertyType::Descriptor(&field), &self_ty)?,
                         )),
                         _ => unreachable!(),
                     }

@@ -31,21 +31,13 @@ impl Foo {
     }
 
     #[classattr]
-    fn foo() -> Foo {
-        Foo { x: 1 }
-    }
-
-    #[classattr]
     fn bar() -> Bar {
         Bar { x: 2 }
     }
-}
 
-#[pymethods]
-impl Bar {
     #[classattr]
     fn foo() -> Foo {
-        Foo { x: 3 }
+        Foo { x: 1 }
     }
 }
 
@@ -67,10 +59,19 @@ fn class_attributes_are_immutable() {
     py_expect_exception!(py, foo_obj, "foo_obj.a = 6", TypeError);
 }
 
+#[pymethods]
+impl Bar {
+    #[classattr]
+    fn foo() -> Foo {
+        Foo { x: 3 }
+    }
+}
+
 #[test]
 fn recursive_class_attributes() {
     let gil = Python::acquire_gil();
     let py = gil.python();
+
     let foo_obj = py.get_type::<Foo>();
     let bar_obj = py.get_type::<Bar>();
     py_assert!(py, foo_obj, "foo_obj.foo.x == 1");

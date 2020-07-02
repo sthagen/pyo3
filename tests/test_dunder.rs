@@ -1,5 +1,6 @@
 use pyo3::class::{
-    PyContextProtocol, PyIterProtocol, PyMappingProtocol, PyObjectProtocol, PySequenceProtocol,
+    PyAsyncProtocol, PyContextProtocol, PyDescrProtocol, PyIterProtocol, PyMappingProtocol,
+    PyObjectProtocol, PySequenceProtocol,
 };
 use pyo3::exceptions::{IndexError, ValueError};
 use pyo3::prelude::*;
@@ -17,8 +18,8 @@ pub struct Len {
 
 #[pyproto]
 impl PyMappingProtocol for Len {
-    fn __len__(&self) -> PyResult<usize> {
-        Ok(self.l)
+    fn __len__(&self) -> usize {
+        self.l
     }
 }
 
@@ -51,12 +52,12 @@ struct Iterator {
 
 #[pyproto]
 impl<'p> PyIterProtocol for Iterator {
-    fn __iter__(slf: PyRef<'p, Self>) -> PyResult<Py<Iterator>> {
-        Ok(slf.into())
+    fn __iter__(slf: PyRef<'p, Self>) -> Py<Iterator> {
+        slf.into()
     }
 
-    fn __next__(mut slf: PyRefMut<'p, Self>) -> PyResult<Option<i32>> {
-        Ok(slf.iter.next())
+    fn __next__(mut slf: PyRefMut<'p, Self>) -> Option<i32> {
+        slf.iter.next()
     }
 }
 
@@ -81,21 +82,21 @@ struct StringMethods {}
 
 #[pyproto]
 impl<'p> PyObjectProtocol<'p> for StringMethods {
-    fn __str__(&self) -> PyResult<&'static str> {
-        Ok("str")
+    fn __str__(&self) -> &'static str {
+        "str"
     }
 
-    fn __repr__(&self) -> PyResult<&'static str> {
-        Ok("repr")
+    fn __repr__(&self) -> &'static str {
+        "repr"
     }
 
-    fn __format__(&self, format_spec: String) -> PyResult<String> {
-        Ok(format!("format({})", format_spec))
+    fn __format__(&self, format_spec: String) -> String {
+        format!("format({})", format_spec)
     }
 
-    fn __bytes__(&self) -> PyResult<PyObject> {
+    fn __bytes__(&self) -> PyObject {
         let gil = GILGuard::acquire();
-        Ok(PyBytes::new(gil.python(), b"bytes").into())
+        PyBytes::new(gil.python(), b"bytes").into()
     }
 }
 
@@ -118,11 +119,11 @@ struct Comparisons {
 
 #[pyproto]
 impl PyObjectProtocol for Comparisons {
-    fn __hash__(&self) -> PyResult<isize> {
-        Ok(self.val as isize)
+    fn __hash__(&self) -> isize {
+        self.val as isize
     }
-    fn __bool__(&self) -> PyResult<bool> {
-        Ok(self.val != 0)
+    fn __bool__(&self) -> bool {
+        self.val != 0
     }
 }
 
@@ -161,8 +162,8 @@ impl Default for Sequence {
 
 #[pyproto]
 impl PySequenceProtocol for Sequence {
-    fn __len__(&self) -> PyResult<usize> {
-        Ok(self.fields.len())
+    fn __len__(&self) -> usize {
+        self.fields.len()
     }
 
     fn __getitem__(&self, key: isize) -> PyResult<String> {
@@ -210,8 +211,8 @@ struct Callable {}
 #[pymethods]
 impl Callable {
     #[__call__]
-    fn __call__(&self, arg: i32) -> PyResult<i32> {
-        Ok(arg * 6)
+    fn __call__(&self, arg: i32) -> i32 {
+        arg * 6
     }
 }
 
@@ -237,10 +238,9 @@ struct SetItem {
 
 #[pyproto]
 impl PyMappingProtocol<'a> for SetItem {
-    fn __setitem__(&mut self, key: i32, val: i32) -> PyResult<()> {
+    fn __setitem__(&mut self, key: i32, val: i32) {
         self.key = key;
         self.val = val;
-        Ok(())
     }
 }
 
@@ -266,9 +266,8 @@ struct DelItem {
 
 #[pyproto]
 impl PyMappingProtocol<'a> for DelItem {
-    fn __delitem__(&mut self, key: i32) -> PyResult<()> {
+    fn __delitem__(&mut self, key: i32) {
         self.key = key;
-        Ok(())
     }
 }
 
@@ -293,14 +292,12 @@ struct SetDelItem {
 
 #[pyproto]
 impl PyMappingProtocol for SetDelItem {
-    fn __setitem__(&mut self, _key: i32, val: i32) -> PyResult<()> {
+    fn __setitem__(&mut self, _key: i32, val: i32) {
         self.val = Some(val);
-        Ok(())
     }
 
-    fn __delitem__(&mut self, _key: i32) -> PyResult<()> {
+    fn __delitem__(&mut self, _key: i32) {
         self.val = None;
-        Ok(())
     }
 }
 
@@ -325,8 +322,8 @@ struct Reversed {}
 
 #[pyproto]
 impl PyMappingProtocol for Reversed {
-    fn __reversed__(&self) -> PyResult<&'static str> {
-        Ok("I am reversed")
+    fn __reversed__(&self) -> &'static str {
+        "I am reversed"
     }
 }
 
@@ -344,8 +341,8 @@ struct Contains {}
 
 #[pyproto]
 impl PySequenceProtocol for Contains {
-    fn __contains__(&self, item: i32) -> PyResult<bool> {
-        Ok(item >= 0)
+    fn __contains__(&self, item: i32) -> bool {
+        item >= 0
     }
 }
 
@@ -367,8 +364,8 @@ struct ContextManager {
 
 #[pyproto]
 impl<'p> PyContextProtocol<'p> for ContextManager {
-    fn __enter__(&mut self) -> PyResult<i32> {
-        Ok(42)
+    fn __enter__(&mut self) -> i32 {
+        42
     }
 
     fn __exit__(
@@ -376,14 +373,10 @@ impl<'p> PyContextProtocol<'p> for ContextManager {
         ty: Option<&'p PyType>,
         _value: Option<&'p PyAny>,
         _traceback: Option<&'p PyAny>,
-    ) -> PyResult<bool> {
+    ) -> bool {
         let gil = GILGuard::acquire();
         self.exit_called = true;
-        if ty == Some(gil.python().get_type::<ValueError>()) {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
+        ty == Some(gil.python().get_type::<ValueError>())
     }
 }
 
@@ -539,8 +532,8 @@ struct ClassWithGetAttr {
 
 #[pyproto]
 impl PyObjectProtocol for ClassWithGetAttr {
-    fn __getattr__(&self, _name: &str) -> PyResult<u32> {
-        Ok(self.data * 2)
+    fn __getattr__(&self, _name: &str) -> u32 {
+        self.data * 2
     }
 }
 
@@ -551,4 +544,127 @@ fn getattr_doesnt_override_member() {
     let inst = PyCell::new(py, ClassWithGetAttr { data: 4 }).unwrap();
     py_assert!(py, inst, "inst.data == 4");
     py_assert!(py, inst, "inst.a == 8");
+}
+
+/// Wraps a Python future and yield it once.
+#[pyclass]
+struct OnceFuture {
+    future: PyObject,
+    polled: bool,
+}
+
+#[pymethods]
+impl OnceFuture {
+    #[new]
+    fn new(future: PyObject) -> Self {
+        OnceFuture {
+            future,
+            polled: false,
+        }
+    }
+}
+
+#[pyproto]
+impl PyAsyncProtocol for OnceFuture {
+    fn __await__(slf: PyRef<'p, Self>) -> PyRef<'p, Self> {
+        slf
+    }
+}
+
+#[pyproto]
+impl PyIterProtocol for OnceFuture {
+    fn __iter__(slf: PyRef<'p, Self>) -> PyRef<'p, Self> {
+        slf
+    }
+    fn __next__(mut slf: PyRefMut<Self>) -> Option<PyObject> {
+        if !slf.polled {
+            slf.polled = true;
+            Some(slf.future.clone())
+        } else {
+            None
+        }
+    }
+}
+
+#[test]
+fn test_await() {
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+    let once = py.get_type::<OnceFuture>();
+    let source = pyo3::indoc::indoc!(
+        r#"
+import asyncio
+import sys
+
+async def main():
+    res = await Once(await asyncio.sleep(0.1))
+    return res
+# For an odd error similar to https://bugs.python.org/issue38563
+if sys.platform == "win32" and sys.version_info >= (3, 8, 0):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# get_event_loop can raise an error: https://github.com/PyO3/pyo3/pull/961#issuecomment-645238579
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+assert loop.run_until_complete(main()) is None
+loop.close()
+"#
+    );
+    let globals = PyModule::import(py, "__main__").unwrap().dict();
+    globals.set_item("Once", once).unwrap();
+    py.run(source, Some(globals), None)
+        .map_err(|e| e.print(py))
+        .unwrap();
+}
+
+/// Increment the count when `__get__` is called.
+#[pyclass]
+struct DescrCounter {
+    #[pyo3(get)]
+    count: usize,
+}
+
+#[pymethods]
+impl DescrCounter {
+    #[new]
+    fn new() -> Self {
+        DescrCounter { count: 0 }
+    }
+}
+
+#[pyproto]
+impl PyDescrProtocol for DescrCounter {
+    fn __get__(
+        mut slf: PyRefMut<'p, Self>,
+        _instance: &PyAny,
+        _owner: Option<&'p PyType>,
+    ) -> PyRefMut<'p, Self> {
+        slf.count += 1;
+        slf
+    }
+    fn __set__(_slf: PyRef<'p, Self>, _instance: &PyAny, mut new_value: PyRefMut<'p, Self>) {
+        new_value.count = _slf.count;
+    }
+}
+
+#[test]
+fn descr_getset() {
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+    let counter = py.get_type::<DescrCounter>();
+    let source = pyo3::indoc::indoc!(
+        r#"
+class Class:
+    counter = Counter()
+c = Class()
+c.counter # count += 1
+assert c.counter.count == 2
+c.counter = Counter()
+assert c.counter.count == 3
+"#
+    );
+    let globals = PyModule::import(py, "__main__").unwrap().dict();
+    globals.set_item("Counter", counter).unwrap();
+    py.run(source, Some(globals), None)
+        .map_err(|e| e.print(py))
+        .unwrap();
 }

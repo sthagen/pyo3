@@ -1,6 +1,5 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
 
-use crate::buffer;
 use crate::err::{self, PyDowncastError, PyErr, PyResult};
 use crate::exceptions;
 use crate::ffi::{self, Py_ssize_t};
@@ -265,6 +264,14 @@ macro_rules! array_impls {
             where
                 T: Copy + Default + FromPyObject<'a>,
             {
+                #[cfg(not(feature = "nightly"))]
+                fn extract(obj: &'a PyAny) -> PyResult<Self> {
+                    let mut array = [T::default(); $N];
+                    extract_sequence_into_slice(obj, &mut array)?;
+                    Ok(array)
+                }
+
+                #[cfg(feature = "nightly")]
                 default fn extract(obj: &'a PyAny) -> PyResult<Self> {
                     let mut array = [T::default(); $N];
                     extract_sequence_into_slice(obj, &mut array)?;
@@ -272,14 +279,15 @@ macro_rules! array_impls {
                 }
             }
 
+            #[cfg(feature = "nightly")]
             impl<'source, T> FromPyObject<'source> for [T; $N]
             where
-                for<'a> T: Copy + Default + FromPyObject<'a> + buffer::Element,
+                for<'a> T: Default + FromPyObject<'a> + crate::buffer::Element,
             {
                 fn extract(obj: &'source PyAny) -> PyResult<Self> {
                     let mut array = [T::default(); $N];
                     // first try buffer protocol
-                    if let Ok(buf) = buffer::PyBuffer::get(obj.py(), obj) {
+                    if let Ok(buf) = crate::buffer::PyBuffer::get(obj) {
                         if buf.dimensions() == 1 && buf.copy_to_slice(obj.py(), &mut array).is_ok() {
                             buf.release(obj.py());
                             return Ok(array);
@@ -304,20 +312,26 @@ impl<'a, T> FromPyObject<'a> for Vec<T>
 where
     T: FromPyObject<'a>,
 {
+    #[cfg(not(feature = "nightly"))]
+    fn extract(obj: &'a PyAny) -> PyResult<Self> {
+        extract_sequence(obj)
+    }
+    #[cfg(feature = "nightly")]
     default fn extract(obj: &'a PyAny) -> PyResult<Self> {
         extract_sequence(obj)
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<'source, T> FromPyObject<'source> for Vec<T>
 where
-    for<'a> T: FromPyObject<'a> + buffer::Element + Copy,
+    for<'a> T: FromPyObject<'a> + crate::buffer::Element,
 {
     fn extract(obj: &'source PyAny) -> PyResult<Self> {
         // first try buffer protocol
-        if let Ok(buf) = buffer::PyBuffer::get(obj.py(), obj) {
+        if let Ok(buf) = crate::buffer::PyBuffer::get(obj) {
             if buf.dimensions() == 1 {
-                if let Ok(v) = buf.to_vec::<T>(obj.py()) {
+                if let Ok(v) = buf.to_vec(obj.py()) {
                     buf.release(obj.py());
                     return Ok(v);
                 }
@@ -521,8 +535,8 @@ mod test {
         }
         {
             let gil = Python::acquire_gil();
-            let _py = gil.python();
-            assert_eq!(1, obj.get_refcnt());
+            let py = gil.python();
+            assert_eq!(1, obj.get_refcnt(py));
         }
     }
 

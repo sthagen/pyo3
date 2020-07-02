@@ -1,6 +1,5 @@
 use pyo3::class::PySequenceProtocol;
-use pyo3::exceptions::IndexError;
-use pyo3::exceptions::ValueError;
+use pyo3::exceptions::{IndexError, ValueError};
 use pyo3::prelude::*;
 use pyo3::types::{IntoPyDict, PyList};
 
@@ -34,8 +33,8 @@ impl ByteSequence {
 
 #[pyproto]
 impl PySequenceProtocol for ByteSequence {
-    fn __len__(&self) -> PyResult<usize> {
-        Ok(self.elements.len())
+    fn __len__(&self) -> usize {
+        self.elements.len()
     }
 
     fn __getitem__(&self, idx: isize) -> PyResult<u8> {
@@ -45,9 +44,8 @@ impl PySequenceProtocol for ByteSequence {
             .ok_or_else(|| IndexError::py_err("list index out of range"))
     }
 
-    fn __setitem__(&mut self, idx: isize, value: u8) -> PyResult<()> {
+    fn __setitem__(&mut self, idx: isize, value: u8) {
         self.elements[idx as usize] = value;
-        Ok(())
     }
 
     fn __delitem__(&mut self, idx: isize) -> PyResult<()> {
@@ -59,17 +57,17 @@ impl PySequenceProtocol for ByteSequence {
         }
     }
 
-    fn __contains__(&self, other: &PyAny) -> PyResult<bool> {
+    fn __contains__(&self, other: &PyAny) -> bool {
         match u8::extract(other) {
-            Ok(ref x) => Ok(self.elements.contains(x)),
-            Err(_) => Ok(false),
+            Ok(ref x) => self.elements.contains(x),
+            Err(_) => false,
         }
     }
 
-    fn __concat__(&self, other: PyRef<'p, Self>) -> PyResult<Self> {
+    fn __concat__(&self, other: PyRef<'p, Self>) -> Self {
         let mut elements = self.elements.clone();
         elements.extend_from_slice(&other.elements);
-        Ok(Self { elements })
+        Self { elements }
     }
 
     fn __repeat__(&self, count: isize) -> PyResult<Self> {
@@ -231,4 +229,39 @@ fn test_generic_list_set() {
         list.borrow().items,
         vec![1.to_object(py), 2.to_object(py), 3.to_object(py)]
     );
+}
+
+#[pyclass]
+struct OptionList {
+    #[pyo3(get, set)]
+    items: Vec<Option<i64>>,
+}
+
+#[pyproto]
+impl PySequenceProtocol for OptionList {
+    fn __getitem__(&self, idx: isize) -> PyResult<Option<i64>> {
+        match self.items.get(idx as usize) {
+            Some(x) => Ok(*x),
+            None => Err(PyErr::new::<IndexError, _>("Index out of bounds")),
+        }
+    }
+}
+
+#[test]
+fn test_option_list_get() {
+    // Regression test for #798
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+
+    let list = PyCell::new(
+        py,
+        OptionList {
+            items: vec![Some(1), None],
+        },
+    )
+    .unwrap();
+
+    py_assert!(py, list, "list[0] == 1");
+    py_assert!(py, list, "list[1] == None");
+    py_expect_exception!(py, list, "list[2]", IndexError);
 }

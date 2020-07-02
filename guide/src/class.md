@@ -1,5 +1,22 @@
 # Python Classes
 
+PyO3 exposes a group of attributes powered by Rust's proc macro system for defining Python classes as Rust structs. This chapter will discuss the functionality and configuration they offer.
+
+For ease of discovery, below is a list of all custom attributes with links to the relevant section of this chapter:
+
+- [`#[pyclass]`](#defining-a-new-class)
+  - [`#[pyo3(get, set)]`](#object-properties-using-pyo3get-set)
+- [`#[pymethods]`](#instance-methods)
+  - [`#[new]`](#constructor)
+  - [`#[getter]`](#object-properties-using-getter-and-setter)
+  - [`#[setter]`](#object-properties-using-getter-and-setter)
+  - [`#[staticmethod]`](#static-methods)
+  - [`#[classmethod]`](#class-methods)
+  - [`#[call]`](#callable-objects)
+  - [`#[classattr]`](#class-attributes)
+  - [`#[args]`](#method-arguments)
+- [`#[pyproto]`](#class-customizations)
+
 ## Defining a new class
 
 To define a custom Python class, a Rust struct needs to be annotated with the
@@ -14,10 +31,9 @@ struct MyClass {
 }
 ```
 
-The above example generates implementations for [`PyTypeInfo`], [`PyTypeObject`],
-and [`PyClass`] for `MyClass`.
+Because Python objects are freely shared between threads by the Python interpreter, all structs annotated with `#[pyclass]` must implement `Send`.
 
-If you curious what `#[pyclass]` generates, see [How methods are implemented](#how-methods-are-implemented) section.
+The above example generates implementations for [`PyTypeInfo`], [`PyTypeObject`], and [`PyClass`] for `MyClass`. To see these generated implementations, refer to the section [How methods are implemented](#how-methods-are-implemented) at the end of this chapter.
 
 ## Adding the class to a module
 
@@ -125,6 +141,8 @@ If a custom class contains references to other Python objects that can be collec
 * `extends=BaseType` - Use a custom base class. The base `BaseType` must implement `PyTypeInfo`.
 * `subclass` - Allows Python classes to inherit from this class.
 * `dict` - Adds `__dict__` support, so that the instances of this type have a dictionary containing arbitrary instance variables.
+* `unsendable` - Making it safe to expose `!Send` structs to Python, where all object can be accessed
+   by multiple threads. A class marked with `unsendable` panics when accessed by another thread.
 * `module="XXX"` - Set the name of the module the class will be shown as defined in. If not given, the class
   will be a virtual member of the `builtins` module.
 
@@ -472,6 +490,7 @@ From the Python perspective, the `method2` in this example does not accept any a
 
 To create a class method for a custom class, the method needs to be annotated
 with the `#[classmethod]` attribute.
+This is the equivalent of the Python decorator `@classmethod`.
 
 ```rust
 # use pyo3::prelude::*;
@@ -683,6 +702,9 @@ mapping or number protocols. PyO3 defines separate traits for each of them. To p
 Python object behavior, you need to implement the specific trait for your struct. Important note,
 each protocol implementation block has to be annotated with the `#[pyproto]` attribute.
 
+All `#[pyproto]` methods which can be defined below can return `T` instead of `PyResult<T>` if the
+method implementation is infallible. In addition, if the return type is `()`, it can be omitted altogether.
+
 ### Basic object customization
 
 The [`PyObjectProtocol`] trait provides several basic customizations.
@@ -800,10 +822,9 @@ It includes two methods `__iter__` and `__next__`:
   * `fn __iter__(slf: PyRefMut<Self>) -> PyResult<impl IntoPy<PyObject>>`
   * `fn __next__(slf: PyRefMut<Self>) -> PyResult<Option<impl IntoPy<PyObject>>>`
 
-Returning `Ok(None)` from `__next__` indicates that that there are no further items.
+Returning `None` from `__next__` indicates that that there are no further items.
 These two methods can be take either `PyRef<Self>` or `PyRefMut<Self>` as their
 first argument, so that mutable borrow can be avoided if needed.
-
 
 Example:
 
@@ -818,11 +839,11 @@ struct MyIterator {
 
 #[pyproto]
 impl PyIterProtocol for MyIterator {
-    fn __iter__(slf: PyRef<Self>) -> PyResult<Py<MyIterator>> {
-        Ok(slf.into())
+    fn __iter__(slf: PyRef<Self>) -> Py<MyIterator> {
+        slf.into()
     }
-    fn __next__(mut slf: PyRefMut<Self>) -> PyResult<Option<PyObject>> {
-        Ok(slf.iter.next())
+    fn __next__(mut slf: PyRefMut<Self>) -> Option<PyObject> {
+        slf.iter.next()
     }
 }
 ```
@@ -843,12 +864,12 @@ struct Iter {
 
 #[pyproto]
 impl PyIterProtocol for Iter {
-    fn __iter__(slf: PyRefMut<Self>) -> PyResult<Py<Iter>> {
-        Ok(slf.into())
+    fn __iter__(slf: PyRefMut<Self>) -> Py<Iter> {
+        slf.into()
     }
 
-    fn __next__(mut slf: PyRefMut<Self>) -> PyResult<Option<usize>> {
-        Ok(slf.inner.next())
+    fn __next__(mut slf: PyRefMut<Self>) -> Option<usize> {
+        slf.inner.next()
     }
 }
 
@@ -863,7 +884,7 @@ impl PyIterProtocol for Container {
         let iter = Iter {
             inner: slf.iter.clone().into_iter(),
         };
-        PyCell::new(slf.py(), iter).map(Into::into)
+        Py::new(slf.py(), iter)
     }
 }
 
@@ -883,17 +904,25 @@ impl PyIterProtocol for Container {
 For more details on Python's iteration protocols, check out [the "Iterator Types" section of the library
 documentation](https://docs.python.org/3/library/stdtypes.html#iterator-types).
 
+#### Returning a value from iteration
+
+This guide has so far shown how to use `Option<T>` to implement yielding values during iteration.
+In Python a generator can also return a value. To express this in Rust, PyO3 provides the
+[`IterNextOutput`](https://docs.rs/pyo3/latest/pyo3/class/iter/enum.IterNextOutput.html) enum to
+both `Yield` values and `Return` a final value - see its docs for further details and an example.
+
+
 ## How methods are implemented
 
 Users should be able to define a `#[pyclass]` with or without `#[pymethods]`, while PyO3 needs a
 trait with a function that returns all methods. Since it's impossible to make the code generation in
 pyclass dependent on whether there is an impl block, we'd need to implement the trait on
-`#[pyclass]` and override the implementation in `#[pymethods]`, which is to the best of my knowledge
-only possible with the specialization feature, which can't be used on stable.
-
-To escape this we use [inventory](https://github.com/dtolnay/inventory),
+`#[pyclass]` and override the implementation in `#[pymethods]`.
+To enable this, we use a static registry type provided by [inventory](https://github.com/dtolnay/inventory),
 which allows us to collect `impl`s from arbitrary source code by exploiting some binary trick.
 See [inventory: how it works](https://github.com/dtolnay/inventory#how-it-works) and `pyo3_derive_backend::py_class` for more details.
+Also for `#[pyproto]`, we use a similar, but more task-specific registry and
+initialize it using the [ctor](https://github.com/mmastrac/rust-ctor) crate.
 
 Specifically, the following implementation is generated:
 
@@ -922,10 +951,10 @@ unsafe impl pyo3::PyTypeInfo for MyClass {
     const FLAGS: usize = 0;
 
     #[inline]
-    fn type_object() -> &'static pyo3::ffi::PyTypeObject {
+    fn type_object_raw(py: pyo3::Python) -> *mut pyo3::ffi::PyTypeObject {
         use pyo3::type_object::LazyStaticType;
         static TYPE_OBJECT: LazyStaticType = LazyStaticType::new();
-        TYPE_OBJECT.get_or_init::<Self>()
+        TYPE_OBJECT.get_or_init::<Self>(py)
     }
 }
 
@@ -956,6 +985,18 @@ impl pyo3::class::methods::HasMethodsInventory for MyClass {
     type Methods = Pyo3MethodsInventoryForMyClass;
 }
 pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
+
+impl pyo3::class::proto_methods::HasProtoRegistry for MyClass {
+    fn registry() -> &'static pyo3::class::proto_methods::PyProtoRegistry {
+        static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
+            = pyo3::class::proto_methods::PyProtoRegistry::new();
+        &REGISTRY
+    }
+}
+
+impl pyo3::pyclass::PyClassSend for MyClass {
+    type ThreadChecker = pyo3::pyclass::ThreadCheckerStub<MyClass>;
+}
 # let gil = Python::acquire_gil();
 # let py = gil.python();
 # let cls = py.get_type::<MyClass>();

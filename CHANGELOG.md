@@ -5,18 +5,48 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.11.1] - 2020-06-30
 ### Added
-- Add FFI definition `PyObject_AsFileDescriptor` [#938](https://github.com/PyO3/pyo3/pull/938)
+- `#[pyclass(unsendable)]`. [#1009](https://github.com/PyO3/pyo3/pull/1009)
+
+### Changed
+- Update `parking_lot` dependency to `0.11`. [#1010](https://github.com/PyO3/pyo3/pull/1010)
+
+## [0.11.0] - 2020-06-28
+### Added
+- Support stable versions of Rust (>=1.39). [#969](https://github.com/PyO3/pyo3/pull/969)
+- Add FFI definition `PyObject_AsFileDescriptor`. [#938](https://github.com/PyO3/pyo3/pull/938)
+- Add `PyByteArray::data`, `PyByteArray::as_bytes`, and `PyByteArray::as_bytes_mut`. [#967](https://github.com/PyO3/pyo3/pull/967)
+- Add `GILOnceCell` to use in situations where `lazy_static` or `once_cell` can deadlock. [#975](https://github.com/PyO3/pyo3/pull/975)
+- Add `Py::borrow`, `Py::borrow_mut`, `Py::try_borrow`, and `Py::try_borrow_mut` for accessing `#[pyclass]` values. [#976](https://github.com/PyO3/pyo3/pull/976)
+- Add `IterNextOutput` and `IterANextOutput` for returning from `__next__` / `__anext__`. [#997](https://github.com/PyO3/pyo3/pull/997)
 
 ### Changed
 - Simplify internals of `#[pyo3(get)]` attribute. (Remove the hidden API `GetPropertyValue`.) [#934](https://github.com/PyO3/pyo3/pull/934)
 - Call `Py_Finalize` at exit to flush buffers, etc. [#943](https://github.com/PyO3/pyo3/pull/943)
+- Add type parameter to PyBuffer. #[951](https://github.com/PyO3/pyo3/pull/951)
+- Require `Send` bound for `#[pyclass]`. [#966](https://github.com/PyO3/pyo3/pull/966)
+- Add `Python` argument to most methods on `PyObject` and `Py<T>` to ensure GIL safety. [#970](https://github.com/PyO3/pyo3/pull/970)
+- Change signature of `PyTypeObject::type_object()` - now takes `Python` argument and returns `&PyType`. [#970](https://github.com/PyO3/pyo3/pull/970)
+- Change return type of `PyTuple::slice()` and `PyTuple::split_from()` from `Py<PyTuple>` to `&PyTuple`. [#970](https://github.com/PyO3/pyo3/pull/970)
+- Change return type of `PyTuple::as_slice` to `&[&PyAny]`. [#971](https://github.com/PyO3/pyo3/pull/971)
+- Rename `PyTypeInfo::type_object` to `type_object_raw`, and add `Python` argument. [#975](https://github.com/PyO3/pyo3/pull/975)
+- Update `num-complex` optional dependendency from `0.2` to `0.3`. [#977](https://github.com/PyO3/pyo3/pull/977)
+- Update `num-bigint` optional dependendency from `0.2` to `0.3`. [#978](https://github.com/PyO3/pyo3/pull/978)
+- `#[pyproto]` is re-implemented without specialization. [#961](https://github.com/PyO3/pyo3/pull/961)
+- `PyClassAlloc::alloc` is renamed to `PyClassAlloc::new`. [#990](https://github.com/PyO3/pyo3/pull/990)
+- `#[pyproto]` methods can now have return value `T` or `PyResult<T>` (previously only `PyResult<T>` was supported). [#996](https://github.com/PyO3/pyo3/pull/996)
+- `#[pyproto]` methods can now skip annotating the return type if it is `()`. [#998](https://github.com/PyO3/pyo3/pull/998)
 
 ### Removed
 - Remove `ManagedPyRef` (unused, and needs specialization) [#930](https://github.com/PyO3/pyo3/pull/930)
 
 ### Fixed
 - Fix passing explicit `None` to `Option<T>` argument `#[pyfunction]` with a default value. [#936](https://github.com/PyO3/pyo3/pull/936)
+- Fix `PyClass.__new__`'s not respecting subclasses when inherited by a Python class. [#990](https://github.com/PyO3/pyo3/pull/990)
+- Fix returning `Option<T>` from `#[pyproto]` methods. [#996](https://github.com/PyO3/pyo3/pull/996)
+- Fix accepting `PyRef<Self>` and `PyRefMut<Self>` to `#[getter]` and `#[setter]` methods. [#999](https://github.com/PyO3/pyo3/pull/999)
 
 ## [0.10.1] - 2020-05-14
 ### Fixed
@@ -405,7 +435,9 @@ Yanked
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/pyo3/pyo3/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/pyo3/pyo3/compare/v0.11.1...HEAD
+[0.11.0] https://github.com/pyo3/pyo3/compare/v0.11.0...v0.11.1
+[0.11.0] https://github.com/pyo3/pyo3/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/pyo3/pyo3/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/pyo3/pyo3/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/pyo3/pyo3/compare/v0.9.1...v0.9.2
