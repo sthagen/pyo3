@@ -39,7 +39,8 @@ macro_rules! int_fits_larger_int {
         impl<'source> FromPyObject<'source> for $rust_type {
             fn extract(obj: &'source PyAny) -> PyResult<Self> {
                 let val: $larger_type = obj.extract()?;
-                <$rust_type>::try_from(val).map_err(|_| exceptions::OverflowError.into())
+                <$rust_type>::try_from(val)
+                    .map_err(|e| exceptions::PyOverflowError::py_err(e.to_string()))
             }
         }
     };
@@ -81,10 +82,10 @@ macro_rules! int_convert_128 {
                     if num.is_null() {
                         return Err(PyErr::fetch(ob.py()));
                     }
-                    let buffer: [c_uchar; $byte_size] = [0; $byte_size];
+                    let mut buffer = [0; $byte_size];
                     let ok = ffi::_PyLong_AsByteArray(
                         num as *mut ffi::PyLongObject,
-                        buffer.as_ptr() as *const c_uchar,
+                        buffer.as_mut_ptr(),
                         $byte_size,
                         IS_LITTLE_ENDIAN,
                         $is_signed,
@@ -143,7 +144,8 @@ macro_rules! int_fits_c_long {
                         val
                     }
                 }?;
-                <$rust_type>::try_from(val).map_err(|_| exceptions::OverflowError.into())
+                <$rust_type>::try_from(val)
+                    .map_err(|e| exceptions::PyOverflowError::py_err(e.to_string()))
             }
         }
     };
@@ -222,38 +224,20 @@ int_convert_128!(u128, 16, 0);
 #[cfg(all(feature = "num-bigint", not(Py_LIMITED_API)))]
 mod bigint_conversion {
     use super::*;
+    use crate::{err, Py};
     use num_bigint::{BigInt, BigUint};
 
-    unsafe fn extract_small(ob: &PyAny, n: usize, is_signed: c_int) -> PyResult<[c_uchar; 128]> {
-        let buffer = [0; 128];
-        let ok = ffi::_PyLong_AsByteArray(
-            ob.as_ptr() as *mut ffi::PyLongObject,
-            buffer.as_ptr() as *const c_uchar,
-            n,
-            1,
-            is_signed,
-        );
-        if ok == -1 {
-            Err(PyErr::fetch(ob.py()))
-        } else {
-            Ok(buffer)
-        }
-    }
-
-    unsafe fn extract_large(ob: &PyAny, n: usize, is_signed: c_int) -> PyResult<Vec<c_uchar>> {
-        let buffer = vec![0; n];
-        let ok = ffi::_PyLong_AsByteArray(
-            ob.as_ptr() as *mut ffi::PyLongObject,
-            buffer.as_ptr() as *const c_uchar,
-            n,
-            1,
-            is_signed,
-        );
-        if ok == -1 {
-            Err(PyErr::fetch(ob.py()))
-        } else {
-            Ok(buffer)
-        }
+    unsafe fn extract(ob: &PyLong, buffer: &mut [c_uchar], is_signed: c_int) -> PyResult<()> {
+        err::error_on_minusone(
+            ob.py(),
+            ffi::_PyLong_AsByteArray(
+                ob.as_ptr() as *mut ffi::PyLongObject,
+                buffer.as_mut_ptr(),
+                buffer.len(),
+                1,
+                is_signed,
+            ),
+        )
     }
 
     macro_rules! bigint_conversion {
@@ -279,24 +263,30 @@ mod bigint_conversion {
             }
             impl<'source> FromPyObject<'source> for $rust_ty {
                 fn extract(ob: &'source PyAny) -> PyResult<$rust_ty> {
+                    use crate::instance::AsPyRef;
+                    let py = ob.py();
                     unsafe {
                         let num = ffi::PyNumber_Index(ob.as_ptr());
                         if num.is_null() {
-                            return Err(PyErr::fetch(ob.py()));
+                            return Err(PyErr::fetch(py));
                         }
                         let n_bits = ffi::_PyLong_NumBits(num);
                         let n_bytes = if n_bits < 0 {
-                            return Err(PyErr::fetch(ob.py()));
+                            return Err(PyErr::fetch(py));
                         } else if n_bits == 0 {
                             0
                         } else {
                             (n_bits as usize - 1 + $is_signed) / 8 + 1
                         };
+                        let num: Py<PyLong> = Py::from_owned_ptr(py, num);
                         if n_bytes <= 128 {
-                            extract_small(ob, n_bytes, $is_signed)
-                                .map(|b| $from_bytes(&b[..n_bytes]))
+                            let mut buffer = [0; 128];
+                            extract(num.as_ref(py), &mut buffer[..n_bytes], $is_signed)?;
+                            Ok($from_bytes(&buffer[..n_bytes]))
                         } else {
-                            extract_large(ob, n_bytes, $is_signed).map(|b| $from_bytes(&b))
+                            let mut buffer = vec![0; n_bytes];
+                            extract(num.as_ref(py), &mut buffer, $is_signed)?;
+                            Ok($from_bytes(&buffer))
                         }
                     }
                 }
@@ -391,6 +381,30 @@ mod bigint_conversion {
             let py_result: BigInt =
                 FromPyObject::extract(fib.call1("fib_neg", (2000,)).unwrap()).unwrap();
             assert_eq!(rs_result, py_result);
+        }
+
+        fn python_index_class(py: Python) -> &PyModule {
+            let index_code = indoc!(
+                r#"
+                class C:
+                    def __init__(self, x):
+                        self.x = x
+                    def __index__(self):
+                        return self.x
+                "#
+            );
+            PyModule::from_code(py, index_code, "index.py", "index").unwrap()
+        }
+
+        #[test]
+        fn convert_index_class() {
+            let gil = Python::acquire_gil();
+            let py = gil.python();
+            let index = python_index_class(py);
+            let locals = PyDict::new(py);
+            locals.set_item("index", index).unwrap();
+            let ob = py.eval("index.C(10)", None, Some(locals)).unwrap();
+            let _: BigInt = FromPyObject::extract(ob).unwrap();
         }
 
         #[test]
@@ -537,7 +551,7 @@ mod test {
             );
             let obj = PyObject::from_owned_ptr_or_panic(py, obj);
             let err = obj.extract::<u128>(py).unwrap_err();
-            assert!(err.is_instance::<exceptions::OverflowError>(py));
+            assert!(err.is_instance::<exceptions::PyOverflowError>(py));
         }
     }
 
@@ -555,7 +569,7 @@ mod test {
 
                     let obj = ("123").to_object(py);
                     let err = obj.extract::<$t>(py).unwrap_err();
-                    assert!(err.is_instance::<exceptions::TypeError>(py));
+                    assert!(err.is_instance::<exceptions::PyTypeError>(py));
                 }
 
                 #[test]
@@ -565,7 +579,7 @@ mod test {
 
                     let obj = (12.3).to_object(py);
                     let err = obj.extract::<$t>(py).unwrap_err();
-                    assert!(err.is_instance::<exceptions::TypeError>(py));
+                    assert!(err.is_instance::<exceptions::PyTypeError>(py));
                 }
 
                 #[test]

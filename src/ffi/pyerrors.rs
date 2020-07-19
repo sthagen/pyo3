@@ -6,6 +6,77 @@ use crate::ffi::pyport::Py_ssize_t;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct PyBaseExceptionObject {
+    pub ob_base: PyObject,
+    pub dict: *mut PyObject,
+    pub args: *mut PyObject,
+    pub traceback: *mut PyObject,
+    pub context: *mut PyObject,
+    pub cause: *mut PyObject,
+    pub suppress_context: char,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PySyntaxErrorObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub msg: *mut PyObject,
+    pub filename: *mut PyObject,
+    pub lineno: *mut PyObject,
+    pub offset: *mut PyObject,
+    pub text: *mut PyObject,
+    pub print_file_and_line: *mut PyObject,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PyImportErrorObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub msg: *mut PyObject,
+    pub name: *mut PyObject,
+    pub path: *mut PyObject,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PyUnicodeErrorObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub encoding: *mut PyObject,
+    pub object: *mut PyObject,
+    pub start: Py_ssize_t,
+    pub end: Py_ssize_t,
+    pub reason: *mut PyObject,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PySystemExitObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub code: *mut PyObject,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PyOSErrorObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub myerrno: *mut PyObject,
+    pub strerror: *mut PyObject,
+    pub filename: *mut PyObject,
+    pub filename2: *mut PyObject,
+    #[cfg(windows)]
+    pub winerror: *mut PyObject,
+    pub written: Py_ssize_t,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct PyStopIterationObject {
+    pub exception_base: PyBaseExceptionObject,
+    pub value: *mut PyObject,
+}
+
 #[cfg_attr(windows, link(name = "pythonXY"))]
 extern "C" {
     #[cfg_attr(PyPy, link_name = "PyPyErr_SetNone")]
@@ -69,13 +140,13 @@ pub unsafe fn PyExceptionClass_Check(x: *mut PyObject) -> c_int {
 
 #[inline]
 pub unsafe fn PyExceptionInstance_Check(x: *mut PyObject) -> c_int {
-    PyType_FastSubclass((*x).ob_type, Py_TPFLAGS_BASE_EXC_SUBCLASS)
+    PyType_FastSubclass(Py_TYPE(x), Py_TPFLAGS_BASE_EXC_SUBCLASS)
 }
 
 #[inline]
 #[cfg_attr(PyPy, link_name = "PyPyExceptionInstance_Class")]
 pub unsafe fn PyExceptionInstance_Class(x: *mut PyObject) -> *mut PyObject {
-    (*x).ob_type as *mut PyObject
+    Py_TYPE(x) as *mut PyObject
 }
 
 // ported from cpython exception.c (line 2096)

@@ -46,6 +46,31 @@ pub use gil::prepare_freethreaded_python;
 #[derive(Copy, Clone)]
 pub struct Python<'p>(PhantomData<&'p GILGuard>);
 
+impl Python<'_> {
+    /// Acquires the global interpreter lock, which allows access to the Python runtime. The
+    /// provided closure F will be executed with the acquired `Python` marker token.
+    ///
+    /// If the Python runtime is not already initialized, this function will initialize it.
+    /// See [prepare_freethreaded_python()](fn.prepare_freethreaded_python.html) for details.
+    ///
+    /// # Example
+    /// ```
+    /// use pyo3::prelude::*;
+    /// Python::with_gil(|py| -> PyResult<()> {
+    ///     let x: i32 = py.eval("5", None, None)?.extract()?;
+    ///     assert_eq!(x, 5);
+    ///     Ok(())
+    /// });
+    /// ```
+    #[inline]
+    pub fn with_gil<F, R>(f: F) -> R
+    where
+        F: for<'p> FnOnce(Python<'p>) -> R,
+    {
+        f(unsafe { gil::ensure_gil().python() })
+    }
+}
+
 impl<'p> Python<'p> {
     /// Retrieves a Python instance under the assumption that the GIL is already
     /// acquired at this point, and stays acquired for the lifetime `'p`.
@@ -76,7 +101,7 @@ impl<'p> Python<'p> {
     /// # Example
     /// ```
     /// # use pyo3::prelude::*; use pyo3::types::IntoPyDict; use pyo3::wrap_pyfunction;
-    /// use pyo3::exceptions::RuntimeError;
+    /// use pyo3::exceptions::PyRuntimeError;
     /// use std::sync::Arc;
     /// use std::thread;
     /// #[pyfunction]
@@ -89,7 +114,7 @@ impl<'p> Python<'p> {
     ///             .collect();
     ///         let mut sum = 0;
     ///         for t in threads {
-    ///             sum += t.join().map_err(|_| PyErr::new::<RuntimeError, _>(()))?;
+    ///             sum += t.join().map_err(|_| PyErr::new::<PyRuntimeError, _>(()))?;
     ///         }
     ///         Ok(sum)
     ///     })
@@ -433,13 +458,6 @@ impl<'p> Python<'p> {
         T: FromPyPointer<'p>,
     {
         FromPyPointer::from_borrowed_ptr_or_opt(self, ptr)
-    }
-
-    #[doc(hidden)]
-    /// Passes value ownership to `Python` object and get reference back.
-    /// Value get cleaned up on the GIL release.
-    pub fn register_any<T: 'static>(self, ob: T) -> &'p T {
-        unsafe { gil::register_any(ob) }
     }
 
     /// Releases a PyObject reference.

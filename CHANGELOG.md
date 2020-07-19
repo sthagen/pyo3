@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Added
 - Add FFI definitions `Py_FinalizeEx`, `PyOS_getsig`, `PyOS_setsig`. [#1021](https://github.com/PyO3/pyo3/pull/1021)
+- Add `Python::with_gil` for executing a closure with the Python GIL. [#1037](https://github.com/PyO3/pyo3/pull/1037)
 
 ### Changed
-- Change FFI definitions `Py_SetProgramName` and `Py_SetPythonHome` to take `*const` argument instead of `*mut`. [#1021](https://github.com/PyO3/pyo3/pull/1021)
+- Exception types have been renamed from e.g. `RuntimeError` to `PyRuntimeError`, and are now only accessible by `&T` or `Py<T>` similar to other Python-native types. The old names continue to exist but are deprecated. [#1024](https://github.com/PyO3/pyo3/pull/1024)
+- Correct FFI definitions `Py_SetProgramName` and `Py_SetPythonHome` to take `*const` argument instead of `*mut`. [#1021](https://github.com/PyO3/pyo3/pull/1021)
+- Rename `PyString::to_string` to `to_str`, change return type `Cow<str>` to `&str`. [#1023](https://github.com/PyO3/pyo3/pull/1023)
+- Correct FFI definition `_PyLong_AsByteArray` `*mut c_uchar` argument instead of `*const c_uchar`. [#1029](https://github.com/PyO3/pyo3/pull/1029)
+- `PyType::as_type_ptr` is no longer `unsafe`. [#1047](https://github.com/PyO3/pyo3/pull/1047)
+
+### Removed
+- Remove `PyString::as_bytes`. [#1023](https://github.com/PyO3/pyo3/pull/1023)
+- Remove `Python::register_any`. [#1023](https://github.com/PyO3/pyo3/pull/1023)
+
+### Fixed
+- Conversion from types with an `__index__` method to Rust BigInts. [#1027](https://github.com/PyO3/pyo3/pull/1027)
 
 ## [0.11.1] - 2020-06-30
 ### Added
@@ -192,7 +204,7 @@ and `PyString::to_string_lossy` [#642](https://github.com/PyO3/pyo3/pull/642).
 ### Added
 - `module` argument to `pyclass` macro. [#499](https://github.com/PyO3/pyo3/pull/499)
 - `py_run!` macro [#512](https://github.com/PyO3/pyo3/pull/512)
-- Use existing fields and methods before calling custom __getattr__. [#505](https://github.com/PyO3/pyo3/pull/512)
+- Use existing fields and methods before calling custom __getattr__. [#505](https://github.com/PyO3/pyo3/pull/505)
 - `PyBytes` can now be indexed just like `Vec<u8>`
 - Implement `IntoPy<PyObject>` for `PyRef` and `PyRefMut`.
 

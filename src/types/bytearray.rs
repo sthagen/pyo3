@@ -173,7 +173,7 @@ mod test {
         slice[0..5].copy_from_slice(b"Hi...");
 
         assert_eq!(
-            &bytearray.str().unwrap().to_string().unwrap(),
+            bytearray.str().unwrap().to_str().unwrap(),
             "bytearray(b'Hi... Python')"
         );
     }
@@ -210,7 +210,7 @@ mod test {
         let py = gil.python();
 
         if let Err(err) = PyByteArray::from(py, &py.None()) {
-            assert!(err.is_instance::<exceptions::TypeError>(py));
+            assert!(err.is_instance::<exceptions::PyTypeError>(py));
         } else {
             panic!("error");
         }
