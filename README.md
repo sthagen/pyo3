@@ -1,6 +1,5 @@
 # PyO3
 
-[![Build Status](https://travis-ci.org/PyO3/pyo3.svg?branch=master)](https://travis-ci.org/PyO3/pyo3)
 [![Actions Status](https://github.com/PyO3/pyo3/workflows/Test/badge.svg)](https://github.com/PyO3/pyo3/actions)
 [![codecov](https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg)](https://codecov.io/gh/PyO3/pyo3)
 [![crates.io](http://meritbadge.herokuapp.com/pyo3)](https://crates.io/crates/pyo3)
@@ -13,13 +12,15 @@
 
 * API Documentation: [stable](https://docs.rs/pyo3/) |  [master](https://pyo3.rs/master/doc)
 
+* Contributing Notes: [github](https://github.com/PyO3/pyo3/blob/master/Contributing.md)
+
 A comparison with rust-cpython can be found [in the guide](https://pyo3.rs/master/rust_cpython.html).
 
 ## Usage
 
 PyO3 supports Python 3.5 and up. The minimum required Rust version is 1.39.0.
 
-PyPy is also supported (via cpyext) for Python 3.5 only, targeted PyPy version is 7.0.0.
+Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
 Please refer to the [pypy section in the guide](https://pyo3.rs/master/pypy.html).
 
 You can either write a native Python module in Rust, or use Python from a Rust binary.

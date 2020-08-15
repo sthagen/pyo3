@@ -1,0 +1,121 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+      - run: pip install black==19.10b0
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Check python formatting (black)
+        run: black --check .
+      - name: Check rust formatting (rustfmt)
+        run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: make clippy
+
+  build:
+    needs: [fmt] # don't wait for clippy as fails rarely and takes longer
+    name: python${{ matrix.python-version }}-${{ matrix.platform.python-architecture }} ${{ matrix.platform.os }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9-dev, pypy3]
+        platform: [
+          { os: "macOS-latest",   python-architecture: "x64", rust-target: "x86_64-apple-darwin" },
+          { os: "ubuntu-latest", python-architecture: "x64", rust-target: "x86_64-unknown-linux-gnu" },
+          { os: "windows-latest", python-architecture: "x64", rust-target: "x86_64-pc-windows-msvc" },
+          { os: "windows-latest", python-architecture: "x86", rust-target: "i686-pc-windows-msvc" },
+        ]
+        exclude:
+          # There is no 64-bit pypy on windows
+          - python-version: pypy3
+            platform: { os: "windows-latest", python-architecture: "x64" }
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.platform.python-architecture }}
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.platform.rust-target }}
+
+      - name: Prepare LD_LIBRARY_PATH (Ubuntu only)
+        if: matrix.platform.os == 'ubuntu-latest'
+        run: echo ::set-env name=LD_LIBRARY_PATH::${pythonLocation}/lib
+
+      - run: rustup set default-host ${{ matrix.platform.rust-target }}
+
+      - name: Build without default features
+        run: cargo build --no-default-features --verbose
+
+      - name: Build with default features
+        run: cargo build --features "num-bigint num-complex" --verbose
+
+      # Run tests (except on PyPy, because no embedding API).
+      - if: matrix.python-version != 'pypy3'
+        name: Test
+        run: cargo test --features "num-bigint num-complex"
+
+      - name: Test proc-macro code
+        run: cargo test --manifest-path=pyo3-derive-backend/Cargo.toml
+
+      - name: Install python test dependencies
+        run: |
+          python -m pip install -U pip setuptools
+          pip install setuptools-rust pytest pytest-benchmark tox tox-venv
+
+      - name: Test example extension modules
+        shell: bash
+        run: |
+          for example_dir in examples/*; do
+              cd $example_dir
+              tox -c "tox.ini" -e py
+              cd -
+          done
+
+    env:
+      RUST_BACKTRACE: 1
+
+  coverage:
+    needs: [fmt]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features "num-bigint num-complex" --no-fail-fast
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+      - uses: actions-rs/grcov@v0.1
+        id: coverage
+      - run: echo ${{ steps.coverage.outputs.report }}
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ${{ steps.coverage.outputs.report }}
