@@ -614,28 +614,18 @@
 <span id="614">614</span>
 <span id="615">615</span>
 <span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="comment">//</span>
 <span class="comment">// based on Daniel Grunwald&#39;s https://github.com/dgrunwald/rust-cpython</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyErr</span>, <span class="ident">PyResult</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::<span class="ident">PyNativeType</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">internal_tricks</span>::<span class="ident">Unsendable</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyAny</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">AsPyPointer</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">IntoPy</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Python</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">FromPyObject</span>, <span class="ident">ToPyObject</span>};
-<span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">cast</span>::<span class="ident">cast</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">exceptions</span>, <span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">IntoPy</span>, <span class="ident">PyAny</span>, <span class="ident">PyErr</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyObject</span>,
+    <span class="ident">PyResult</span>, <span class="ident">Python</span>, <span class="ident">ToPyObject</span>,
+};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">i64</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_int</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_long</span>, <span class="ident">c_uchar</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_long</span>;
 
 <span class="kw">fn</span> <span class="ident">err_if_invalid_value</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span>(
     <span class="ident">py</span>: <span class="ident">Python</span>,
@@ -665,66 +655,9 @@
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
             <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">objectprotocol</span>::<span class="ident">ObjectProtocol</span>::<span class="ident">extract</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">larger_type</span><span class="op">&gt;</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>;
-                <span class="kw">match</span> <span class="ident">cast</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">larger_type</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>(<span class="ident">val</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">OverflowError</span>.<span class="ident">into</span>()),
-                }
-            }
-        }
-    };
-}
-
-<span class="comment">// manual implementation for 128bit integers</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-<span class="kw">const</span> <span class="ident">IS_LITTLE_ENDIAN</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>))]</span>
-<span class="kw">const</span> <span class="ident">IS_LITTLE_ENDIAN</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
-
-<span class="comment">// for 128bit Integers</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">int_convert_128</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span>: <span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
-            <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                (<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">into_py</span>(<span class="ident">py</span>)
-            }
-        }
-        <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
-            <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_ne_bytes</span>();
-                    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_FromByteArray</span>(
-                        <span class="ident">bytes</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>,
-                        <span class="ident">IS_LITTLE_ENDIAN</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>,
-                    );
-                    <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="ident">obj</span>)
-                }
-            }
-        }
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
-            <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyNumber_Index</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>());
-                    <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_null</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()));
-                    }
-                    <span class="kw">let</span> <span class="ident">buffer</span>: [<span class="ident">c_uchar</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>];
-                    <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_AsByteArray</span>(
-                        <span class="ident">num</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyLongObject</span>,
-                        <span class="ident">buffer</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>,
-                        <span class="ident">IS_LITTLE_ENDIAN</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>,
-                    );
-                    <span class="kw">if</span> <span class="ident">ok</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()))
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Ok</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>::<span class="ident">from_ne_bytes</span>(<span class="ident">buffer</span>))
-                    }
-                }
+                <span class="kw">let</span> <span class="ident">val</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">larger_type</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">extract</span>()<span class="question-mark">?</span>;
+                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">val</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">exceptions</span>::<span class="ident">PyOverflowError</span>::<span class="ident">py_err</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))
             }
         }
     };
@@ -734,34 +667,25 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// You can usually avoid directly working with this type</span>
 <span class="doccomment">/// by using [`ToPyObject`](trait.ToPyObject.html)</span>
-<span class="doccomment">/// and [extract](struct.PyObject.html#method.extract)</span>
+<span class="doccomment">/// and [extract](struct.PyAny.html#method.extract)</span>
 <span class="doccomment">/// with the primitive Rust integer types.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyLong</span>(<span class="ident">PyObject</span>, <span class="ident">Unsendable</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyLong</span>(<span class="ident">PyAny</span>);
 
-<span class="macro">pyobject_native_type</span><span class="macro">!</span>(
-    <span class="ident">PyLong</span>,
-    <span class="ident">ffi</span>::<span class="ident">PyLong_Type</span>,
-    <span class="prelude-val">Some</span>(<span class="string">&quot;builtins&quot;</span>),
-    <span class="ident">ffi</span>::<span class="ident">PyLong_Check</span>
-);
+<span class="macro">pyobject_native_var_type</span><span class="macro">!</span>(<span class="ident">PyLong</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_Type</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_Check</span>);
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">int_fits_c_long</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
             <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_lossless</span>))]</span>
             <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_FromLong</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">c_long</span>))
-                }
+                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_FromLong</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">c_long</span>)) }
             }
         }
         <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
             <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_lossless</span>))]</span>
             <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_FromLong</span>(<span class="self">self</span> <span class="kw">as</span> <span class="ident">c_long</span>))
-                }
+                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyLong_FromLong</span>(<span class="self">self</span> <span class="kw">as</span> <span class="ident">c_long</span>)) }
             }
         }
 
@@ -778,10 +702,8 @@
                         <span class="ident">val</span>
                     }
                 }<span class="question-mark">?</span>;
-                <span class="kw">match</span> <span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">c_long</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>(<span class="ident">val</span>) {
-                    <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">exceptions</span>::<span class="ident">OverflowError</span>.<span class="ident">into</span>()),
-                }
+                <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">val</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">exceptions</span>::<span class="ident">PyOverflowError</span>::<span class="ident">py_err</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))
             }
         }
     };
@@ -792,13 +714,13 @@
         <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pylong_from_ll_or_ull</span>(<span class="kw-2">*</span><span class="self">self</span>)) }
+                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pylong_from_ll_or_ull</span>(<span class="kw-2">*</span><span class="self">self</span>)) }
             }
         }
         <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pylong_from_ll_or_ull</span>(<span class="self">self</span>)) }
+                <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pylong_from_ll_or_ull</span>(<span class="self">self</span>)) }
             }
         }
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
@@ -852,46 +774,150 @@
     <span class="ident">ffi</span>::<span class="ident">PyLong_AsUnsignedLongLong</span>
 );
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-<span class="macro">int_convert_128</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="number">16</span>, <span class="number">1</span>);
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-<span class="macro">int_convert_128</span><span class="macro">!</span>(<span class="ident">u128</span>, <span class="number">16</span>, <span class="number">0</span>);
+<span class="comment">// manual implementation for 128bit integers</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">PyPy</span>)))]</span>
+<span class="kw">mod</span> <span class="ident">int128_conversion</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::{
+        <span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">IntoPy</span>, <span class="ident">PyAny</span>, <span class="ident">PyErr</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyObject</span>, <span class="ident">PyResult</span>,
+        <span class="ident">Python</span>, <span class="ident">ToPyObject</span>,
+    };
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_int</span>, <span class="ident">c_uchar</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;num-bigint&quot;</span>, <span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>)))]</span>
-<span class="kw">mod</span> <span class="ident">bigint_conversion</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">num_bigint</span>::{<span class="ident">BigInt</span>, <span class="ident">BigUint</span>};
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
+    <span class="kw">const</span> <span class="ident">IS_LITTLE_ENDIAN</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>))]</span>
+    <span class="kw">const</span> <span class="ident">IS_LITTLE_ENDIAN</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extract_small</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="ident">PyAny</span>, <span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">is_signed</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>[<span class="ident">c_uchar</span>; <span class="number">128</span>]<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">128</span>];
-        <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_AsByteArray</span>(
-            <span class="ident">ob</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyLongObject</span>,
-            <span class="ident">buffer</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-            <span class="ident">n</span>,
-            <span class="number">1</span>,
-            <span class="ident">is_signed</span>,
-        );
-        <span class="kw">if</span> <span class="ident">ok</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>)
-        }
+    <span class="comment">// for 128bit Integers</span>
+    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">int_convert_128</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span>: <span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
+                <span class="attribute">#[<span class="ident">inline</span>]</span>
+                <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+                    (<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">into_py</span>(<span class="ident">py</span>)
+                }
+            }
+            <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
+                <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+                    <span class="kw">unsafe</span> {
+                        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_ne_bytes</span>();
+                        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_FromByteArray</span>(
+                            <span class="ident">bytes</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>,
+                            <span class="ident">IS_LITTLE_ENDIAN</span>,
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>,
+                        );
+                        <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">obj</span>)
+                    }
+                }
+            }
+
+            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span> {
+                <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span> {
+                    <span class="kw">unsafe</span> {
+                        <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyNumber_Index</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>());
+                        <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_null</span>() {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()));
+                        }
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>];
+                        <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_AsByteArray</span>(
+                            <span class="ident">num</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyLongObject</span>,
+                            <span class="ident">buffer</span>.<span class="ident">as_mut_ptr</span>(),
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">byte_size</span>,
+                            <span class="ident">IS_LITTLE_ENDIAN</span>,
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>,
+                        );
+                        <span class="kw">if</span> <span class="ident">ok</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
+                            <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()))
+                        } <span class="kw">else</span> {
+                            <span class="prelude-val">Ok</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_type</span><span class="op">&gt;</span>::<span class="ident">from_ne_bytes</span>(<span class="ident">buffer</span>))
+                        }
+                    }
+                }
+            }
+        };
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extract_large</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="ident">PyAny</span>, <span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">is_signed</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">c_uchar</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">n</span>];
-        <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_AsByteArray</span>(
-            <span class="ident">ob</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyLongObject</span>,
-            <span class="ident">buffer</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-            <span class="ident">n</span>,
-            <span class="number">1</span>,
-            <span class="ident">is_signed</span>,
-        );
-        <span class="kw">if</span> <span class="ident">ok</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>)
+    <span class="macro">int_convert_128</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="number">16</span>, <span class="number">1</span>);
+    <span class="macro">int_convert_128</span><span class="macro">!</span>(<span class="ident">u128</span>, <span class="number">16</span>, <span class="number">0</span>);
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+    <span class="kw">mod</span> <span class="ident">test</span> {
+        <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Python</span>, <span class="ident">ToPyObject</span>};
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">test_i128_max</span>() {
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">i128</span>::<span class="ident">MAX</span>;
+            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u128</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
         }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">test_i128_min</span>() {
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">i128</span>::<span class="ident">MIN</span>;
+            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
+        }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">test_u128_max</span>() {
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">u128</span>::<span class="ident">MAX</span>;
+            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
+        }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">test_u128_overflow</span>() {
+            <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">exceptions</span>, <span class="ident">ffi</span>, <span class="ident">PyObject</span>};
+            <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_uchar</span>;
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">overflow_bytes</span>: [<span class="ident">c_uchar</span>; <span class="number">20</span>] <span class="op">=</span> [<span class="number">255</span>; <span class="number">20</span>];
+            <span class="kw">unsafe</span> {
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_FromByteArray</span>(
+                    <span class="ident">overflow_bytes</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
+                    <span class="number">20</span>,
+                    <span class="kw">super</span>::<span class="ident">IS_LITTLE_ENDIAN</span>,
+                    <span class="number">0</span>,
+                );
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">obj</span>);
+                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap_err</span>();
+                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">PyOverflowError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
+            }
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;num-bigint&quot;</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">PyPy</span>))))]</span>
+<span class="kw">mod</span> <span class="ident">bigint_conversion</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">err</span>, <span class="ident">Py</span>};
+    <span class="kw">use</span> <span class="ident">num_bigint</span>::{<span class="ident">BigInt</span>, <span class="ident">BigUint</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_int</span>, <span class="ident">c_uchar</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">windows</span>, <span class="ident">PyPy</span>)))]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="ident">PyLong</span>, <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">c_uchar</span>], <span class="ident">is_signed</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">err</span>::<span class="ident">error_on_minusone</span>(
+            <span class="ident">ob</span>.<span class="ident">py</span>(),
+            <span class="ident">ffi</span>::<span class="ident">_PyLong_AsByteArray</span>(
+                <span class="ident">ob</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyLongObject</span>,
+                <span class="ident">buffer</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="ident">buffer</span>.<span class="ident">len</span>(),
+                <span class="number">1</span>,
+                <span class="ident">is_signed</span>,
+            ),
+        )
     }
 
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">bigint_conversion</span> {
@@ -906,7 +932,7 @@
                             <span class="number">1</span>,
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>,
                         );
-                        <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="ident">obj</span>)
+                        <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">obj</span>)
                     }
                 }
             }
@@ -917,24 +943,29 @@
             }
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_ty</span> {
                 <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">rust_ty</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">ob</span>.<span class="ident">py</span>();
                     <span class="kw">unsafe</span> {
                         <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyNumber_Index</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>());
                         <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_null</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
                         }
                         <span class="kw">let</span> <span class="ident">n_bits</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_NumBits</span>(<span class="ident">num</span>);
                         <span class="kw">let</span> <span class="ident">n_bytes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">n_bits</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">ob</span>.<span class="ident">py</span>()));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
                         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">n_bits</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                             <span class="number">0</span>
                         } <span class="kw">else</span> {
                             (<span class="ident">n_bits</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>) <span class="op">/</span> <span class="number">8</span> <span class="op">+</span> <span class="number">1</span>
                         };
+                        <span class="kw">let</span> <span class="ident">num</span>: <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyLong</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Py</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">num</span>);
                         <span class="kw">if</span> <span class="ident">n_bytes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">128</span> {
-                            <span class="ident">extract_small</span>(<span class="ident">ob</span>, <span class="ident">n_bytes</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>)
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>[..<span class="ident">n_bytes</span>]))
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">128</span>];
+                            <span class="ident">extract</span>(<span class="ident">num</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>[..<span class="ident">n_bytes</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>)<span class="question-mark">?</span>;
+                            <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[..<span class="ident">n_bytes</span>]))
                         } <span class="kw">else</span> {
-                            <span class="ident">extract_large</span>(<span class="ident">ob</span>, <span class="ident">n_bytes</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>))
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">n_bytes</span>];
+                            <span class="ident">extract</span>(<span class="ident">num</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_signed</span>)<span class="question-mark">?</span>;
+                            <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>))
                         }
                     }
                 }
@@ -954,7 +985,6 @@
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">PyDict</span>, <span class="ident">PyModule</span>};
         <span class="kw">use</span> <span class="ident">indoc</span>::<span class="ident">indoc</span>;
-        <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">One</span>, <span class="ident">Zero</span>};
 
         <span class="kw">fn</span> <span class="ident">python_fib</span>(<span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PyModule</span> {
             <span class="kw">let</span> <span class="ident">fib_code</span> <span class="op">=</span> <span class="macro">indoc</span><span class="macro">!</span>(
@@ -974,11 +1004,11 @@
 
         <span class="kw">fn</span> <span class="ident">rust_fib</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>
         <span class="kw">where</span>
-            <span class="ident">T</span>: <span class="ident">Zero</span> <span class="op">+</span> <span class="ident">One</span>,
+            <span class="ident">T</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
             <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Add</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f0</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">Zero</span>::<span class="ident">zero</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f1</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">One</span>::<span class="ident">one</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f0</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">from</span>(<span class="number">0</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f1</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">from</span>(<span class="number">1</span>);
             <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
                 <span class="kw">let</span> <span class="ident">f2</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">f0</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">f1</span>;
                 <span class="ident">f0</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f1</span>, <span class="ident">f2</span>);
@@ -1032,6 +1062,30 @@
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rs_result</span>, <span class="ident">py_result</span>);
         }
 
+        <span class="kw">fn</span> <span class="ident">python_index_class</span>(<span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PyModule</span> {
+            <span class="kw">let</span> <span class="ident">index_code</span> <span class="op">=</span> <span class="macro">indoc</span><span class="macro">!</span>(
+                <span class="string">r#&quot;
+                class C:
+                    def __init__(self, x):
+                        self.x = x
+                    def __index__(self):
+                        return self.x
+                &quot;#</span>
+            );
+            <span class="ident">PyModule</span>::<span class="ident">from_code</span>(<span class="ident">py</span>, <span class="ident">index_code</span>, <span class="string">&quot;index.py&quot;</span>, <span class="string">&quot;index&quot;</span>).<span class="ident">unwrap</span>()
+        }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">convert_index_class</span>() {
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">python_index_class</span>(<span class="ident">py</span>);
+            <span class="kw">let</span> <span class="ident">locals</span> <span class="op">=</span> <span class="ident">PyDict</span>::<span class="ident">new</span>(<span class="ident">py</span>);
+            <span class="ident">locals</span>.<span class="ident">set_item</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">index</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">ob</span> <span class="op">=</span> <span class="ident">py</span>.<span class="ident">eval</span>(<span class="string">&quot;index.C(10)&quot;</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">locals</span>)).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="kw">_</span>: <span class="ident">BigInt</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">ob</span>).<span class="ident">unwrap</span>();
+        }
+
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">handle_zero</span>() {
             <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
@@ -1041,7 +1095,7 @@
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero</span>, <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">0</span>));
         }
 
-        <span class="doccomment">/// `OverflowError` on converting python int to BigInt, see issue #629</span>
+        <span class="doccomment">/// `OverflowError` on converting Python int to BigInt, see issue #629</span>
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">check_overflow</span>() {
             <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
@@ -1060,15 +1114,15 @@
                 <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">py</span>);
                 <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, <span class="ident">BigUint</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">py</span>);
                 <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="ident">i</span>), <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, (<span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, (<span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
-                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, <span class="ident">BigUint</span>::<span class="ident">from</span>(<span class="number">1u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, <span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, (<span class="ident">BigUint</span>::<span class="ident">from</span>(<span class="number">1u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">+</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigUint</span>, (<span class="ident">BigUint</span>::<span class="ident">from</span>(<span class="number">1u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
+                <span class="macro">test</span><span class="macro">!</span>(<span class="ident">BigInt</span>, (<span class="op">-</span><span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">1</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">i</span>) <span class="op">-</span> <span class="number">1u32</span>, <span class="ident">py</span>);
             }
         }
     }
@@ -1122,64 +1176,6 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">test_i128_max</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">i128</span>::<span class="ident">MAX</span>;
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u128</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">test_i128_min</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">i128</span>::<span class="ident">MIN</span>;
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">test_u128_max</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">u128</span>::<span class="ident">MAX</span>;
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">v</span>, <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">is_err</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">test_u128_overflow</span>() {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_uchar</span>;
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">overflow_bytes</span>: [<span class="ident">c_uchar</span>; <span class="number">20</span>] <span class="op">=</span> [<span class="number">255</span>; <span class="number">20</span>];
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">_PyLong_FromByteArray</span>(
-                <span class="ident">overflow_bytes</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_uchar</span>,
-                <span class="number">20</span>,
-                <span class="kw">super</span>::<span class="ident">IS_LITTLE_ENDIAN</span>,
-                <span class="number">0</span>,
-            );
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>, <span class="ident">obj</span>);
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap_err</span>();
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">OverflowError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
-        }
-    }
-
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_common</span> (
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">test_mod_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> (
             <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">test_mod_name</span> {
@@ -1194,7 +1190,7 @@
 
                     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> (<span class="string">&quot;123&quot;</span>).<span class="ident">to_object</span>(<span class="ident">py</span>);
                     <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap_err</span>();
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">TypeError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
+                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">PyTypeError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1204,7 +1200,7 @@
 
                     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> (<span class="number">12.3</span>).<span class="ident">to_object</span>(<span class="ident">py</span>);
                     <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap_err</span>();
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">TypeError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
+                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">is_instance</span>::<span class="op">&lt;</span><span class="ident">exceptions</span>::<span class="ident">PyTypeError</span><span class="op">&gt;</span>(<span class="ident">py</span>));
                 }
 
                 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1230,10 +1226,10 @@
     <span class="macro">test_common</span><span class="macro">!</span>(<span class="ident">u64</span>, <span class="ident">u64</span>);
     <span class="macro">test_common</span><span class="macro">!</span>(<span class="ident">isize</span>, <span class="ident">isize</span>);
     <span class="macro">test_common</span><span class="macro">!</span>(<span class="ident">usize</span>, <span class="ident">usize</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">PyPy</span>)))]</span>
     <span class="macro">test_common</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="ident">i128</span>);
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">PyPy</span>)))]</span>
     <span class="macro">test_common</span><span class="macro">!</span>(<span class="ident">u128</span>, <span class="ident">u128</span>);
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

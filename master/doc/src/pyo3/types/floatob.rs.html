@@ -114,39 +114,31 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="comment">//</span>
 <span class="comment">// based on Daniel Grunwald&#39;s https://github.com/dgrunwald/rust-cpython</span>
-
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::<span class="ident">PyErr</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::<span class="ident">PyNativeType</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">internal_tricks</span>::<span class="ident">Unsendable</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objectprotocol</span>::<span class="ident">ObjectProtocol</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyAny</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">FromPyObject</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">PyResult</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Python</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ToPyObject</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">FromPy</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">IntoPy</span>, <span class="ident">PyAny</span>, <span class="ident">PyErr</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyObject</span>, <span class="ident">PyResult</span>, <span class="ident">Python</span>,
+    <span class="ident">ToPyObject</span>,
+};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_double</span>;
 
 <span class="doccomment">/// Represents a Python `float` object.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// You can usually avoid directly working with this type</span>
 <span class="doccomment">/// by using [`ToPyObject`](trait.ToPyObject.html)</span>
-<span class="doccomment">/// and [extract](struct.PyObject.html#method.extract)</span>
+<span class="doccomment">/// and [extract](struct.PyAny.html#method.extract)</span>
 <span class="doccomment">/// with `f32`/`f64`.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyFloat</span>(<span class="ident">PyObject</span>, <span class="ident">Unsendable</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyFloat</span>(<span class="ident">PyAny</span>);
 
-<span class="macro">pyobject_native_type</span><span class="macro">!</span>(<span class="ident">PyFloat</span>, <span class="ident">ffi</span>::<span class="ident">PyFloat_Type</span>, <span class="ident">ffi</span>::<span class="ident">PyFloat_Check</span>);
+<span class="macro">pyobject_native_type</span><span class="macro">!</span>(
+    <span class="ident">PyFloat</span>,
+    <span class="ident">ffi</span>::<span class="ident">PyFloatObject</span>,
+    <span class="ident">ffi</span>::<span class="ident">PyFloat_Type</span>,
+    <span class="ident">ffi</span>::<span class="ident">PyFloat_Check</span>
+);
 
 <span class="kw">impl</span> <span class="ident">PyFloat</span> {
     <span class="doccomment">/// Creates a new Python `float` object.</span>
@@ -156,7 +148,7 @@
 
     <span class="doccomment">/// Gets the value of this float.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyFloat_AsDouble</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()) }
+        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyFloat_AsDouble</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) }
     }
 }
 
@@ -166,9 +158,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromPy</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span> {
-    <span class="kw">fn</span> <span class="ident">from_py</span>(<span class="ident">other</span>: <span class="ident">f64</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PyFloat</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">other</span>).<span class="ident">into</span>()
+<span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">f64</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+        <span class="ident">PyFloat</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 
@@ -192,9 +184,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FromPy</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span> {
-    <span class="kw">fn</span> <span class="ident">from_py</span>(<span class="ident">other</span>: <span class="ident">f32</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PyFloat</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">other</span>)).<span class="ident">into</span>()
+<span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">f32</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+        <span class="ident">PyFloat</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">f64</span>::<span class="ident">from</span>(<span class="self">self</span>)).<span class="ident">into</span>()
     }
 }
 
@@ -240,4 +232,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

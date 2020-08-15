@@ -28,6 +28,9 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -45,6 +48,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mapping</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">methods</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proto_methods</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pyasync</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sequence</span>;
 
@@ -55,9 +59,11 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">gc</span>::{<span class="ident">PyGCProtocol</span>, <span class="ident">PyTraverseError</span>, <span class="ident">PyVisit</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">iter</span>::<span class="ident">PyIterProtocol</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">mapping</span>::<span class="ident">PyMappingProtocol</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">methods</span>::{<span class="ident">PyGetterDef</span>, <span class="ident">PyMethodDef</span>, <span class="ident">PyMethodDefType</span>, <span class="ident">PyMethodType</span>, <span class="ident">PySetterDef</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">methods</span>::{
+    <span class="ident">PyClassAttributeDef</span>, <span class="ident">PyGetterDef</span>, <span class="ident">PyMethodDef</span>, <span class="ident">PyMethodDefType</span>, <span class="ident">PyMethodType</span>, <span class="ident">PySetterDef</span>,
+};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">number</span>::<span class="ident">PyNumberProtocol</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">pyasync</span>::<span class="ident">PyAsyncProtocol</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">sequence</span>::<span class="ident">PySequenceProtocol</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

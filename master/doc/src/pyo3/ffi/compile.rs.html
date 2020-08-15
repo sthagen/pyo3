@@ -65,6 +65,10 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">code</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
@@ -100,7 +104,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUTURE_GENERATOR_STOP</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;generator_stop&quot;</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyNode_Compile</span>(<span class="ident">arg1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">_node</span>, <span class="ident">arg2</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyCodeObject</span>;
 
@@ -128,10 +131,15 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyFutureFeatures</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyCompile_OpcodeStackEffect</span>(<span class="ident">opcode</span>: <span class="ident">c_int</span>, <span class="ident">oparg</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyCompile_OpcodeStackEffectWithJump</span>(<span class="ident">opcode</span>: <span class="ident">c_int</span>, <span class="ident">oparg</span>: <span class="ident">c_int</span>, <span class="ident">jump</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Py_single_input</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Py_file_input</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">257</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Py_eval_input</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">258</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Py_func_type_input</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">345</span>;
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

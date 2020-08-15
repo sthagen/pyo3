@@ -319,8 +319,44 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">specialization</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">specialization</span>))]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span> <span class="comment">// FIXME (#698)</span>
 
 <span class="doccomment">//! Rust bindings to the Python interpreter.</span>
 <span class="doccomment">//!</span>
@@ -328,23 +364,26 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Ownership and Lifetimes</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! In Python, all objects are implicitly reference counted.</span>
-<span class="doccomment">//! In rust, we will use the `PyObject` type to represent a reference to a Python object.</span>
+<span class="doccomment">//! Because all Python objects potentially have multiple owners, the concept of</span>
+<span class="doccomment">//! Rust mutability does not apply to Python objects.  As a result, PyO3 allows</span>
+<span class="doccomment">//! mutating Python objects even if they are not stored in a mutable Rust</span>
+<span class="doccomment">//! variable.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Because all Python objects potentially have multiple owners, the</span>
-<span class="doccomment">//! concept of Rust mutability does not apply to Python objects.</span>
-<span class="doccomment">//! As a result, this API will allow mutating Python objects even if they are not stored</span>
-<span class="doccomment">//! in a mutable Rust variable.</span>
+<span class="doccomment">//! In Python, all objects are implicitly reference counted.  The Python</span>
+<span class="doccomment">//! interpreter uses a global interpreter lock (GIL) to ensure thread-safety.</span>
+<span class="doccomment">//! Thus, we use `struct Python&lt;&#39;py&gt;` as a token to indicate that</span>
+<span class="doccomment">//! a function can assume that the GIL is held.  In Rust, we use different types</span>
+<span class="doccomment">//! to represent a reference to a Python object, depending on whether we know</span>
+<span class="doccomment">//! the GIL is held, and depending on whether we know the underlying type.  See</span>
+<span class="doccomment">//! [the guide](https://pyo3.rs/master/types.html) for an explanation of</span>
+<span class="doccomment">//! the different Python object types.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The Python interpreter uses a global interpreter lock (GIL)</span>
-<span class="doccomment">//! to ensure thread-safety.</span>
-<span class="doccomment">//! This API uses a zero-sized `struct Python&lt;&#39;p&gt;` as a token to indicate</span>
-<span class="doccomment">//! that a function can assume that the GIL is held.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! You obtain a `Python` instance by acquiring the GIL,</span>
-<span class="doccomment">//! and have to pass it into all operations that call into the Python runtime.</span>
+<span class="doccomment">//! A `Python` instance is either obtained explicitly by acquiring the GIL,</span>
+<span class="doccomment">//! or implicitly by PyO3 when it generates the wrapper code for Rust functions</span>
+<span class="doccomment">//! and structs wrapped as Python functions and objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Error Handling</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! The vast majority of operations in this library will return `PyResult&lt;...&gt;`.</span>
 <span class="doccomment">//! This is an alias for the type `Result&lt;..., PyErr&gt;`.</span>
 <span class="doccomment">//!</span>
@@ -353,9 +392,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Using rust from python</span>
+<span class="doccomment">//! ## Using Rust from Python</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Pyo3 can be used to generate a native python module.</span>
+<span class="doccomment">//! PyO3 can be used to generate a native Python module.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! **`Cargo.toml`**</span>
 <span class="doccomment">//!</span>
@@ -370,7 +409,7 @@
 <span class="doccomment">//! crate-type = [&quot;cdylib&quot;]</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [dependencies.pyo3]</span>
-<span class="doccomment">//! version = &quot;0.8.4&quot;</span>
+<span class="doccomment">//! version = &quot;0.11.1&quot;</span>
 <span class="doccomment">//! features = [&quot;extension-module&quot;]</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -381,13 +420,13 @@
 <span class="doccomment">//! use pyo3::wrap_pyfunction;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[pyfunction]</span>
-<span class="doccomment">//! /// Formats the sum of two numbers as string</span>
+<span class="doccomment">//! /// Formats the sum of two numbers as string.</span>
 <span class="doccomment">//! fn sum_as_string(a: usize, b: usize) -&gt; PyResult&lt;String&gt; {</span>
 <span class="doccomment">//!     Ok((a + b).to_string())</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! /// This module is a python module implemented in Rust.</span>
 <span class="doccomment">//! #[pymodule]</span>
+<span class="doccomment">//! /// A Python module implemented in Rust.</span>
 <span class="doccomment">//! fn string_sum(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
 <span class="doccomment">//!     m.add_wrapped(wrap_pyfunction!(sum_as_string))?;</span>
 <span class="doccomment">//!</span>
@@ -395,7 +434,11 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! On windows and linux, you can build normally with `cargo build --release`. On macOS, you need to set additional linker arguments. One option is to compile with `cargo rustc --release -- -C link-arg=-undefined -C link-arg=dynamic_lookup`, the other is to create a `.cargo/config` with the following content:</span>
+<span class="doccomment">//! On Windows and linux, you can build normally with `cargo build</span>
+<span class="doccomment">//! --release`. On macOS, you need to set additional linker arguments. One</span>
+<span class="doccomment">//! option is to compile with `cargo rustc --release -- -C link-arg=-undefined</span>
+<span class="doccomment">//! -C link-arg=dynamic_lookup`, the other is to create a `.cargo/config` with</span>
+<span class="doccomment">//! the following content:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
 <span class="doccomment">//! [target.x86_64-apple-darwin]</span>
@@ -405,17 +448,25 @@
 <span class="doccomment">//! ]</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! For developing, you can copy and rename the shared library from the target folder: On macOS, rename `libstring_sum.dylib` to `string_sum.so`, on windows `libstring_sum.dll` to `string_sum.pyd` and on linux `libstring_sum.so` to `string_sum.so`. Then open a python shell in the same folder and you&#39;ll be able to `import string_sum`.</span>
+<span class="doccomment">//! While developing, you symlink (or copy) and rename the shared library from</span>
+<span class="doccomment">//! the target folder: On macOS, rename `libstring_sum.dylib` to</span>
+<span class="doccomment">//! `string_sum.so`, on Windows `libstring_sum.dll` to `string_sum.pyd` and on</span>
+<span class="doccomment">//! Linux `libstring_sum.so` to `string_sum.so`. Then open a Python shell in the</span>
+<span class="doccomment">//! same folder and you&#39;ll be able to `import string_sum`.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To build, test and publish your crate as python module, you can use [maturin](https://github.com/PyO3/maturin) or [setuptools-rust](https://github.com/PyO3/setuptools-rust). You can find an example for setuptools-rust in [examples/word-count](examples/word-count), while maturin should work on your crate without any configuration.</span>
+<span class="doccomment">//! To build, test and publish your crate as a Python module, you can use</span>
+<span class="doccomment">//! [maturin](https://github.com/PyO3/maturin) or</span>
+<span class="doccomment">//! [setuptools-rust](https://github.com/PyO3/setuptools-rust). You can find an</span>
+<span class="doccomment">//! example for setuptools-rust in [examples/word-count](examples/word-count),</span>
+<span class="doccomment">//! while maturin should work on your crate without any configuration.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Using python from rust</span>
+<span class="doccomment">//! ## Using Python from Rust</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Add `pyo3` this to your `Cargo.toml`:</span>
+<span class="doccomment">//! Add `pyo3` to your `Cargo.toml`:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
 <span class="doccomment">//! [dependencies]</span>
-<span class="doccomment">//! pyo3 = &quot;0.8.4&quot;</span>
+<span class="doccomment">//! pyo3 = &quot;0.11.1&quot;</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Example program displaying the value of `sys.version`:</span>
@@ -441,65 +492,80 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">class</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">conversion</span>::{
-    <span class="ident">AsPyPointer</span>, <span class="ident">FromPy</span>, <span class="ident">FromPyObject</span>, <span class="ident">FromPyPointer</span>, <span class="ident">IntoPy</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">PyTryFrom</span>, <span class="ident">PyTryInto</span>,
+    <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">FromPyPointer</span>, <span class="ident">IntoPy</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">PyTryFrom</span>, <span class="ident">PyTryInto</span>,
     <span class="ident">ToBorrowedObject</span>, <span class="ident">ToPyObject</span>,
 };
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyDowncastError</span>, <span class="ident">PyErr</span>, <span class="ident">PyErrArguments</span>, <span class="ident">PyErrValue</span>, <span class="ident">PyResult</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>::{<span class="ident">init_once</span>, <span class="ident">GILGuard</span>, <span class="ident">GILPool</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::{<span class="ident">AsPyRef</span>, <span class="ident">ManagedPyRef</span>, <span class="ident">Py</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyRef</span>, <span class="ident">PyRefMut</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objectprotocol</span>::<span class="ident">ObjectProtocol</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>::{<span class="ident">GILGuard</span>, <span class="ident">GILPool</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::{<span class="ident">Py</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyObject</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pycell</span>::{<span class="ident">PyCell</span>, <span class="ident">PyRef</span>, <span class="ident">PyRefMut</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass</span>::<span class="ident">PyClass</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass_init</span>::<span class="ident">PyClassInitializer</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">python</span>::{<span class="ident">prepare_freethreaded_python</span>, <span class="ident">Python</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::{<span class="ident">PyObjectAlloc</span>, <span class="ident">PyRawObject</span>, <span class="ident">PyTypeInfo</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::{<span class="ident">type_flags</span>, <span class="ident">PyTypeInfo</span>};
+<span class="comment">// Since PyAny is as important as PyObject, we expose it to the top level.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyAny</span>;
 
-<span class="comment">// Re-exported for wrap_function</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">paste</span>;
-<span class="comment">// Re-exported for py_run</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">indoc</span>;
-<span class="comment">// Re-exported for pymethods</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inventory</span>;
+<span class="kw">pub</span> <span class="kw">use</span> {
+    <span class="ident">ctor</span>,      <span class="comment">// Re-exported for pyproto</span>
+    <span class="ident">indoc</span>,     <span class="comment">// Re-exported for py_run</span>
+    <span class="ident">inventory</span>, <span class="comment">// Re-exported for pymethods</span>
+    <span class="ident">paste</span>,     <span class="comment">// Re-exported for wrap_function</span>
+    <span class="ident">unindent</span>,  <span class="comment">// Re-exported for py_run</span>
+};
+
 <span class="comment">// Re-exported for the `__wrap` functions</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">libc</span>;
-<span class="comment">// Re-exported for py_run</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">unindent</span>;
-
-<span class="doccomment">/// Raw ffi declarations for the c interface of python</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ffi</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buffer</span>;
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">callback</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
-<span class="kw">mod</span> <span class="ident">conversion</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">conversion</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">derive_utils</span>;
 <span class="kw">mod</span> <span class="ident">err</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">exceptions</span>;
+<span class="doccomment">/// Raw ffi declarations for the c interface of python</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unknown_clippy_lints</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ffi</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">freelist</span>;
 <span class="kw">mod</span> <span class="ident">gil</span>;
 <span class="kw">mod</span> <span class="ident">instance</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">internal_tricks</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">marshal</span>;
-<span class="kw">mod</span> <span class="ident">object</span>;
-<span class="kw">mod</span> <span class="ident">objectprotocol</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">once_cell</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">panic</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pycell</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pyclass</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pyclass_init</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pyclass_slots</span>;
 <span class="kw">mod</span> <span class="ident">python</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 
-<span class="doccomment">/// The proc macros, which are also part of the prelude</span>
+<span class="doccomment">/// Internal utilities exposed for rust-numpy</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">internal_utils</span> {
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>::{<span class="ident">ensure_gil</span>, <span class="ident">EnsureGIL</span>};
+}
+
+<span class="doccomment">/// The proc macros, which are also part of the prelude.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proc_macro</span> {
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3cls</span>::<span class="ident">pymodule</span>;
     <span class="doccomment">/// The proc macro attributes</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3cls</span>::{<span class="ident">pyclass</span>, <span class="ident">pyfunction</span>, <span class="ident">pymethods</span>, <span class="ident">pyproto</span>};
 }
 
-<span class="doccomment">/// Returns a function that takes a [Python] instance and returns a python function.</span>
+<span class="doccomment">/// Returns a function that takes a [Python] instance and returns a Python function.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Use this together with `#[pyfunction]` and [types::PyModule::add_wrapped].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
@@ -509,7 +575,7 @@
     }};
 }
 
-<span class="doccomment">/// Returns a function that takes a [Python] instance and returns a python module.</span>
+<span class="doccomment">/// Returns a function that takes a [Python] instance and returns a Python module.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Use this together with `#[pymodule]` and [types::PyModule::add_wrapped].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
@@ -536,7 +602,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use pyo3::{prelude::*, py_run};</span>
+<span class="doccomment">/// use pyo3::{prelude::*, py_run, PyCell};</span>
 <span class="doccomment">/// #[pyclass]</span>
 <span class="doccomment">/// #[derive(Debug)]</span>
 <span class="doccomment">/// struct Time {</span>
@@ -559,7 +625,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// let gil = Python::acquire_gil();</span>
 <span class="doccomment">/// let py = gil.python();</span>
-<span class="doccomment">/// let time = PyRef::new(py, Time {hour: 8, minute: 43, second: 16}).unwrap();</span>
+<span class="doccomment">/// let time = PyCell::new(py, Time {hour: 8, minute: 43, second: 16}).unwrap();</span>
 <span class="doccomment">/// let time_as_tuple = (8, 43, 16);</span>
 <span class="doccomment">/// py_run!(py, time time_as_tuple, r#&quot;</span>
 <span class="doccomment">/// assert time.hour == 8</span>
@@ -574,6 +640,7 @@
 <span class="doccomment">/// If you need to handle failures, please use [Python::run] directly.</span>
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">py_run</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">literal</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="ident">pyo3</span>::<span class="macro">py_run_impl</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>)<span class="op">+</span>, <span class="ident">pyo3</span>::<span class="ident">indoc</span>::<span class="macro">indoc</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>))
@@ -585,6 +652,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">py_run_impl</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">use</span> <span class="ident">pyo3</span>::<span class="ident">types</span>::<span class="ident">IntoPyDict</span>;
@@ -631,7 +699,7 @@
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/debugging.md&quot;</span>, <span class="ident">guide_debugging_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/exception.md&quot;</span>, <span class="ident">guide_exception_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/function.md&quot;</span>, <span class="ident">guide_function_md</span>);
-    <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/get_started.md&quot;</span>, <span class="ident">guide_get_started_md</span>);
+    <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/migration.md&quot;</span>, <span class="ident">guide_migration_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/module.md&quot;</span>, <span class="ident">guide_module_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(
         <span class="string">&quot;../guide/src/python_from_rust.md&quot;</span>,
@@ -640,6 +708,8 @@
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/parallelism.md&quot;</span>, <span class="ident">guide_parallelism_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/pypy.md&quot;</span>, <span class="ident">guide_pypy_md</span>);
     <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/rust_cpython.md&quot;</span>, <span class="ident">guide_rust_cpython_md</span>);
+    <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/types.md&quot;</span>, <span class="ident">guide_types_md</span>);
+    <span class="macro">doctest</span><span class="macro">!</span>(<span class="string">&quot;../guide/src/trait_bounds.md&quot;</span>, <span class="ident">guide_trait_bounds_md</span>);
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "pyo3";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "pyo3";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

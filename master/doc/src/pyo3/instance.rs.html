@@ -627,344 +627,357 @@
 <span id="627">627</span>
 <span id="628">628</span>
 <span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyErr</span>, <span class="ident">PyResult</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">conversion</span>::{<span class="ident">PyTryFrom</span>, <span class="ident">ToBorrowedObject</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyDowncastError</span>, <span class="ident">PyErr</span>, <span class="ident">PyResult</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">internal_tricks</span>::<span class="ident">Unsendable</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">PyObject</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objectprotocol</span>::<span class="ident">ObjectProtocol</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::<span class="ident">PyTypeCreate</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::{<span class="ident">PyTypeInfo</span>, <span class="ident">PyTypeObject</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyAny</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">IntoPy</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">FromPyPointer</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">Python</span>, <span class="ident">ToPyObject</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pycell</span>::{<span class="ident">PyBorrowError</span>, <span class="ident">PyBorrowMutError</span>, <span class="ident">PyCell</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::<span class="ident">PyBorrowFlagLayout</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">PyDict</span>, <span class="ident">PyTuple</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">IntoPy</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">PyAny</span>, <span class="ident">PyClass</span>, <span class="ident">PyClassInitializer</span>,
+    <span class="ident">PyRef</span>, <span class="ident">PyRefMut</span>, <span class="ident">PyTypeInfo</span>, <span class="ident">Python</span>, <span class="ident">ToPyObject</span>,
+};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>;
 
-<span class="doccomment">/// Types that are built into the python interpreter.</span>
+<span class="doccomment">/// Types that are built into the Python interpreter.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// pyo3 is designed in a way that that all references to those types are bound to the GIL,</span>
-<span class="doccomment">/// which is why you can get a token from all references of those types.</span>
+<span class="doccomment">/// PyO3 is designed in a way that all references to those types are bound</span>
+<span class="doccomment">/// to the GIL, which is why you can get a token from all references of those</span>
+<span class="doccomment">/// types.</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">PyNativeType</span>: <span class="ident">Sized</span> {
     <span class="kw">fn</span> <span class="ident">py</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Python</span> {
         <span class="kw">unsafe</span> { <span class="ident">Python</span>::<span class="ident">assume_gil_acquired</span>() }
     }
+    <span class="doccomment">/// Cast `&amp;PyAny` to `&amp;Self` without no type checking.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `obj` must have the same layout as `*const ffi::PyObject` and must be</span>
+    <span class="doccomment">/// an instance of a type corresponding to `Self`.</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unchecked_downcast</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span> {
+        <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">obj</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="self">Self</span>)
+    }
 }
 
-<span class="doccomment">/// A special reference of type `T`. `PyRef&lt;T&gt;` refers a instance of T, which exists in the Python</span>
-<span class="doccomment">/// heap as a part of a Python object.</span>
+<span class="doccomment">/// A Python object of known type T.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// We can&#39;t implement `AsPyPointer` or `ToPyObject` for `pyclass`es, because they&#39;re not Python</span>
-<span class="doccomment">/// objects until copied to the Python heap. So, instead of treating `&amp;pyclass`es as Python objects,</span>
-<span class="doccomment">/// we need to use special reference types `PyRef` and `PyRefMut`.</span>
+<span class="doccomment">/// Accessing this object is thread-safe, since any access to its API requires a `Python&lt;&#39;py&gt;` GIL</span>
+<span class="doccomment">/// token. There are a few different ways to use the Python object contained:</span>
+<span class="doccomment">///  - [`Py::as_ref`](#method.as_ref) to borrow a GIL-bound reference to the contained object.</span>
+<span class="doccomment">///  - [`Py::borrow`](#method.borrow), [`Py::try_borrow`](#method.try_borrow),</span>
+<span class="doccomment">///    [`Py::borrow_mut`](#method.borrow_mut), or [`Py::try_borrow_mut`](#method.try_borrow_mut),</span>
+<span class="doccomment">///    to directly access a `#[pyclass]` value (which has RefCell-like behavior, see</span>
+<span class="doccomment">///    [the `PyCell` guide entry](https://pyo3.rs/master/class.html#pycell-and-interior-mutability)</span>
+<span class="doccomment">///    ).</span>
+<span class="doccomment">///  - Use methods directly on `Py`, such as [`Py::call`](#method.call) and</span>
+<span class="doccomment">///    [`Py::call_method`](#method.call_method).</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use pyo3::prelude::*;</span>
-<span class="doccomment">/// use pyo3::types::IntoPyDict;</span>
-<span class="doccomment">/// #[pyclass]</span>
-<span class="doccomment">/// struct Point {</span>
-<span class="doccomment">///     x: i32,</span>
-<span class="doccomment">///     y: i32,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #[pymethods]</span>
-<span class="doccomment">/// impl Point {</span>
-<span class="doccomment">///     fn length(&amp;self) -&gt; i32 {</span>
-<span class="doccomment">///         self.x * self.y</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// let gil = Python::acquire_gil();</span>
-<span class="doccomment">/// let py = gil.python();</span>
-<span class="doccomment">/// let obj = PyRef::new(gil.python(), Point { x: 3, y: 4 }).unwrap();</span>
-<span class="doccomment">/// let d = [(&quot;p&quot;, obj)].into_py_dict(py);</span>
-<span class="doccomment">/// py.run(&quot;assert p.length() == 12&quot;, None, Some(d)).unwrap();</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">Unsendable</span>);
-
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cast_ptr_alignment</span>)]</span>
-<span class="kw">fn</span> <span class="ident">ref_to_ptr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="kw">unsafe</span> { (<span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="op">-</span><span class="ident">T</span>::<span class="ident">OFFSET</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_ref</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PyRef</span>(<span class="ident">r</span>, <span class="ident">Unsendable</span>::<span class="ident">default</span>())
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span> <span class="op">+</span> <span class="ident">PyTypeObject</span> <span class="op">+</span> <span class="ident">PyTypeCreate</span>,
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">create</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
-        <span class="ident">obj</span>.<span class="ident">init</span>(<span class="ident">value</span>);
-        <span class="kw">unsafe</span> { <span class="self">Self</span>::<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>, <span class="ident">obj</span>.<span class="ident">into_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">AsPyPointer</span> <span class="kw">for</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="ident">ref_to_ptr</span>(<span class="self">self</span>.<span class="number">0</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-        <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">py</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromPyPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_opt</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPyPointer</span>::<span class="ident">from_owned_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>).<span class="ident">map</span>(<span class="self">Self</span>::<span class="ident">from_ref</span>)
-    }
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPyPointer</span>::<span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>).<span class="ident">map</span>(<span class="self">Self</span>::<span class="ident">from_ref</span>)
-    }
-}
-
-<span class="doccomment">/// Mutable version of [`PyRef`](struct.PyRef.html).</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use pyo3::prelude::*;</span>
-<span class="doccomment">/// use pyo3::types::IntoPyDict;</span>
-<span class="doccomment">/// #[pyclass]</span>
-<span class="doccomment">/// struct Point {</span>
-<span class="doccomment">///     x: i32,</span>
-<span class="doccomment">///     y: i32,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// #[pymethods]</span>
-<span class="doccomment">/// impl Point {</span>
-<span class="doccomment">///     fn length(&amp;self) -&gt; i32 {</span>
-<span class="doccomment">///         self.x * self.y</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// let gil = Python::acquire_gil();</span>
-<span class="doccomment">/// let py = gil.python();</span>
-<span class="doccomment">/// let mut obj = PyRefMut::new(gil.python(), Point { x: 3, y: 4 }).unwrap();</span>
-<span class="doccomment">/// let d = vec![(&quot;p&quot;, obj.to_object(py))].into_py_dict(py);</span>
-<span class="doccomment">/// obj.x = 5; obj.y = 20;</span>
-<span class="doccomment">/// py.run(&quot;assert p.length() == 100&quot;, None, Some(d)).unwrap();</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">Unsendable</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_mut</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PyRefMut</span>(<span class="ident">t</span>, <span class="ident">Unsendable</span>::<span class="ident">default</span>())
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span> <span class="op">+</span> <span class="ident">PyTypeObject</span> <span class="op">+</span> <span class="ident">PyTypeCreate</span>,
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">create</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
-        <span class="ident">obj</span>.<span class="ident">init</span>(<span class="ident">value</span>);
-        <span class="kw">unsafe</span> { <span class="self">Self</span>::<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>, <span class="ident">obj</span>.<span class="ident">into_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">AsPyPointer</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="ident">ref_to_ptr</span>(<span class="self">self</span>.<span class="number">0</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-        <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">py</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromPyPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_opt</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPyPointer</span>::<span class="ident">from_owned_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>).<span class="ident">map</span>(<span class="self">Self</span>::<span class="ident">from_mut</span>)
-    }
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPyPointer</span>::<span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>).<span class="ident">map</span>(<span class="self">Self</span>::<span class="ident">from_mut</span>)
-    }
-}
-
-<span class="doccomment">/// Trait implements object reference extraction from python managed pointer.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsPyRef</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// Return reference to object.</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Return mutable reference to object.</span>
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Acquire python gil and call closure with object reference.</span>
-    <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Python</span>, <span class="ident">PyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
-    {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-
-        <span class="ident">f</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>))
-    }
-
-    <span class="doccomment">/// Acquire python gil and call closure with mutable object reference.</span>
-    <span class="kw">fn</span> <span class="ident">with_mut</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Python</span>, <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
-    {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-
-        <span class="ident">f</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_mut</span>(<span class="ident">py</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">into_py</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">IntoPyPointer</span>,
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Python</span>, <span class="ident">PyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
-    {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>));
-        <span class="ident">py</span>.<span class="ident">xdecref</span>(<span class="self">self</span>);
-        <span class="ident">result</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">into_mut_py</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="ident">IntoPyPointer</span>,
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Python</span>, <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
-    {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">as_mut</span>(<span class="ident">py</span>));
-        <span class="ident">py</span>.<span class="ident">xdecref</span>(<span class="self">self</span>);
-        <span class="ident">result</span>
-    }
-}
-
-<span class="doccomment">/// Safe wrapper around unsafe `*mut ffi::PyObject` pointer with specified type information.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Py&lt;T&gt;` is thread-safe, because any python related operations require a Python&lt;&#39;p&gt; token.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="doccomment">/// See [the guide](https://pyo3.rs/master/types.html) for an explanation</span>
+<span class="doccomment">/// of the different Python object types.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
-
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create new instance of T and move it under python management</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyClass</span>,
+{
+    <span class="doccomment">/// Create a new instance `Py&lt;T&gt;` of a `#[pyclass]` on the Python heap.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">value</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PyClassInitializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">PyTypeCreate</span>,
+        <span class="ident">T</span>::<span class="ident">BaseLayout</span>: <span class="ident">PyBorrowFlagLayout</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">ob</span> <span class="op">=</span> <span class="ident">T</span>::<span class="ident">create</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
-        <span class="ident">ob</span>.<span class="ident">init</span>(<span class="ident">value</span>);
-
-        <span class="kw">let</span> <span class="ident">ob</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">ob</span>.<span class="ident">into_ptr</span>()) };
+        <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">initializer</span>.<span class="ident">create_cell</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">ob</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">obj</span> <span class="kw">as</span> <span class="kw">_</span>) };
         <span class="prelude-val">Ok</span>(<span class="ident">ob</span>)
     }
+}
 
-    <span class="doccomment">/// Creates a `Py&lt;T&gt;` instance for the given FFI pointer.</span>
-    <span class="doccomment">/// This moves ownership over the pointer into the `Py&lt;T&gt;`.</span>
-    <span class="doccomment">/// Undefined behavior if the pointer is NULL or invalid.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>) <span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;REFCNT: {:?} - {:?}&quot;</span>, <span class="ident">ptr</span>, <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>))
-        );
-        <span class="ident">Py</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>), <span class="ident">PhantomData</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
+{
+    <span class="doccomment">/// Borrows a GIL-bound reference to the contained `T`. By binding to the GIL lifetime, this</span>
+    <span class="doccomment">/// allows the GIL-bound reference to not require `Python` for any of its methods.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For native types, this reference is `&amp;T`. For pyclasses, this is `&amp;PyCell&lt;T&gt;`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">/// Get access to `&amp;PyList` from `Py&lt;PyList&gt;`:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use pyo3::prelude::*;</span>
+    <span class="doccomment">/// # use pyo3::types::PyList;</span>
+    <span class="doccomment">/// # Python::with_gil(|py| {</span>
+    <span class="doccomment">/// let list: Py&lt;PyList&gt; = PyList::empty(py).into();</span>
+    <span class="doccomment">/// let list: &amp;PyList = list.as_ref(py);</span>
+    <span class="doccomment">/// assert_eq!(list.len(), 0);</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Get access to `&amp;PyCell&lt;MyClass&gt;` from `Py&lt;MyClass&gt;`:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use pyo3::prelude::*;</span>
+    <span class="doccomment">/// #[pyclass]</span>
+    <span class="doccomment">/// struct MyClass { }</span>
+    <span class="doccomment">/// # Python::with_gil(|py| {</span>
+    <span class="doccomment">/// let my_class: Py&lt;MyClass&gt; = Py::new(py, MyClass { }).unwrap();</span>
+    <span class="doccomment">/// let my_class_cell: &amp;PyCell&lt;MyClass&gt; = my_class.as_ref(py);</span>
+    <span class="doccomment">/// assert!(my_class_cell.try_borrow().is_ok());</span>
+    <span class="doccomment">/// # });</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="ident">T</span>::<span class="ident">AsRefTarget</span> {
+        <span class="kw">let</span> <span class="ident">any</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PyAny</span>;
+        <span class="kw">unsafe</span> { <span class="ident">PyNativeType</span>::<span class="ident">unchecked_downcast</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">any</span>) }
     }
 
-    <span class="doccomment">/// Creates a `Py&lt;T&gt;` instance for the given FFI pointer.</span>
-    <span class="doccomment">/// Panics if the pointer is `null`.</span>
-    <span class="doccomment">/// Undefined behavior if the pointer is invalid.</span>
+    <span class="doccomment">/// Similar to [`as_ref`](#method.as_ref), and also consumes this `Py` and registers the</span>
+    <span class="doccomment">/// Python object reference in PyO3&#39;s object storage. The reference count for the Python</span>
+    <span class="doccomment">/// object will not be decreased until the GIL lifetime ends.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Useful when returning GIL-bound references from functions. In the snippet below, note that</span>
+    <span class="doccomment">/// the `&#39;py` lifetime of the input GIL lifetime is also given to the returned reference:</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use pyo3::prelude::*;</span>
+    <span class="doccomment">/// fn new_py_any&lt;&#39;py&gt;(py: Python&lt;&#39;py&gt;, value: impl IntoPy&lt;PyObject&gt;) -&gt; &amp;&#39;py PyAny {</span>
+    <span class="doccomment">///     let obj: PyObject = value.into_py(py);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     // .as_ref(py) would not be suitable here, because a reference to `obj` may not be</span>
+    <span class="doccomment">///     // returned from the function.</span>
+    <span class="doccomment">///     obj.into_ref(py)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_ref</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AsRefTarget</span> {
+        <span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_owned_ptr</span>(<span class="self">self</span>.<span class="ident">into_ptr</span>()) }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyClass</span>,
+{
+    <span class="doccomment">/// Immutably borrows the value `T`. This borrow lasts untill the returned `PyRef` exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to `self.as_ref(py).borrow()` -</span>
+    <span class="doccomment">/// see [`PyCell::borrow`](../pycell/struct.PyCell.html#method.borrow)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// Panics if the value is currently mutably borrowed. For a non-panicking variant, use</span>
+    <span class="doccomment">/// [`try_borrow`](#method.try_borrow).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>).<span class="ident">borrow</span>()
+    }
+
+    <span class="doccomment">/// Mutably borrows the value `T`. This borrow lasts untill the returned `PyRefMut` exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to `self.as_ref(py).borrow_mut()` -</span>
+    <span class="doccomment">/// see [`PyCell::borrow_mut`](../pycell/struct.PyCell.html#method.borrow_mut)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// Panics if the value is currently mutably borrowed. For a non-panicking variant, use</span>
+    <span class="doccomment">/// [`try_borrow_mut`](#method.try_borrow_mut).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>).<span class="ident">borrow_mut</span>()
+    }
+
+    <span class="doccomment">/// Immutably borrows the value `T`, returning an error if the value is currently</span>
+    <span class="doccomment">/// mutably borrowed. This borrow lasts untill the returned `PyRef` exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is the non-panicking variant of [`borrow`](#method.borrow).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to `self.as_ref(py).try_borrow()` -</span>
+    <span class="doccomment">/// see [`PyCell::try_borrow`](../pycell/struct.PyCell.html#method.try_borrow)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">PyBorrowError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>).<span class="ident">try_borrow</span>()
+    }
+
+    <span class="doccomment">/// Mutably borrows the value `T`, returning an error if the value is currently borrowed.</span>
+    <span class="doccomment">/// This borrow lasts untill the returned `PyRefMut` exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to `self.as_ref(py).try_borrow_mut() -</span>
+    <span class="doccomment">/// see [`PyCell::try_borrow_mut`](../pycell/struct.PyCell.html#method.try_borrow_mut)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;py</span> <span class="self">self</span>,
+        <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;py</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">PyBorrowMutError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>).<span class="ident">try_borrow_mut</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Gets the reference count of the `ffi::PyObject` pointer.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">ptr</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">nonnull_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Py</span>(<span class="ident">nonnull_ptr</span>, <span class="ident">PhantomData</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">crate</span>::<span class="ident">err</span>::<span class="ident">panic_after_error</span>();
-            }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_refcnt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span> {
+        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()) }
+    }
+
+    <span class="doccomment">/// Clones self by calling `Py_INCREF()` on the ptr.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()) }
+    }
+
+    <span class="doccomment">/// Returns whether the object is considered to be None.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self is None`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_None</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ptr</span>() }
+    }
+
+    <span class="doccomment">/// Returns whether the object is considered to be true.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `bool(self)`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_true</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyObject_IsTrue</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) };
+        <span class="kw">if</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)
         }
     }
 
-    <span class="doccomment">/// Construct `Py&lt;T&gt;` from the result of a Python FFI call that</span>
-    <span class="doccomment">/// returns a new reference (owned pointer).</span>
-    <span class="doccomment">/// Returns `Err(PyErr)` if the pointer is `null`.</span>
-    <span class="doccomment">/// Unsafe because the pointer might be invalid.</span>
+    <span class="doccomment">/// Extracts some type from the Python object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is a wrapper function around `FromPyObject::extract()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extract</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_borrowed_ptr</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) })
+    }
+
+    <span class="doccomment">/// Retrieves an attribute value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self.attr_name`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getattr</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">attr_name</span>: <span class="ident">N</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">ToPyObject</span>,
+    {
+        <span class="ident">attr_name</span>.<span class="ident">with_borrowed_ptr</span>(<span class="ident">py</span>, <span class="op">|</span><span class="ident">attr_name</span><span class="op">|</span> <span class="kw">unsafe</span> {
+            <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyObject_GetAttr</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="ident">attr_name</span>))
+        })
+    }
+
+    <span class="doccomment">/// Calls the object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self(*args, **kwargs)`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">py</span>: <span class="ident">Python</span>,
+        <span class="ident">args</span>: <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyTuple</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">kwargs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PyDict</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">into_py</span>(<span class="ident">py</span>).<span class="ident">into_ptr</span>();
+        <span class="kw">let</span> <span class="ident">kwargs</span> <span class="op">=</span> <span class="ident">kwargs</span>.<span class="ident">into_ptr</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyObject_Call</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="ident">args</span>, <span class="ident">kwargs</span>))
+        };
+        <span class="kw">unsafe</span> {
+            <span class="ident">ffi</span>::<span class="ident">Py_XDECREF</span>(<span class="ident">args</span>);
+            <span class="ident">ffi</span>::<span class="ident">Py_XDECREF</span>(<span class="ident">kwargs</span>);
+        }
+        <span class="ident">result</span>
+    }
+
+    <span class="doccomment">/// Calls the object with only positional arguments.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self(*args)`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call1</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">args</span>: <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyTuple</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">call</span>(<span class="ident">py</span>, <span class="ident">args</span>, <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Calls the object without arguments.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">call</span>(<span class="ident">py</span>, (), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Calls a method on the object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self.name(*args, **kwargs)`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_method</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">py</span>: <span class="ident">Python</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">args</span>: <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyTuple</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">kwargs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PyDict</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="ident">name</span>.<span class="ident">with_borrowed_ptr</span>(<span class="ident">py</span>, <span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">into_py</span>(<span class="ident">py</span>).<span class="ident">into_ptr</span>();
+            <span class="kw">let</span> <span class="ident">kwargs</span> <span class="op">=</span> <span class="ident">kwargs</span>.<span class="ident">into_ptr</span>();
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyObject_GetAttr</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="ident">name</span>);
+            <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
+            }
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>, <span class="ident">ffi</span>::<span class="ident">PyObject_Call</span>(<span class="ident">ptr</span>, <span class="ident">args</span>, <span class="ident">kwargs</span>));
+            <span class="ident">ffi</span>::<span class="ident">Py_DECREF</span>(<span class="ident">ptr</span>);
+            <span class="ident">ffi</span>::<span class="ident">Py_XDECREF</span>(<span class="ident">args</span>);
+            <span class="ident">ffi</span>::<span class="ident">Py_XDECREF</span>(<span class="ident">kwargs</span>);
+            <span class="ident">result</span>
+        })
+    }
+
+    <span class="doccomment">/// Calls a method on the object with only positional arguments.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self.name(*args)`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_method1</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">py</span>: <span class="ident">Python</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">args</span>: <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyTuple</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">call_method</span>(<span class="ident">py</span>, <span class="ident">name</span>, <span class="ident">args</span>, <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Calls a method on the object with no arguments.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is equivalent to the Python expression `self.name()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_method0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">call_method</span>(<span class="ident">py</span>, <span class="ident">name</span>, (), <span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by taking ownership of the given FFI pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// Panics if `ptr` is null.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">ptr</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">nonnull_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Py</span>(<span class="ident">nonnull_ptr</span>, <span class="ident">PhantomData</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="ident">err</span>::<span class="ident">panic_after_error</span>(<span class="ident">py</span>),
+        }
+    }
+
+    <span class="doccomment">/// Deprecated alias for [`from_owned_ptr`](#method.from_owned_ptr).</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;this is a deprecated alias for Py::from_owned_ptr&quot;</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_panic</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">Py</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="ident">ptr</span>)
+    }
+
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by taking ownership of the given FFI pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If `ptr` is null then the current Python exception is fetched as a `PyErr`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// If non-null, `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_err</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">ptr</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">nonnull_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Py</span>(<span class="ident">nonnull_ptr</span>, <span class="ident">PhantomData</span>)),
@@ -972,82 +985,75 @@
         }
     }
 
-    <span class="doccomment">/// Creates a `Py&lt;T&gt;` instance for the given Python FFI pointer.</span>
-    <span class="doccomment">/// Calls Py_INCREF() on the ptr.</span>
-    <span class="doccomment">/// Undefined behavior if the pointer is NULL or invalid.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>() <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>) <span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;REFCNT: {:?} - {:?}&quot;</span>, <span class="ident">ptr</span>, <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>))
-        );
-        <span class="ident">ffi</span>::<span class="ident">Py_INCREF</span>(<span class="ident">ptr</span>);
-        <span class="ident">Py</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>), <span class="ident">PhantomData</span>)
-    }
-
-    <span class="doccomment">/// Gets the reference count of the ffi::PyObject pointer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_refcnt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span> {
-        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()) }
-    }
-
-    <span class="doccomment">/// Clone self, Calls Py_INCREF() on the ptr.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()) }
-    }
-
-    <span class="doccomment">/// Returns the inner pointer without decreasing the refcount</span>
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by taking ownership of the given FFI pointer.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This will eventually move into its own trait</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_non_null</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// If `ptr` is null then `None` is returned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// If non-null, `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_owned_ptr_or_opt</span>(<span class="ident">_py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">ptr</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">nonnull_ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Py</span>(<span class="ident">nonnull_ptr</span>, <span class="ident">PhantomData</span>)),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by creating a new reference from the given FFI pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// Panics if `ptr` is null.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">Self</span>::<span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">slf</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">slf</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="ident">err</span>::<span class="ident">panic_after_error</span>(<span class="ident">py</span>),
+        }
+    }
+
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by creating a new reference from the given FFI pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If `ptr` is null then the current Python exception is fetched as a `PyErr`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr_or_err</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="self">Self</span>::<span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">py</span>, <span class="ident">ptr</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>))
+    }
+
+    <span class="doccomment">/// Create a `Py&lt;T&gt;` instance by creating a new reference from the given FFI pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If `ptr` is null then `None` is returned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// `ptr` must be a pointer to a Python object of type T.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_borrowed_ptr_or_opt</span>(<span class="ident">_py</span>: <span class="ident">Python</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">ptr</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">nonnull_ptr</span><span class="op">|</span> {
+            <span class="ident">ffi</span>::<span class="ident">Py_INCREF</span>(<span class="ident">ptr</span>);
+            <span class="ident">Py</span>(<span class="ident">nonnull_ptr</span>, <span class="ident">PhantomData</span>)
+        })
+    }
+
+    <span class="doccomment">/// For internal conversions.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// `ptr` must point to a Python object of type T.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_non_null</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">ptr</span>, <span class="ident">PhantomData</span>)
+    }
+
+    <span class="doccomment">/// Returns the inner pointer without decreasing the refcount.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">into_non_null</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>;
         <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
         <span class="ident">pointer</span>
-    }
-}
-
-<span class="doccomment">/// Specialization workaround</span>
-<span class="kw">trait</span> <span class="ident">AsPyRefDispatch</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span>: <span class="ident">AsPyPointer</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref_dispatch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span>;
-    <span class="kw">fn</span> <span class="ident">as_mut_dispatch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PyTypeInfo</span><span class="op">&gt;</span> <span class="ident">AsPyRefDispatch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">as_ref_dispatch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="ident">T</span>::<span class="ident">OFFSET</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
-            <span class="ident">ptr</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;Py has a null pointer&quot;</span>)
-        }
-    }
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">as_mut_dispatch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="ident">T</span>::<span class="ident">OFFSET</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
-            <span class="ident">ptr</span>.<span class="ident">as_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;Py has a null pointer&quot;</span>)
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PyTypeInfo</span> <span class="op">+</span> <span class="ident">PyNativeType</span><span class="op">&gt;</span> <span class="ident">AsPyRefDispatch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref_dispatch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">instance</span>::<span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) }
-    }
-    <span class="kw">fn</span> <span class="ident">as_mut_dispatch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AsPyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">PyRef</span>::<span class="ident">from_ref</span>(<span class="self">self</span>.<span class="ident">as_ref_dispatch</span>(<span class="ident">py</span>))
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">PyRefMut</span>::<span class="ident">from_mut</span>(<span class="self">self</span>.<span class="ident">as_mut_dispatch</span>(<span class="ident">py</span>))
     }
 }
 
@@ -1059,11 +1065,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Converts `Py` instance -&gt; PyObject.</span>
-    <span class="doccomment">/// Consumes `self` without calling `Py_DECREF()`</span>
+    <span class="doccomment">/// Converts a `Py` instance to `PyObject`.</span>
+    <span class="doccomment">/// Consumes `self` without calling `Py_DECREF()`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">into_ptr</span>()) }
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+        <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_non_null</span>(<span class="self">self</span>.<span class="ident">into_non_null</span>()) }
     }
 }
 
@@ -1080,9 +1086,54 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">fn</span> <span class="ident">into_ptr</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>();
-        <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
-        <span class="ident">ptr</span>
+        <span class="self">self</span>.<span class="ident">into_non_null</span>().<span class="ident">as_ptr</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">AsPyPointer</span> <span class="op">+</span> <span class="ident">PyNativeType</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">obj</span>.<span class="ident">py</span>(), <span class="ident">obj</span>.<span class="ident">as_ptr</span>()) }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">PyAny</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">Py</span>(<span class="ident">ptr</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">other</span>;
+        <span class="ident">Py</span>(<span class="ident">ptr</span>, <span class="ident">PhantomData</span>)
+    }
+}
+
+<span class="comment">// `&amp;PyCell&lt;T&gt;` can be converted to `Py&lt;T&gt;`</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyClass</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cell</span>: <span class="kw-2">&amp;</span><span class="ident">PyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">cell</span>.<span class="ident">py</span>(), <span class="ident">cell</span>.<span class="ident">as_ptr</span>()) }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyClass</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pyref</span>: <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">pyref</span>.<span class="ident">py</span>(), <span class="ident">pyref</span>.<span class="ident">as_ptr</span>()) }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyClass</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pyref</span>: <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">pyref</span>.<span class="ident">py</span>(), <span class="ident">pyref</span>.<span class="ident">as_ptr</span>()) }
     }
 }
 
@@ -1093,209 +1144,118 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">unsafe</span> {
+            <span class="ident">gil</span>::<span class="ident">register_incref</span>(<span class="self">self</span>.<span class="number">0</span>);
+        }
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="ident">PhantomData</span>)
+    }
+}
+
 <span class="doccomment">/// Dropping a `Py` instance decrements the reference count on the object by 1.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
-            <span class="ident">gil</span>::<span class="ident">register_pointer</span>(<span class="self">self</span>.<span class="number">0</span>);
+            <span class="ident">gil</span>::<span class="ident">register_decref</span>(<span class="self">self</span>.<span class="number">0</span>);
         }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ob</span>: <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyObject</span>::<span class="ident">from_not_null</span>(<span class="ident">ob</span>.<span class="ident">into_non_null</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ob</span>: <span class="ident">PyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ob</span>: <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>()) }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsPyPointer</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>()) }.<span class="ident">into</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyObject</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsPyPointer</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="ident">Py</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">ob</span>.<span class="ident">as_ptr</span>()) }.<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsPyPointer</span>,
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
+    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>::<span class="ident">AsRefTarget</span>: <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>::<span class="ident">AsRefTarget</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">AsPyPointer</span>,
 {
     <span class="doccomment">/// Extracts `Self` from the source `PyObject`.</span>
     <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">ob</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">val</span>.<span class="ident">as_ptr</span>()))
+            <span class="ident">ob</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span>::<span class="ident">AsRefTarget</span><span class="op">&gt;</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">Py</span>::<span class="ident">from_borrowed_ptr</span>(<span class="ident">ob</span>.<span class="ident">py</span>(), <span class="ident">val</span>.<span class="ident">as_ptr</span>()))
         }
     }
 }
 
-<span class="doccomment">/// Reference to a converted [ToPyObject].</span>
+<span class="doccomment">/// Py&lt;T&gt; can be used as an error when T is an Error.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Many methods want to take anything that can be converted into a python object. This type</span>
-<span class="doccomment">/// takes care of both types types that are already python object (i.e. implement</span>
-<span class="doccomment">/// [AsPyPointer]) and those that don&#39;t (i.e. [ToPyObject] types).</span>
-<span class="doccomment">/// For the [AsPyPointer] types, we just use the borrowed pointer, which is a lot faster</span>
-<span class="doccomment">/// and simpler than creating a new extra object. The remaning [ToPyObject] types are</span>
-<span class="doccomment">/// converted to python objects, the owned pointer is stored and decref&#39;d on drop.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use pyo3::ffi;</span>
-<span class="doccomment">/// use pyo3::{ToPyObject, AsPyPointer, PyNativeType, ManagedPyRef};</span>
-<span class="doccomment">/// use pyo3::types::{PyDict, PyAny};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// pub fn get_dict_item&lt;&#39;p&gt;(dict: &amp;&#39;p PyDict, key: &amp;impl ToPyObject) -&gt; Option&lt;&amp;&#39;p PyAny&gt; {</span>
-<span class="doccomment">///     let key = ManagedPyRef::from_to_pyobject(dict.py(), key);</span>
-<span class="doccomment">///     unsafe {</span>
-<span class="doccomment">///         dict.py().from_borrowed_ptr_or_opt(ffi::PyDict_GetItem(dict.as_ptr(), key.as_ptr()))</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>: <span class="ident">ToPyObject</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
-    <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>,
-    <span class="ident">data_type</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">_py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+<span class="doccomment">/// However for GIL lifetime reasons, cause() cannot be implemented for Py&lt;T&gt;.</span>
+<span class="doccomment">/// Use .as_ref() to get the GIL-scoped error if you need to inspect the cause.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="op">+</span> <span class="ident">PyTypeInfo</span>,
+    <span class="ident">T</span>::<span class="ident">AsRefTarget</span>: <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>,
+{
 }
 
-<span class="doccomment">/// This should eventually be replaced with a generic `IntoPy` trait impl by figuring</span>
-<span class="doccomment">/// out the correct lifetime annotation to make the compiler happy</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>: <span class="ident">ToPyObject</span><span class="op">&gt;</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_to_pyobject</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">to_pyobject</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">to_pyobject</span>.<span class="ident">to_managed_py_ref</span>(<span class="ident">py</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">PyTypeInfo</span>,
+    <span class="ident">T</span>::<span class="ident">AsRefTarget</span>: <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>,
+{
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+        <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="self">self</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>), <span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>: <span class="ident">ToPyObject</span><span class="op">&gt;</span> <span class="ident">AsPyPointer</span> <span class="kw">for</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="self">self</span>.<span class="ident">data</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Py&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>()).<span class="ident">finish</span>()
     }
 }
 
-<span class="doccomment">/// Helper trait to choose the right implementation for [ManagedPyRef]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ManagedPyRefDispatch</span>: <span class="ident">ToPyObject</span> {
-    <span class="doccomment">/// Optionally converts into a python object and stores the pointer to the python heap.</span>
-    <span class="kw">fn</span> <span class="ident">to_managed_py_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Dispatch over a xdecref and a noop drop impl</span>
-    <span class="kw">fn</span> <span class="ident">drop_impl</span>(<span class="ident">borrowed</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
-}
-
-<span class="doccomment">/// Case 1: It&#39;s a rust object which still needs to be converted to a python object.</span>
-<span class="doccomment">/// This means we&#39;re storing the owned pointer that into_ptr() has given us</span>
-<span class="doccomment">/// and therefore need to xdecref when we&#39;re done.</span>
+<span class="doccomment">/// A commonly-used alias for `Py&lt;PyAny&gt;`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Note that the actual implementations are part of the trait declaration to avoid</span>
-<span class="doccomment">/// a specialization error</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToPyObject</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">ManagedPyRefDispatch</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="doccomment">/// Contains the case 1 impl (with to_object) to avoid a specialization error</span>
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">to_managed_py_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">ManagedPyRef</span> {
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">py</span>).<span class="ident">into_ptr</span>(),
-            <span class="ident">data_type</span>: <span class="ident">PhantomData</span>,
-            <span class="ident">_py</span>: <span class="ident">py</span>,
-        }
-    }
+<span class="doccomment">/// This is an owned reference a Python object without any type information. This value can also be</span>
+<span class="doccomment">/// safely sent between threads.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the documentation for [`Py`](struct.Py.html).</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyAny</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// Contains the case 1 impl (decref) to avoid a specialization error</span>
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">drop_impl</span>(<span class="ident">borrowed</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_DECREF</span>(<span class="ident">borrowed</span>.<span class="ident">data</span>) };
-    }
-}
-
-<span class="doccomment">/// Case 2: It&#39;s an object on the python heap, we&#39;re just storing a borrowed pointer.</span>
-<span class="doccomment">/// The object we&#39;re getting is an owned pointer, it might have it&#39;s own drop impl.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToPyObject</span> <span class="op">+</span> <span class="ident">AsPyPointer</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">ManagedPyRefDispatch</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="doccomment">/// Use AsPyPointer to copy the pointer and store it as borrowed pointer</span>
-    <span class="kw">fn</span> <span class="ident">to_managed_py_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">ManagedPyRef</span> {
-            <span class="ident">data</span>: <span class="self">self</span>.<span class="ident">as_ptr</span>(),
-            <span class="ident">data_type</span>: <span class="ident">PhantomData</span>,
-            <span class="ident">_py</span>: <span class="ident">py</span>,
-        }
-    }
-
-    <span class="doccomment">/// We have a borrowed pointer, so nothing to do here</span>
-    <span class="kw">fn</span> <span class="ident">drop_impl</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span>: <span class="ident">ToPyObject</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ManagedPyRef</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Uses the internal [ManagedPyRefDispatch] trait to get the right drop impl without causing</span>
-    <span class="doccomment">/// a specialization error</span>
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="ident">ManagedPyRefDispatch</span>::<span class="ident">drop_impl</span>(<span class="self">self</span>);
+<span class="kw">impl</span> <span class="ident">PyObject</span> {
+    <span class="doccomment">/// Casts the PyObject to a concrete Python object type.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This can cast only to native Python types, not types implemented in Rust. For a more</span>
+    <span class="doccomment">/// flexible alternative, see [`Py::extract`](struct.Py.html#method.extract).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cast_as</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">D</span>, <span class="ident">PyDowncastError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">PyTryFrom</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">D</span>::<span class="ident">try_from</span>(<span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_borrowed_ptr</span>::<span class="op">&lt;</span><span class="ident">PyAny</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) })
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Py</span>, <span class="ident">PyObject</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyDict</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">ManagedPyRef</span>, <span class="ident">Python</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>, <span class="ident">Python</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">borrowed_py_ref_with_to_pointer</span>() {
+    <span class="kw">fn</span> <span class="ident">test_call_for_non_existing_method</span>() {
         <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
         <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">native</span> <span class="op">=</span> <span class="ident">PyDict</span>::<span class="ident">new</span>(<span class="ident">py</span>);
-        <span class="kw">let</span> <span class="ident">ref_count</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">native</span>.<span class="ident">as_ptr</span>()) };
-        <span class="kw">let</span> <span class="ident">borrowed</span> <span class="op">=</span> <span class="ident">ManagedPyRef</span>::<span class="ident">from_to_pyobject</span>(<span class="ident">py</span>, <span class="ident">native</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">native</span>.<span class="ident">as_ptr</span>(), <span class="ident">borrowed</span>.<span class="ident">data</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ref_count</span>, <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">borrowed</span>.<span class="ident">data</span>) });
-        <span class="ident">drop</span>(<span class="ident">borrowed</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ref_count</span>, <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">native</span>.<span class="ident">as_ptr</span>()) });
+        <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">PyDict</span>::<span class="ident">new</span>(<span class="ident">py</span>).<span class="ident">into</span>();
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">call_method0</span>(<span class="ident">py</span>, <span class="string">&quot;asdf&quot;</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>
+            .<span class="ident">call_method</span>(<span class="ident">py</span>, <span class="string">&quot;nonexistent_method&quot;</span>, (<span class="number">1</span>,), <span class="prelude-val">None</span>)
+            .<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">call_method0</span>(<span class="ident">py</span>, <span class="string">&quot;nonexistent_method&quot;</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">obj</span>.<span class="ident">call_method1</span>(<span class="ident">py</span>, <span class="string">&quot;nonexistent_method&quot;</span>, (<span class="number">1</span>,)).<span class="ident">is_err</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">borrowed_py_ref_with_to_object</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">convertible</span> <span class="op">=</span> (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);
-        <span class="kw">let</span> <span class="ident">borrowed</span> <span class="op">=</span> <span class="ident">ManagedPyRef</span>::<span class="ident">from_to_pyobject</span>(<span class="ident">py</span>, <span class="kw-2">&amp;</span><span class="ident">convertible</span>);
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">borrowed</span>.<span class="ident">data</span>;
-        <span class="comment">// The refcountwould become 0 after dropping, which means the gc can free the pointer</span>
-        <span class="comment">// and getting the refcount would be UB. This incref ensures that it remains 1</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi</span>::<span class="ident">Py_INCREF</span>(<span class="ident">ptr</span>);
-        }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>) });
-        <span class="ident">drop</span>(<span class="ident">borrowed</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">ptr</span>) });
-        <span class="kw">unsafe</span> {
-            <span class="ident">ffi</span>::<span class="ident">Py_DECREF</span>(<span class="ident">ptr</span>);
-        }
+    <span class="kw">fn</span> <span class="ident">py_from_dict</span>() {
+        <span class="kw">let</span> <span class="ident">dict</span>: <span class="ident">Py</span><span class="op">&lt;</span><span class="ident">PyDict</span><span class="op">&gt;</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
+            <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
+            <span class="kw">let</span> <span class="ident">native</span> <span class="op">=</span> <span class="ident">PyDict</span>::<span class="ident">new</span>(<span class="ident">py</span>);
+            <span class="ident">Py</span>::<span class="ident">from</span>(<span class="ident">native</span>)
+        };
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">Py_REFCNT</span>(<span class="ident">dict</span>.<span class="ident">as_ptr</span>()) }, <span class="number">1</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "pyo3";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "pyo3";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

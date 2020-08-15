@@ -146,29 +146,58 @@
 <span class="doccomment">//! Python Iterator Interface.</span>
 <span class="doccomment">//! Trait and support implementation for implementing iterators</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">callback</span>::{<span class="ident">CallbackConverter</span>, <span class="ident">PyObjectCallbackConverter</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">callback</span>::<span class="ident">IntoPyCallbackOutput</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">derive_utils</span>::<span class="ident">TryFromPyCell</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::<span class="ident">PyResult</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::<span class="ident">PyRefMut</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::<span class="ident">PyTypeInfo</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">IntoPyPointer</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Python</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">IntoPy</span>, <span class="ident">PyObject</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">IntoPy</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">PyClass</span>, <span class="ident">PyObject</span>, <span class="ident">Python</span>};
 
 <span class="doccomment">/// Python Iterator Interface.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// more information</span>
-<span class="doccomment">/// `https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter`</span>
+<span class="doccomment">/// Check [CPython doc](https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter)</span>
+<span class="doccomment">/// for more.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">/// The following example shows how to implement a simple Python iterator in Rust which yields</span>
+<span class="doccomment">/// the integers 1 to 5, before raising `StopIteration(&quot;Ended&quot;)`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// use pyo3::prelude::*;</span>
+<span class="doccomment">/// use pyo3::PyIterProtocol;</span>
+<span class="doccomment">/// use pyo3::class::iter::IterNextOutput;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[pyclass]</span>
+<span class="doccomment">/// struct Iter {</span>
+<span class="doccomment">///     count: usize</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[pyproto]</span>
+<span class="doccomment">/// impl PyIterProtocol for Iter {</span>
+<span class="doccomment">///     fn __next__(mut slf: PyRefMut&lt;Self&gt;) -&gt; IterNextOutput&lt;usize, &amp;&#39;static str&gt; {</span>
+<span class="doccomment">///         if slf.count &lt; 5 {</span>
+<span class="doccomment">///             slf.count += 1;</span>
+<span class="doccomment">///             IterNextOutput::Yield(slf.count)</span>
+<span class="doccomment">///         } else {</span>
+<span class="doccomment">///             IterNextOutput::Return(&quot;Ended&quot;)</span>
+<span class="doccomment">///         }</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # let gil = Python::acquire_gil();</span>
+<span class="doccomment">/// # let py = gil.python();</span>
+<span class="doccomment">/// # let inst = Py::new(py, Iter { count: 0 }).unwrap();</span>
+<span class="doccomment">/// # pyo3::py_run!(py, inst, &quot;assert next(inst) == 1&quot;);</span>
+<span class="doccomment">/// # // test of StopIteration is done in examples/rustapi_module/pyclass_iter.rs</span>
+<span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>: <span class="ident">PyTypeInfo</span> <span class="op">+</span> <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">__iter__</span>(<span class="ident">slf</span>: <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>: <span class="ident">PyClass</span> {
+    <span class="kw">fn</span> <span class="ident">__iter__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyIterIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">__next__</span>(<span class="ident">slf</span>: <span class="ident">PyRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    <span class="kw">fn</span> <span class="ident">__next__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyIterNextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
@@ -177,113 +206,84 @@
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>: <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Success</span>: <span class="kw">crate</span>::<span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Success</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Receiver</span>: <span class="ident">TryFromPyCell</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterNextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>: <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Success</span>: <span class="kw">crate</span>::<span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PyResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Success</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Receiver</span>: <span class="ident">TryFromPyCell</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyIterNextOutput</span><span class="op">&gt;</span>;
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyIterMethods</span> {
+    <span class="kw">pub</span> <span class="ident">tp_iter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">getiterfunc</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">tp_iternext</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">iternextfunc</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterProtocolImpl</span> {
-    <span class="kw">fn</span> <span class="ident">tp_as_iter</span>(<span class="ident">_typeob</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyTypeObject</span>);
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">tp_as_iter</span>(<span class="ident">_typeob</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyTypeObject</span>) {}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-{
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tp_as_iter</span>(<span class="ident">typeob</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyTypeObject</span>) {
-        <span class="ident">typeob</span>.<span class="ident">tp_iter</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">tp_iter</span>();
-        <span class="ident">typeob</span>.<span class="ident">tp_iternext</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">tp_iternext</span>();
+<span class="kw">impl</span> <span class="ident">PyIterMethods</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update_typeobj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_object</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyTypeObject</span>) {
+        <span class="ident">type_object</span>.<span class="ident">tp_iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tp_iter</span>;
+        <span class="ident">type_object</span>.<span class="ident">tp_iternext</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tp_iternext</span>;
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyIterIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+    {
+        <span class="self">self</span>.<span class="ident">tp_iter</span> <span class="op">=</span> <span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">PyIterIterProtocol</span>, <span class="ident">T</span>::<span class="ident">__iter__</span>);
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iternext</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyIterNextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+    {
+        <span class="self">self</span>.<span class="ident">tp_iternext</span> <span class="op">=</span> <span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">PyIterNextProtocol</span>, <span class="ident">T</span>::<span class="ident">__next__</span>);
     }
 }
 
-<span class="kw">trait</span> <span class="ident">PyIterIterProtocolImpl</span> {
-    <span class="kw">fn</span> <span class="ident">tp_iter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">getiterfunc</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Output of `__next__` which can either `yield` the next value in the iteration, or</span>
+<span class="doccomment">/// `return` a value to raise `StopIteration` in Python.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See [`PyIterProtocol`](trait.PyIterProtocol.html) for an example.</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IterNextOutput</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
+    <span class="ident">Yield</span>(<span class="ident">T</span>),
+    <span class="ident">Return</span>(<span class="ident">U</span>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterIterProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-{
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">tp_iter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">getiterfunc</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PyIterNextOutput</span> <span class="op">=</span> <span class="ident">IterNextOutput</span><span class="op">&lt;</span><span class="ident">PyObject</span>, <span class="ident">PyObject</span><span class="op">&gt;</span>;
+
+<span class="kw">impl</span> <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyIterNextOutput</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">IterNextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">into_ptr</span>()),
+            <span class="ident">IterNextOutput</span>::<span class="ident">Return</span>(<span class="ident">opt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyStopIteration</span>::<span class="ident">py_err</span>((<span class="ident">opt</span>,))),
+        }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterIterProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyIterNextOutput</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IterNextOutput</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyIterIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
+    <span class="ident">U</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tp_iter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">getiterfunc</span><span class="op">&gt;</span> {
-        <span class="macro">py_unary_pyref_func</span><span class="macro">!</span>(
-            <span class="ident">PyIterIterProtocol</span>,
-            <span class="ident">T</span>::<span class="ident">__iter__</span>,
-            <span class="ident">T</span>::<span class="ident">Success</span>,
-            <span class="ident">PyObjectCallbackConverter</span>
-        )
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterNextOutput</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">IterNextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterNextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+            <span class="ident">IterNextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterNextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+        }
     }
 }
 
-<span class="kw">trait</span> <span class="ident">PyIterNextProtocolImpl</span> {
-    <span class="kw">fn</span> <span class="ident">tp_iternext</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">iternextfunc</span><span class="op">&gt;</span>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterNextProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">PyIterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-{
-    <span class="ident">default</span> <span class="kw">fn</span> <span class="ident">tp_iternext</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">iternextfunc</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterNextProtocolImpl</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyIterNextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-{
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tp_iternext</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">iternextfunc</span><span class="op">&gt;</span> {
-        <span class="macro">py_unary_pyref_func</span><span class="macro">!</span>(
-            <span class="ident">PyIterNextProtocol</span>,
-            <span class="ident">T</span>::<span class="ident">__next__</span>,
-            <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Success</span><span class="op">&gt;</span>,
-            <span class="ident">IterNextConverter</span>
-        )
-    }
-}
-
-<span class="kw">struct</span> <span class="ident">IterNextConverter</span>;
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CallbackConverter</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IterNextConverter</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyIterNextOutput</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
 {
-    <span class="kw">type</span> <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>;
-
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>.<span class="ident">into_py</span>(<span class="ident">py</span>).<span class="ident">into_ptr</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
-                <span class="ident">ffi</span>::<span class="ident">PyErr_SetNone</span>(<span class="ident">ffi</span>::<span class="ident">PyExc_StopIteration</span>);
-                <span class="ident">ptr</span>::<span class="ident">null_mut</span>()
-            },
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterNextOutput</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterNextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterNextOutput</span>::<span class="ident">Return</span>(<span class="ident">py</span>.<span class="prelude-val">None</span>())),
         }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span> {
-        <span class="ident">ptr</span>::<span class="ident">null_mut</span>()
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
