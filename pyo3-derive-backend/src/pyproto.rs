@@ -67,7 +67,7 @@ fn impl_proto_impl(
         if let syn::ImplItem::Method(ref mut met) = iimpl {
             // impl Py~Protocol<'p> { type = ... }
             if let Some(m) = proto.get_proto(&met.sig.ident) {
-                impl_method_proto(ty, &mut met.sig, m).to_tokens(&mut trait_impls);
+                impl_method_proto(ty, &mut met.sig, m)?.to_tokens(&mut trait_impls);
                 // Insert the method to the HashSet
                 method_names.insert(met.sig.ident.to_string());
             }
@@ -134,25 +134,11 @@ fn slot_initialization(
     ty: &syn::Type,
     proto: &defs::Proto,
 ) -> syn::Result<TokenStream> {
-    // Some setters cannot coexist.
-    // E.g., if we have `__add__`, we need to skip `set_radd`.
-    let mut skipped_setters = Vec::new();
     // Collect initializers
     let mut initializers: Vec<TokenStream> = vec![];
-    'outer_loop: for m in proto.slot_setters {
-        if skipped_setters.contains(&m.set_function) {
-            continue;
-        }
-        for name in m.proto_names {
-            // If this `#[pyproto]` block doesn't provide all required methods,
-            // let's skip implementing this method.
-            if !method_names.contains(*name) {
-                continue 'outer_loop;
-            }
-        }
-        skipped_setters.extend_from_slice(m.skipped_setters);
+    for setter in proto.setters(method_names) {
         // Add slot methods to PyProtoRegistry
-        let set = syn::Ident::new(m.set_function, Span::call_site());
+        let set = syn::Ident::new(setter, Span::call_site());
         initializers.push(quote! { table.#set::<#ty>(); });
     }
     if initializers.is_empty() {
@@ -166,6 +152,7 @@ fn slot_initialization(
         Span::call_site(),
     );
     Ok(quote! {
+        #[allow(non_snake_case)]
         #[pyo3::ctor::ctor]
         fn #init() {
             let mut table = #table::default();

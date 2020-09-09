@@ -71,7 +71,7 @@
 //! #[pymodule]
 //! /// A Python module implemented in Rust.
 //! fn string_sum(py: Python, m: &PyModule) -> PyResult<()> {
-//!     m.add_wrapped(wrap_pyfunction!(sum_as_string))?;
+//!     m.add_function(wrap_pyfunction!(sum_as_string))?;
 //!
 //!     Ok(())
 //! }
@@ -163,6 +163,8 @@ pub use {
 #[doc(hidden)]
 pub use libc;
 
+// The CPython stable ABI does not include PyBuffer.
+#[cfg(not(Py_LIMITED_API))]
 pub mod buffer;
 #[doc(hidden)]
 pub mod callback;
