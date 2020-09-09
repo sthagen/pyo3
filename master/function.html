@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html" class="active"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="chapter-item expanded "><a href="rust_cpython.html"><strong aria-hidden="true">14.</strong> Appendix A: PyO3 and rust-cpython</a></li><li class="chapter-item expanded "><a href="migration.html"><strong aria-hidden="true">15.</strong> Appendix B: Migration Guide</a></li><li class="chapter-item expanded "><a href="trait_bounds.html"><strong aria-hidden="true">16.</strong> Appendix C: Trait bounds</a></li><li class="chapter-item expanded "><a href="logging.html"><strong aria-hidden="true">17.</strong> Appendix D: Logging</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html" class="active"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -186,7 +186,7 @@ fn double(x: usize) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_wrapped(wrap_pyfunction!(double)).unwrap();
+    m.add_function(wrap_pyfunction!(double)).unwrap();
 
     Ok(())
 }
@@ -211,7 +211,7 @@ fn num_kwds(kwds: Option&lt;&amp;PyDict&gt;) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_wrapped(wrap_pyfunction!(num_kwds)).unwrap();
+    m.add_function(wrap_pyfunction!(num_kwds)).unwrap();
     Ok(())
 }
 
@@ -319,6 +319,42 @@ Type:      builtin_function_or_method
 <p>You can use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method. You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs (or <code>None</code>) as second parameter. There are also <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call0"><code>PyAny::call0</code></a> with no args and <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1"><code>PyAny::call1</code></a> with only positional args.</p>
 <h3><a class="header" href="#calling-rust-functions-in-python" id="calling-rust-functions-in-python">Calling Rust functions in Python</a></h3>
 <p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a> to get the corresponding <a href="https://docs.rs/pyo3/latest/pyo3/type.PyObject.html"><code>PyObject</code></a>. For dynamic functions, e.g. lambdas and functions that were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>. (A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over the FFI barrier. You can even make that class callable with <code>__call__</code> so it looks like a function in Python code.</p>
+<h3><a class="header" href="#accessing-the-module-of-a-function" id="accessing-the-module-of-a-function">Accessing the module of a function</a></h3>
+<p>It is possible to access the module of a <code>#[pyfunction]</code> and <code>#[pyfn]</code> in the
+function body by passing the <code>pass_module</code> argument to the attribute:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::wrap_pyfunction;
+use pyo3::prelude::*;
+
+#[pyfunction(pass_module)]
+fn pyfunction_with_module(module: &amp;PyModule) -&gt; PyResult&lt;&amp;str&gt; {
+    module.name()
+}
+
+#[pymodule]
+fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+    m.add_function(wrap_pyfunction!(pyfunction_with_module))
+}
+
+<span class="boring">fn main() {}
+</span></code></pre></pre>
+<p>If <code>pass_module</code> is set, the first argument <strong>must</strong> be the <code>&amp;PyModule</code>. It is then possible to use the module
+in the function body.</p>
+<p>The same works for <code>#[pyfn]</code>:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::wrap_pyfunction;
+use pyo3::prelude::*;
+
+#[pymodule]
+fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+
+    #[pyfn(m, &quot;module_name&quot;, pass_module)]
+    fn module_name(module: &amp;PyModule) -&gt; PyResult&lt;&amp;str&gt; {
+        module.name()
+    }
+    Ok(())
+}
+
+<span class="boring">fn main() {}
+</span></code></pre></pre>
 
                     </main>
 

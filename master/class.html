@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html" class="active"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="chapter-item expanded "><a href="rust_cpython.html"><strong aria-hidden="true">14.</strong> Appendix A: PyO3 and rust-cpython</a></li><li class="chapter-item expanded "><a href="migration.html"><strong aria-hidden="true">15.</strong> Appendix B: Migration Guide</a></li><li class="chapter-item expanded "><a href="trait_bounds.html"><strong aria-hidden="true">16.</strong> Appendix C: Trait bounds</a></li><li class="chapter-item expanded "><a href="logging.html"><strong aria-hidden="true">17.</strong> Appendix D: Logging</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html" class="active"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -176,7 +176,7 @@
 <li><a href="#method-arguments"><code>#[args]</code></a></li>
 </ul>
 </li>
-<li><a href="#class-customizations"><code>#[pyproto]</code></a></li>
+<li><a href="class/protocols.html"><code>#[pyproto]</code></a></li>
 </ul>
 <h2><a class="header" href="#defining-a-new-class" id="defining-a-new-class">Defining a new class</a></h2>
 <p>To define a custom Python class, a Rust struct needs to be annotated with the
@@ -292,7 +292,7 @@ assert_eq!(obj_ref.num, 1);
 The performance improvement applies to types that are often created and deleted in a row,
 so that they can benefit from a freelist. <code>XXX</code> is a number of items for the free list.</li>
 <li><code>gc</code> - Classes with the <code>gc</code> parameter participate in Python garbage collection.
-If a custom class contains references to other Python objects that can be collected, the <a href="https://docs.rs/pyo3/latest/pyo3/class/gc/trait.PyGCProtocol.html"><code>PyGCProtocol</code></a> trait has to be implemented.</li>
+If a custom class contains references to other Python objects that can be collected, the [<code>PyGCProtocol</code>] trait has to be implemented.</li>
 <li><code>weakref</code> - Adds support for Python weak references.</li>
 <li><code>extends=BaseType</code> - Use a custom base class. The base <code>BaseType</code> must implement <code>PyTypeInfo</code>.</li>
 <li><code>subclass</code> - Allows Python classes to inherit from this class.</li>
@@ -832,292 +832,6 @@ py_args=(), py_kwargs=None, name=World, num=-1, debug=true
 num=44, debug=false
 num=-1, debug=false
 </code></pre>
-<h2><a class="header" href="#class-customizations" id="class-customizations">Class customizations</a></h2>
-<p>Python's object model defines several protocols for different object behavior, like sequence,
-mapping or number protocols. PyO3 defines separate traits for each of them. To provide specific
-Python object behavior, you need to implement the specific trait for your struct. Important note,
-each protocol implementation block has to be annotated with the <code>#[pyproto]</code> attribute.</p>
-<p>All <code>#[pyproto]</code> methods which can be defined below can return <code>T</code> instead of <code>PyResult&lt;T&gt;</code> if the
-method implementation is infallible. In addition, if the return type is <code>()</code>, it can be omitted altogether.</p>
-<h3><a class="header" href="#basic-object-customization" id="basic-object-customization">Basic object customization</a></h3>
-<p>The <a href="https://docs.rs/pyo3/latest/pyo3/class/basic/trait.PyObjectProtocol.html"><code>PyObjectProtocol</code></a> trait provides several basic customizations.</p>
-<h4><a class="header" href="#attribute-access" id="attribute-access">Attribute access</a></h4>
-<p>To customize object attribute access, define the following methods:</p>
-<ul>
-<li><code>fn __getattr__(&amp;self, name: FromPyObject) -&gt; PyResult&lt;impl IntoPy&lt;PyObject&gt;&gt;</code></li>
-<li><code>fn __setattr__(&amp;mut self, name: FromPyObject, value: FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __delattr__(&amp;mut self, name: FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-</ul>
-<p>Each method corresponds to Python's <code>self.attr</code>, <code>self.attr = value</code> and <code>del self.attr</code> code.</p>
-<h4><a class="header" href="#string-conversions" id="string-conversions">String Conversions</a></h4>
-<ul>
-<li>
-<p><code>fn __repr__(&amp;self) -&gt; PyResult&lt;impl ToPyObject&lt;ObjectType=PyString&gt;&gt;</code></p>
-</li>
-<li>
-<p><code>fn __str__(&amp;self) -&gt; PyResult&lt;impl ToPyObject&lt;ObjectType=PyString&gt;&gt;</code></p>
-<p>Possible return types for <code>__str__</code> and <code>__repr__</code> are <code>PyResult&lt;String&gt;</code> or <code>PyResult&lt;PyString&gt;</code>.</p>
-</li>
-<li>
-<p><code>fn __bytes__(&amp;self) -&gt; PyResult&lt;PyBytes&gt;</code></p>
-<p>Provides the conversion to <code>bytes</code>.</p>
-</li>
-<li>
-<p><code>fn __format__(&amp;self, format_spec: &amp;str) -&gt; PyResult&lt;impl ToPyObject&lt;ObjectType=PyString&gt;&gt;</code></p>
-<p>Special method that is used by the <code>format()</code> builtin and the <code>str.format()</code> method.
-Possible return types are <code>PyResult&lt;String&gt;</code> or <code>PyResult&lt;PyString&gt;</code>.</p>
-</li>
-</ul>
-<h4><a class="header" href="#comparison-operators" id="comparison-operators">Comparison operators</a></h4>
-<ul>
-<li>
-<p><code>fn __richcmp__(&amp;self, other: impl FromPyObject, op: CompareOp) -&gt; PyResult&lt;impl ToPyObject&gt;</code></p>
-<p>Overloads Python comparison operations (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, and <code>&gt;=</code>).
-The <code>op</code> argument indicates the comparison operation being performed.
-The return type will normally be <code>PyResult&lt;bool&gt;</code>, but any Python object can be returned.
-If <code>other</code> is not of the type specified in the signature, the generated code will
-automatically <code>return NotImplemented</code>.</p>
-</li>
-<li>
-<p><code>fn __hash__(&amp;self) -&gt; PyResult&lt;impl PrimInt&gt;</code></p>
-<p>Objects that compare equal must have the same hash value.
-The return type must be <code>PyResult&lt;T&gt;</code> where <code>T</code> is one of Rust's primitive integer types.</p>
-</li>
-</ul>
-<h4><a class="header" href="#other-methods" id="other-methods">Other methods</a></h4>
-<ul>
-<li>
-<p><code>fn __bool__(&amp;self) -&gt; PyResult&lt;bool&gt;</code></p>
-<p>Determines the &quot;truthyness&quot; of the object.</p>
-</li>
-</ul>
-<h3><a class="header" href="#emulating-numeric-types" id="emulating-numeric-types">Emulating numeric types</a></h3>
-<p>The [<code>PyNumberProtocol</code>] trait allows <a href="https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types">emulate numeric types</a>.</p>
-<ul>
-<li><code>fn __add__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __sub__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __mul__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __matmul__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __truediv__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __floordiv__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __mod__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __divmod__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __pow__(lhs: impl FromPyObject, rhs: impl FromPyObject, modulo: Option&lt;impl FromPyObject&gt;) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __lshift__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rshift__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __and__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __or__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __xor__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-</ul>
-<p>These methods are called to implement the binary arithmetic operations
-(<code>+</code>, <code>-</code>, <code>*</code>, <code>@</code>, <code>/</code>, <code>//</code>, <code>%</code>, <code>divmod()</code>, <code>pow()</code> and <code>**</code>, <code>&lt;&lt;</code>, <code>&gt;&gt;</code>, <code>&amp;</code>, <code>^</code>, and <code>|</code>).</p>
-<p>If <code>rhs</code> is not of the type specified in the signature, the generated code
-will automatically <code>return NotImplemented</code>.  This is not the case for <code>lhs</code>
-which must match signature or else raise a TypeError.</p>
-<p>The reflected operations are also available:</p>
-<ul>
-<li><code>fn __radd__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rsub__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rmul__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rmatmul__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rtruediv__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rfloordiv__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rmod__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rdivmod__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rpow__(lhs: impl FromPyObject, rhs: impl FromPyObject, modulo: Option&lt;impl FromPyObject&gt;) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rlshift__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rrshift__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rand__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __ror__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __rxor__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-</ul>
-<p>The code generated for these methods expect that all arguments match the
-signature, or raise a TypeError.</p>
-<p><em>Note</em>: Currently implementing the method for a binary arithmetic operations
-(e.g, <code>__add__</code>) shadows the reflected operation (e.g, <code>__radd__</code>).  This is
-being addressed in <a href="https://github.com/PyO3/pyo3/issues/844">#844</a>.  to make
-these methods</p>
-<p>This trait also has support the augmented arithmetic assignments (<code>+=</code>, <code>-=</code>,
-<code>*=</code>, <code>@=</code>, <code>/=</code>, <code>//=</code>, <code>%=</code>, <code>**=</code>, <code>&lt;&lt;=</code>, <code>&gt;&gt;=</code>, <code>&amp;=</code>, <code>^=</code>, <code>|=</code>):</p>
-<ul>
-<li><code>fn __iadd__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __isub__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __imul__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __imatmul__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __itruediv__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __ifloordiv__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __imod__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __ipow__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __ilshift__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __irshift__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __iand__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __ior__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-<li><code>fn __ixor__(&amp;'p mut self, other: impl FromPyObject) -&gt; PyResult&lt;()&gt;</code></li>
-</ul>
-<p>The following methods implement the unary arithmetic operations (<code>-</code>, <code>+</code>, <code>abs()</code> and <code>~</code>):</p>
-<ul>
-<li><code>fn __neg__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __pos__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __abs__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __invert__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-</ul>
-<p>Support for coercions:</p>
-<ul>
-<li><code>fn __complex__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __int__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __float__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-</ul>
-<p>Other:</p>
-<ul>
-<li><code>fn __index__(&amp;'p self) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-<li><code>fn __round__(&amp;'p self, ndigits: Option&lt;impl FromPyObject&gt;) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
-</ul>
-<h3><a class="header" href="#garbage-collector-integration" id="garbage-collector-integration">Garbage Collector Integration</a></h3>
-<p>If your type owns references to other Python objects, you will need to
-integrate with Python's garbage collector so that the GC is aware of
-those references.
-To do this, implement the <a href="https://docs.rs/pyo3/latest/pyo3/class/gc/trait.PyGCProtocol.html"><code>PyGCProtocol</code></a> trait for your struct.
-It includes two methods <code>__traverse__</code> and <code>__clear__</code>.
-These correspond to the slots <code>tp_traverse</code> and <code>tp_clear</code> in the Python C API.
-<code>__traverse__</code> must call <code>visit.call()</code> for each reference to another Python object.
-<code>__clear__</code> must clear out any mutable references to other Python objects
-(thus breaking reference cycles). Immutable references do not have to be cleared,
-as every cycle must contain at least one mutable reference.
-Example:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>extern crate pyo3;
-
-use pyo3::prelude::*;
-use pyo3::PyTraverseError;
-use pyo3::gc::{PyGCProtocol, PyVisit};
-
-#[pyclass]
-struct ClassWithGCSupport {
-    obj: Option&lt;PyObject&gt;,
-}
-
-#[pyproto]
-impl PyGCProtocol for ClassWithGCSupport {
-    fn __traverse__(&amp;self, visit: PyVisit) -&gt; Result&lt;(), PyTraverseError&gt; {
-        if let Some(ref obj) = self.obj {
-            visit.call(obj)?
-        }
-        Ok(())
-    }
-
-    fn __clear__(&amp;mut self) {
-        // Clear reference, this decrements ref counter.
-        self.obj = None;
-    }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>Special protocol trait implementations have to be annotated with the <code>#[pyproto]</code> attribute.</p>
-<p>It is also possible to enable GC for custom classes using the <code>gc</code> parameter of the <code>pyclass</code> attribute.
-i.e. <code>#[pyclass(gc)]</code>. In that case instances of custom class participate in Python garbage
-collection, and it is possible to track them with <code>gc</code> module methods. When using the <code>gc</code> parameter,
-it is <em>required</em> to implement the <code>PyGCProtocol</code> trait, failure to do so will result in an error
-at compile time:</p>
-<pre><code class="language-compile_fail">#[pyclass(gc)]
-struct GCTracked {} // Fails because it does not implement PyGCProtocol
-</code></pre>
-<h3><a class="header" href="#iterator-types" id="iterator-types">Iterator Types</a></h3>
-<p>Iterators can be defined using the
-<a href="https://docs.rs/pyo3/latest/pyo3/class/iter/trait.PyIterProtocol.html"><code>PyIterProtocol</code></a> trait.
-It includes two methods <code>__iter__</code> and <code>__next__</code>:</p>
-<ul>
-<li><code>fn __iter__(slf: PyRefMut&lt;Self&gt;) -&gt; PyResult&lt;impl IntoPy&lt;PyObject&gt;&gt;</code></li>
-<li><code>fn __next__(slf: PyRefMut&lt;Self&gt;) -&gt; PyResult&lt;Option&lt;impl IntoPy&lt;PyObject&gt;&gt;&gt;</code></li>
-</ul>
-<p>Returning <code>None</code> from <code>__next__</code> indicates that that there are no further items.
-These two methods can be take either <code>PyRef&lt;Self&gt;</code> or <code>PyRefMut&lt;Self&gt;</code> as their
-first argument, so that mutable borrow can be avoided if needed.</p>
-<p>Example:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use pyo3::prelude::*;
-use pyo3::PyIterProtocol;
-
-#[pyclass]
-struct MyIterator {
-    iter: Box&lt;Iterator&lt;Item = PyObject&gt; + Send&gt;,
-}
-
-#[pyproto]
-impl PyIterProtocol for MyIterator {
-    fn __iter__(slf: PyRef&lt;Self&gt;) -&gt; PyRef&lt;Self&gt; {
-        slf
-    }
-    fn __next__(mut slf: PyRefMut&lt;Self&gt;) -&gt; Option&lt;PyObject&gt; {
-        slf.iter.next()
-    }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>In many cases you'll have a distinction between the type being iterated over (i.e. the <em>iterable</em>) and the iterator it
-provides. In this case, you should implement <code>PyIterProtocol</code> for both the iterable and the iterator, but the iterable
-only needs to support <code>__iter__()</code> while the iterator must support both <code>__iter__()</code> and <code>__next__()</code>. The default
-implementations in <code>PyIterProtocol</code> will ensure that the objects behave correctly in Python. For example:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span><span class="boring">use pyo3::prelude::*;
-</span><span class="boring">use pyo3::PyIterProtocol;
-</span>
-#[pyclass]
-struct Iter {
-    inner: std::vec::IntoIter&lt;usize&gt;,
-}
-
-#[pyproto]
-impl PyIterProtocol for Iter {
-    fn __iter__(slf: PyRef&lt;Self&gt;) -&gt; PyRef&lt;Self&gt; {
-        slf
-    }
-
-    fn __next__(mut slf: PyRefMut&lt;Self&gt;) -&gt; Option&lt;usize&gt; {
-        slf.inner.next()
-    }
-}
-
-#[pyclass]
-struct Container {
-    iter: Vec&lt;usize&gt;,
-}
-
-#[pyproto]
-impl PyIterProtocol for Container {
-    fn __iter__(slf: PyRef&lt;Self&gt;) -&gt; PyResult&lt;Py&lt;Iter&gt;&gt; {
-        let iter = Iter {
-            inner: slf.iter.clone().into_iter(),
-        };
-        Py::new(slf.py(), iter)
-    }
-}
-
-<span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
-</span><span class="boring">let inst = pyo3::PyCell::new(
-</span><span class="boring">    py,
-</span><span class="boring">    Container {
-</span><span class="boring">        iter: vec![1, 2, 3, 4],
-</span><span class="boring">    },
-</span><span class="boring">)
-</span><span class="boring">.unwrap();
-</span><span class="boring">pyo3::py_run!(py, inst, &quot;assert list(inst) == [1, 2, 3, 4]&quot;);
-</span><span class="boring">pyo3::py_run!(py, inst, &quot;assert list(iter(iter(inst))) == [1, 2, 3, 4]&quot;);
-</span><span class="boring">}
-</span></code></pre></pre>
-<p>For more details on Python's iteration protocols, check out <a href="https://docs.python.org/3/library/stdtypes.html#iterator-types">the &quot;Iterator Types&quot; section of the library
-documentation</a>.</p>
-<h4><a class="header" href="#returning-a-value-from-iteration" id="returning-a-value-from-iteration">Returning a value from iteration</a></h4>
-<p>This guide has so far shown how to use <code>Option&lt;T&gt;</code> to implement yielding values during iteration.
-In Python a generator can also return a value. To express this in Rust, PyO3 provides the
-<a href="https://docs.rs/pyo3/latest/pyo3/class/iter/enum.IterNextOutput.html"><code>IterNextOutput</code></a> enum to
-both <code>Yield</code> values and <code>Return</code> a final value - see its docs for further details and an example.</p>
 <h2><a class="header" href="#how-methods-are-implemented" id="how-methods-are-implemented">How methods are implemented</a></h2>
 <p>Users should be able to define a <code>#[pyclass]</code> with or without <code>#[pymethods]</code>, while PyO3 needs a
 trait with a function that returns all methods. Since it's impossible to make the code generation in
@@ -1220,7 +934,7 @@ impl pyo3::pyclass::PyClassSend for MyClass {
                         
 
                         
-                            <a rel="next" href="conversions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="class/protocols.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -1238,7 +952,7 @@ impl pyo3::pyclass::PyClassSend for MyClass {
                 
 
                 
-                    <a rel="next" href="conversions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="class/protocols.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

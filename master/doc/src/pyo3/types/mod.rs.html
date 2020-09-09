@@ -235,6 +235,7 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
+<span id="238">238</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -259,6 +260,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">sequence</span>::<span class="ident">PySequence</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">set</span>::{<span class="ident">PyFrozenSet</span>, <span class="ident">PySet</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">slice</span>::{<span class="ident">PySlice</span>, <span class="ident">PySliceIndices</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::<span class="ident">string</span>::<span class="ident">with_tmp_string</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">string</span>::{<span class="ident">PyString</span>, <span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyUnicode</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tuple</span>::<span class="ident">PyTuple</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">typeobject</span>::<span class="ident">PyType</span>;

@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html" class="active"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="chapter-item expanded "><a href="rust_cpython.html"><strong aria-hidden="true">14.</strong> Appendix A: PyO3 and rust-cpython</a></li><li class="chapter-item expanded "><a href="migration.html"><strong aria-hidden="true">15.</strong> Appendix B: Migration Guide</a></li><li class="chapter-item expanded "><a href="trait_bounds.html"><strong aria-hidden="true">16.</strong> Appendix C: Trait bounds</a></li><li class="chapter-item expanded "><a href="logging.html"><strong aria-hidden="true">17.</strong> Appendix D: Logging</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html" class="active"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -186,20 +186,35 @@ pyo3 = &quot;0.6&quot;
 <li>A toolchain for your target.</li>
 <li>The appropriate options in your Cargo <code>.config</code> for the platform you're targeting and the toolchain you are using.</li>
 <li>A Python interpreter that's already been compiled for your target.</li>
+<li>A Python interpreter that is built for your host and available through the <code>PATH</code> or setting the <a href="#python-version"><code>PYO3_PYTHON</code></a> variable.</li>
 <li>The headers that match the above interpreter.</li>
 </ul>
 <p>See https://github.com/japaric/rust-cross for a primer on cross compiling Rust in general.</p>
 <p>After you've obtained the above, you can build a cross compiled PyO3 module by setting a few extra environment variables:</p>
 <ul>
-<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable must be set to the directory containing the headers for the target's Python interpreter.</li>
-<li><code>PYO3_CROSS_LIB_DIR</code>: This variable must be set to the directory containing the target's libpython DSO.</li>
+<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable must be set to the directory containing the headers for the target's Python interpreter. <strong>It is only necessary if targeting Windows platforms</strong></li>
+<li><code>PYO3_CROSS_LIB_DIR</code>: This variable must be set to the directory containing the target's libpython DSO and the associated <code>_sysconfigdata*.py</code> file.</li>
+<li><code>PYO3_CROSS_PYTHON_VERSION</code>: This variable must be set if there are multiple versions of python compiled for a unix machine.</li>
 </ul>
 <p>An example might look like the following (assuming your target's sysroot is at <code>/home/pyo3/cross/sysroot</code> and that your target is <code>armv7</code>):</p>
-<pre><code class="language-sh">export PYO3_CROSS_INCLUDE_DIR=&quot;/home/pyo3/cross/sysroot/usr/include&quot;
+<pre><code class="language-sh">export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
+
+cargo build --target armv7-unknown-linux-gnueabihf
+</code></pre>
+<p>If there are multiple python versions at the cross lib directory and you cannot set a more precise location to include both the <code>libpython</code> DSO and <code>_sysconfigdata*.py</code> files, you can set the required version:</p>
+<pre><code class="language-sh">export PYO3_CROSS_PYTHON_VERSION=3.8
 export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
 
 cargo build --target armv7-unknown-linux-gnueabihf
 </code></pre>
+<p>Or another example with the same sys root but building for windows:</p>
+<pre><code class="language-sh">export PYO3_CROSS_INCLUDE_DIR=&quot;/home/pyo3/cross/sysroot/usr/include&quot;
+export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
+
+cargo build --target x86_64-pc-windows-gnu
+</code></pre>
+<h2><a class="header" href="#bazel" id="bazel">Bazel</a></h2>
+<p>For an example of how to build python extensions using Bazel, see https://github.com/TheButlah/rules_pyo3</p>
 
                     </main>
 

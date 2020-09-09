@@ -245,7 +245,6 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="doccomment">//! Python type object information</span>
@@ -478,17 +477,16 @@
     <span class="ident">tp_dict</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>,
     <span class="ident">items</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">PyObject</span>)<span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>;
-
     <span class="comment">// We hold the GIL: the dictionary update can be considered atomic from</span>
     <span class="comment">// the POV of other threads.</span>
     <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">items</span> {
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">ffi</span>::<span class="ident">PyDict_SetItemString</span>(<span class="ident">tp_dict</span>, <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">key</span>)<span class="question-mark">?</span>.<span class="ident">as_ptr</span>(), <span class="ident">val</span>.<span class="ident">into_ptr</span>())
-        };
-        <span class="kw">if</span> <span class="ident">ret</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
-        }
+        <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">with_tmp_string</span>(<span class="ident">py</span>, <span class="ident">key</span>, <span class="op">|</span><span class="ident">key</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyDict_SetItem</span>(<span class="ident">tp_dict</span>, <span class="ident">key</span>, <span class="ident">val</span>.<span class="ident">into_ptr</span>()) };
+            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">&lt;</span> <span class="number">0</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
+            }
+            <span class="prelude-val">Ok</span>(())
+        })<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }

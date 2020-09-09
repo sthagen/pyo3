@@ -734,7 +734,7 @@
     <span class="doccomment">/// let gil = Python::acquire_gil();</span>
     <span class="doccomment">/// let py = gil.python();</span>
     <span class="doccomment">/// let m = PyModule::new(py, &quot;pcount&quot;).unwrap();</span>
-    <span class="doccomment">/// m.add_wrapped(wrap_pyfunction!(parallel_count)).unwrap();</span>
+    <span class="doccomment">/// m.add_function(wrap_pyfunction!(parallel_count)).unwrap();</span>
     <span class="doccomment">/// let locals = [(&quot;pcount&quot;, m)].into_py_dict(py);</span>
     <span class="doccomment">/// py.run(r#&quot;</span>
     <span class="doccomment">///    s = [&quot;Flow&quot;, &quot;my&quot;, &quot;tears&quot;, &quot;the&quot;, &quot;Policeman&quot;, &quot;Said&quot;]</span>

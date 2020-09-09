@@ -354,6 +354,8 @@
 <span id="354">354</span>
 <span id="355">355</span>
 <span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">specialization</span>))]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span> <span class="comment">// FIXME (#698)</span>
@@ -428,7 +430,7 @@
 <span class="doccomment">//! #[pymodule]</span>
 <span class="doccomment">//! /// A Python module implemented in Rust.</span>
 <span class="doccomment">//! fn string_sum(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
-<span class="doccomment">//!     m.add_wrapped(wrap_pyfunction!(sum_as_string))?;</span>
+<span class="doccomment">//!     m.add_function(wrap_pyfunction!(sum_as_string))?;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     Ok(())</span>
 <span class="doccomment">//! }</span>
@@ -520,6 +522,8 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">libc</span>;
 
+<span class="comment">// The CPython stable ABI does not include PyBuffer.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buffer</span>;
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">callback</span>;

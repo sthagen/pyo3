@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html" class="active"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="chapter-item expanded "><a href="rust_cpython.html"><strong aria-hidden="true">14.</strong> Appendix A: PyO3 and rust-cpython</a></li><li class="chapter-item expanded "><a href="migration.html"><strong aria-hidden="true">15.</strong> Appendix B: Migration Guide</a></li><li class="chapter-item expanded "><a href="trait_bounds.html"><strong aria-hidden="true">16.</strong> Appendix C: Trait bounds</a></li><li class="chapter-item expanded "><a href="logging.html"><strong aria-hidden="true">17.</strong> Appendix D: Logging</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html" class="active"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -201,24 +201,56 @@ in Rust where any type is allowed.</p>
 <p>Many general methods for interacting with Python objects are on the <code>PyAny</code> struct,
 such as <code>getattr</code>, <code>setattr</code>, and <code>.call</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p>For a <code>&amp;PyAny</code> object reference <code>any</code> where the underlying object is a Python-native type such as
+a list:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
-</span><span class="boring">use pyo3::types::PyList;
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
+</span><span class="boring">use pyo3::{Py, Python, PyAny, PyResult, types::PyList};
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
 </span>let obj: &amp;PyAny = PyList::empty(py);
 
-// Convert to &amp;ConcreteType using PyAny::downcast
-let _: &amp;PyList = obj.downcast().unwrap();
+// To &amp;PyList with PyAny::downcast
+let _: &amp;PyList = obj.downcast()?;
 
-// Convert to Py&lt;PyAny&gt; (aka PyObject) using .into()
+// To Py&lt;PyAny&gt; (aka PyObject) with .into()
 let _: Py&lt;PyAny&gt; = obj.into();
 
-// Convert to Py&lt;ConcreteType&gt; using PyAny::extract
-let _: Py&lt;PyList&gt; = obj.extract().unwrap();
-<span class="boring">}
+// To Py&lt;PyList&gt; with PyAny::extract
+let _: Py&lt;PyList&gt; = obj.extract()?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
+</span></code></pre></pre>
+<p>For a <code>&amp;PyAny</code> object reference <code>any</code> where the underlying object is a <code>#[pyclass]</code>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">use pyo3::{Py, Python, PyAny, PyResult, types::PyList};
+</span><span class="boring">#[pyclass] #[derive(Clone)] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let obj: &amp;PyAny = Py::new(py, MyClass { })?.into_ref(py);
+
+// To &amp;PyCell&lt;MyClass&gt; with PyAny::downcast
+let _: &amp;PyCell&lt;MyClass&gt; = obj.downcast()?;
+
+// To Py&lt;PyAny&gt; (aka PyObject) with .into()
+let _: Py&lt;PyAny&gt; = obj.into();
+
+// To Py&lt;MyClass&gt; with PyAny::extract
+let _: Py&lt;MyClass&gt; = obj.extract()?;
+
+// To MyClass with PyAny::extract, if MyClass: Clone
+let _: MyClass = obj.extract()?;
+
+// To PyRef&lt;MyClass&gt; or PyRefMut&lt;MyClass&gt; with PyAny::extract
+let _: PyRef&lt;MyClass&gt; = obj.extract()?;
+let _: PyRefMut&lt;MyClass&gt; = obj.extract()?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pytuple-pydict-and-many-more" id="pytuple-pydict-and-many-more"><code>PyTuple</code>, <code>PyDict</code>, and many more</a></h3>
 <p><strong>Represents:</strong> a native Python object of known type, restricted to a GIL
@@ -236,28 +268,29 @@ methods which can be found on <code>PyAny</code>.</p>
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span><span class="boring">use pyo3::types::PyList;
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
 </span>let list = PyList::empty(py);
 
-// Can use methods from PyAny on all Python types due to Deref implementation
-let _ = list.repr();
+// Use methods from PyAny on all Python types with Deref implementation
+let _ = list.repr()?;
 
-// Rust will convert &amp;PyList etc. to &amp;PyAny automatically due to Deref implementation
+// To &amp;PyAny automatically with Deref implementation
 let _: &amp;PyAny = list;
 
-// For more explicit &amp;PyAny conversion, use .as_ref()
+// To &amp;PyAny explicitly with .as_ref()
 let _: &amp;PyAny = list.as_ref();
 
-// To convert to Py&lt;T&gt; use .into() or Py::from()
+// To Py&lt;T&gt; with .into() or Py::from()
 let _: Py&lt;PyList&gt; = list.into();
 
-// To convert to PyObject use .into() or .to_object(py)
+// To PyObject with .into() or .to_object(py)
 let _: PyObject = list.into();
-<span class="boring">}
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
-<h3><a class="header" href="#pyt" id="pyt"><code>Py&lt;T&gt;</code></a></h3>
-<p><strong>Represents:</strong> a GIL independent reference to a Python object. This can be a Python native type
+<h3><a class="header" href="#pyt-and-pyobject" id="pyt-and-pyobject"><code>Py&lt;T&gt;</code> and <code>PyObject</code></a></h3>
+<p><strong>Represents:</strong> a GIL-independent reference to a Python object. This can be a Python native type
 (like <code>PyTuple</code>), or a <code>pyclass</code> type implemented in Rust. The most commonly-used variant,
 <code>Py&lt;PyAny&gt;</code>, is also known as <code>PyObject</code>.</p>
 <p><strong>Used:</strong> Whenever you want to carry around references to a Python object without caring about a
@@ -265,6 +298,7 @@ GIL lifetime.  For example, storing Python object references in a Rust struct th
 Python-Rust FFI boundary, or returning objects from functions implemented in Rust back to Python.</p>
 <p>Can be cloned using Python reference counts with <code>.clone()</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p>For a <code>Py&lt;PyList&gt;</code>, the conversions are as below:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -274,21 +308,49 @@ Python-Rust FFI boundary, or returning objects from functions implemented in Rus
 </span><span class="boring">let py = gil.python();
 </span>let list: Py&lt;PyList&gt; = PyList::empty(py).into();
 
-// Access to the native type using Py::as_ref(py) or Py::into_ref(py)
-// (For #[pyclass] types T, these will return &amp;PyCell&lt;T&gt;)
-
-// Py::as_ref() borrows the object
+// To &amp;PyList with Py::as_ref() (borrows from the Py)
 let _: &amp;PyList = list.as_ref(py);
 
-<span class="boring">let list_clone = list.clone(); // Just so that the .into() example for PyObject compiles.
-</span>// Py::into_ref() moves the reference into pyo3's &quot;object storage&quot;; useful for making APIs
-// which return gil-bound references.
+<span class="boring">let list_clone = list.clone(); // Because `.into_ref()` will consume `list`.
+</span>// To &amp;PyList with Py::into_ref() (moves the pointer into PyO3's object storage)
 let _: &amp;PyList = list.into_ref(py);
 
 <span class="boring">let list = list_clone;
-</span>// Convert to PyObject with .into()
-let _: PyObject = list.into();
+</span>// To Py&lt;PyAny&gt; (aka PyObject) with .into()
+let _: Py&lt;PyAny&gt; = list.into();
 <span class="boring">}
+</span></code></pre></pre>
+<p>For a <code>#[pyclass] struct MyClass</code>, the conversions for <code>Py&lt;MyClass&gt;</code> are below:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">let gil = Python::acquire_gil();
+</span><span class="boring">let py = gil.python();
+</span><span class="boring">#[pyclass] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let my_class: Py&lt;MyClass&gt; = Py::new(py, MyClass { })?;
+
+// To &amp;PyCell&lt;MyClass&gt; with Py::as_ref() (borrows from the Py)
+let _: &amp;PyCell&lt;MyClass&gt; = my_class.as_ref(py);
+
+<span class="boring">let my_class_clone = my_class.clone(); // Because `.into_ref()` will consume `my_class`.
+</span>// To &amp;PyCell&lt;MyClass&gt; with Py::into_ref() (moves the pointer into PyO3's object storage)
+let _: &amp;PyCell&lt;MyClass&gt; = my_class.into_ref(py);
+
+<span class="boring">let my_class = my_class_clone.clone();
+</span>// To Py&lt;PyAny&gt; (aka PyObject) with .into_py(py)
+let _: Py&lt;PyAny&gt; = my_class.into_py(py);
+
+<span class="boring">let my_class = my_class_clone;
+</span>// To PyRef&lt;MyClass&gt; with Py::borrow or Py::try_borrow
+let _: PyRef&lt;MyClass&gt; = my_class.try_borrow(py)?;
+
+// To PyRefMut&lt;MyClass&gt; with Py::borrow_mut or Py::try_borrow_mut
+let _: PyRefMut&lt;MyClass&gt; = my_class.try_borrow_mut(py)?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pycellsometype" id="pycellsometype"><code>PyCell&lt;SomeType&gt;</code></a></h3>
 <p><strong>Represents:</strong> a reference to a Rust object (instance of <code>PyClass</code>) which is
@@ -300,36 +362,49 @@ Rust references.</p>
 <p>Like pyo3's Python native types, <code>PyCell&lt;T&gt;</code> implements <code>Deref&lt;Target = PyAny&gt;</code>,
 so it also exposes all of the methods on <code>PyAny</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p><code>PyCell&lt;T&gt;</code> can be used to access <code>&amp;T</code> and <code>&amp;mut T</code> via <code>PyRef&lt;T&gt;</code> and <code>PyRefMut&lt;T&gt;</code> respectively.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span><span class="boring">use pyo3::types::PyList;
 </span><span class="boring">#[pyclass] struct MyClass { }
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
-</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { }).unwrap();
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { })?;
 
-// Obtain PyRef&lt;T&gt; with .try_borrow()
-let pr: PyRef&lt;MyClass&gt; = cell.try_borrow().unwrap();
-<span class="boring">drop(pr);
+// To PyRef&lt;T&gt; with .borrow() or .try_borrow()
+let py_ref: PyRef&lt;MyClass&gt; = cell.try_borrow()?;
+let _: &amp;MyClass = &amp;*py_ref;
+<span class="boring">drop(py_ref);
 </span>
-// Obtain PyRefMut&lt;T&gt; with .try_borrow_mut()
-let prm: PyRefMut&lt;MyClass&gt; = cell.try_borrow_mut().unwrap();
-<span class="boring">drop(prm);
-</span>
-// Can use methods from PyAny on PyCell&lt;T&gt; due to Deref implementation
-let _ = cell.repr();
+// To PyRefMut&lt;T&gt; with .borrow_mut() or .try_borrow_mut()
+let mut py_ref_mut: PyRefMut&lt;MyClass&gt; = cell.try_borrow_mut()?;
+let _: &amp;mut MyClass = &amp;mut *py_ref_mut;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
+</span></code></pre></pre>
+<p><code>PyCell&lt;T&gt;</code> can also be accessed like a Python-native type.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">use pyo3::types::PyList;
+</span><span class="boring">#[pyclass] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { })?;
 
-// Rust will convert &amp;PyCell&lt;T&gt; to &amp;PyAny automatically due to Deref implementation
+// Use methods from PyAny on PyCell&lt;T&gt; with Deref implementation
+let _ = cell.repr()?;
+
+// To &amp;PyAny automatically with Deref implementation
 let _: &amp;PyAny = cell;
 
-// For more explicit &amp;PyAny conversion, use .as_ref()
-let any: &amp;PyAny = cell.as_ref();
-
-// To obtain a PyCell&lt;T&gt; from PyAny, use PyAny::downcast
-let _: &amp;PyCell&lt;MyClass&gt; = any.downcast().unwrap();
-<span class="boring">}
+// To &amp;PyAny explicitly with .as_ref()
+let _: &amp;PyAny = cell.as_ref();
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pyrefsometype-and-pyrefmutsometype" id="pyrefsometype-and-pyrefmutsometype"><code>PyRef&lt;SomeType&gt;</code> and <code>PyRefMut&lt;SomeType&gt;</code></a></h3>
 <p><strong>Represents:</strong> reference wrapper types employed by <code>PyCell</code> to keep track of

@@ -202,11 +202,96 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="comment">//</span>
 <span class="comment">// based on Daniel Grunwald&#39;s https://github.com/dgrunwald/rust-cpython</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">callback</span>::<span class="ident">IntoPyCallbackOutput</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyErr</span>, <span class="ident">PyResult</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>;
@@ -215,7 +300,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::<span class="ident">PyTypeObject</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">PyTuple</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">PyAny</span>, <span class="ident">PyDict</span>, <span class="ident">PyList</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">IntoPy</span>, <span class="ident">Py</span>, <span class="ident">PyObject</span>, <span class="ident">Python</span>, <span class="ident">ToPyObject</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">IntoPy</span>, <span class="ident">Py</span>, <span class="ident">PyObject</span>, <span class="ident">Python</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_char</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
@@ -229,14 +314,16 @@
 <span class="kw">impl</span> <span class="ident">PyModule</span> {
     <span class="doccomment">/// Creates a new module object with the `__name__` attribute set to name.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyModule</span><span class="op">&gt;</span> {
+        <span class="comment">// Could use PyModule_NewObject, but it doesn&#39;t exist on PyPy.</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
         <span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">ffi</span>::<span class="ident">PyModule_New</span>(<span class="ident">name</span>.<span class="ident">as_ptr</span>())) }
     }
 
     <span class="doccomment">/// Imports the Python module with the specified name.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyModule</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">ffi</span>::<span class="ident">PyImport_ImportModule</span>(<span class="ident">name</span>.<span class="ident">as_ptr</span>())) }
+        <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">with_tmp_string</span>(<span class="ident">py</span>, <span class="ident">name</span>, <span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="kw">unsafe</span> {
+            <span class="ident">py</span>.<span class="ident">from_owned_ptr_or_err</span>(<span class="ident">ffi</span>::<span class="ident">PyImport_Import</span>(<span class="ident">name</span>))
+        })
     }
 
     <span class="doccomment">/// Loads the Python code specified into a new module.</span>
@@ -364,12 +451,12 @@
     <span class="doccomment">/// This is a convenience function which can be used from the module&#39;s initialization function.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">ToPyObject</span>,
+        <span class="ident">V</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">index</span>()<span class="question-mark">?</span>
             .<span class="ident">append</span>(<span class="ident">name</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;could not append __name__ to __all__&quot;</span>);
-        <span class="self">self</span>.<span class="ident">setattr</span>(<span class="ident">name</span>, <span class="ident">value</span>)
+        <span class="self">self</span>.<span class="ident">setattr</span>(<span class="ident">name</span>, <span class="ident">value</span>.<span class="ident">into_py</span>(<span class="self">self</span>.<span class="ident">py</span>()))
     }
 
     <span class="doccomment">/// Adds a new extension type to the module.</span>
@@ -389,22 +476,103 @@
     <span class="doccomment">/// Use this together with the`#[pyfunction]` and [wrap_pyfunction!] or `#[pymodule]` and</span>
     <span class="doccomment">/// [wrap_pymodule!].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust,ignore</span>
-    <span class="doccomment">/// m.add_wrapped(wrap_pyfunction!(double));</span>
-    <span class="doccomment">/// m.add_wrapped(wrap_pymodule!(utils));</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use pyo3::prelude::*;</span>
+    <span class="doccomment">/// #[pymodule]</span>
+    <span class="doccomment">/// fn utils(_py: Python, _module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     Ok(())</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[pyfunction]</span>
+    <span class="doccomment">/// fn double(x: usize) -&gt; usize {</span>
+    <span class="doccomment">///     x * 2</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// #[pymodule]</span>
+    <span class="doccomment">/// fn top_level(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     module.add_wrapped(pyo3::wrap_pymodule!(utils))?;</span>
+    <span class="doccomment">///     module.add_wrapped(pyo3::wrap_pyfunction!(double))</span>
+    <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// You can also add a function with a custom name using [add](PyModule::add):</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust,ignore</span>
-    <span class="doccomment">/// m.add(&quot;also_double&quot;, wrap_pyfunction!(double)(py));</span>
+    <span class="doccomment">/// m.add(&quot;also_double&quot;, wrap_pyfunction!(double)(m)?)?;</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_wrapped</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">wrapper</span>(<span class="self">self</span>.<span class="ident">py</span>());
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">function</span>
-            .<span class="ident">getattr</span>(<span class="self">self</span>.<span class="ident">py</span>(), <span class="string">&quot;__name__&quot;</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;A function or module must have a __name__&quot;</span>);
-        <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">name</span>.<span class="ident">extract</span>(<span class="self">self</span>.<span class="ident">py</span>()).<span class="ident">unwrap</span>(), <span class="ident">function</span>)
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **This function will be deprecated in the next release. Please use the specific</span>
+    <span class="doccomment">/// [add_function] and [add_submodule] functions instead.**</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_wrapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">py</span>();
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">wrapper</span>(<span class="ident">py</span>).<span class="ident">convert</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">getattr</span>(<span class="ident">py</span>, <span class="string">&quot;__name__&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">extract</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">name</span>, <span class="ident">function</span>)
+    }
+
+    <span class="doccomment">/// Add a submodule to a module.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Use this together with `#[pymodule]` and [wrap_pymodule!].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use pyo3::prelude::*;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// fn init_utils(module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     module.add(&quot;super_useful_constant&quot;, &quot;important&quot;)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// #[pymodule]</span>
+    <span class="doccomment">/// fn top_level(py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     let utils = PyModule::new(py, &quot;utils&quot;)?;</span>
+    <span class="doccomment">///     init_utils(utils)?;</span>
+    <span class="doccomment">///     module.add_submodule(utils)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_submodule</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">PyModule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">name</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">name</span>, <span class="ident">module</span>)
+    }
+
+    <span class="doccomment">/// Add a function to a module.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Use this together with the`#[pyfunction]` and [wrap_pyfunction!].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use pyo3::prelude::*;</span>
+    <span class="doccomment">/// #[pyfunction]</span>
+    <span class="doccomment">/// fn double(x: usize) -&gt; usize {</span>
+    <span class="doccomment">///     x * 2</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// #[pymodule]</span>
+    <span class="doccomment">/// fn double_mod(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     module.add_function(pyo3::wrap_pyfunction!(double))</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// You can also add a function with a custom name using [add](PyModule::add):</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use pyo3::prelude::*;</span>
+    <span class="doccomment">/// #[pyfunction]</span>
+    <span class="doccomment">/// fn double(x: usize) -&gt; usize {</span>
+    <span class="doccomment">///     x * 2</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// #[pymodule]</span>
+    <span class="doccomment">/// fn double_mod(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+    <span class="doccomment">///     module.add(&quot;also_double&quot;, pyo3::wrap_pyfunction!(double)(module)?)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">wrapper</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">py</span>();
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">wrapper</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">getattr</span>(<span class="ident">py</span>, <span class="string">&quot;__name__&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">extract</span>(<span class="ident">py</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">add</span>(<span class="ident">name</span>, <span class="ident">function</span>)
     }
 }
 </pre></div>

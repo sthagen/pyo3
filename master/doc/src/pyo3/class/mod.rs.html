@@ -31,6 +31,8 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -40,6 +42,7 @@
 <span class="kw">mod</span> <span class="ident">macros</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">basic</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buffer</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">context</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">descr</span>;
@@ -53,6 +56,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sequence</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">basic</span>::<span class="ident">PyObjectProtocol</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">buffer</span>::<span class="ident">PyBufferProtocol</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">context</span>::<span class="ident">PyContextProtocol</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">descr</span>::<span class="ident">PyDescrProtocol</span>;

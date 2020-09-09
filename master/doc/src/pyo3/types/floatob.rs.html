@@ -114,6 +114,8 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="comment">//</span>
@@ -198,6 +200,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">PyFloat_AS_DOUBLE</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">Python</span>, <span class="ident">ToPyObject</span>};
 
@@ -220,6 +223,7 @@
     <span class="macro">num_to_py_object_and_back</span><span class="macro">!</span>(<span class="ident">to_from_f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>);
     <span class="macro">num_to_py_object_and_back</span><span class="macro">!</span>(<span class="ident">int_to_float</span>, <span class="ident">i32</span>, <span class="ident">f64</span>);
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_as_double_macro</span>() {
         <span class="kw">use</span> <span class="ident">assert_approx_eq</span>::<span class="ident">assert_approx_eq</span>;

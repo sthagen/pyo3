@@ -268,7 +268,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PyClass</span><span class="op">&gt;</span> <span class="ident">PyClassInitializer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constract new initialzer from value `T` and base class&#39; initializer.</span>
+    <span class="doccomment">/// Construct new initializer from value `T` and base class&#39; initializer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// We recommend to mainly use `add_subclass`, instead of directly call `new`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">super_init</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PyTypeInfo</span><span class="op">&gt;</span>::<span class="ident">Initializer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {

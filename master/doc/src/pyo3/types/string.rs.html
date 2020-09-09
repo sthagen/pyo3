@@ -228,6 +228,24 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -306,6 +324,24 @@
                 <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="ident">bytes</span>.<span class="ident">as_bytes</span>())
             }
         }
+    }
+}
+
+<span class="doccomment">/// Convenience for calling Python APIs with a temporary string</span>
+<span class="doccomment">/// object created from a given Rust string.</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_tmp_string</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+{
+    <span class="kw">unsafe</span> {
+        <span class="kw">let</span> <span class="ident">s_obj</span> <span class="op">=</span>
+            <span class="ident">ffi</span>::<span class="ident">PyUnicode_FromStringAndSize</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">ffi</span>::<span class="ident">Py_ssize_t</span>);
+        <span class="kw">if</span> <span class="ident">s_obj</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="ident">py</span>));
+        }
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">s_obj</span>);
+        <span class="ident">ffi</span>::<span class="ident">Py_DECREF</span>(<span class="ident">s_obj</span>);
+        <span class="ident">ret</span>
     }
 }
 

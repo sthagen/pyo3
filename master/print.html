@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="chapter-item expanded "><a href="rust_cpython.html"><strong aria-hidden="true">14.</strong> Appendix A: PyO3 and rust-cpython</a></li><li class="chapter-item expanded "><a href="migration.html"><strong aria-hidden="true">15.</strong> Appendix B: Migration Guide</a></li><li class="chapter-item expanded "><a href="trait_bounds.html"><strong aria-hidden="true">16.</strong> Appendix C: Trait bounds</a></li><li class="chapter-item expanded "><a href="logging.html"><strong aria-hidden="true">17.</strong> Appendix D: Logging</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -157,7 +157,154 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#python-modules" id="python-modules">Python Modules</a></h1>
+                        <h1><a class="header" href="#the-pyo3-user-guide" id="the-pyo3-user-guide">The PyO3 user guide</a></h1>
+<p>Welcome to the PyO3 user guide! This book is a companion to <a href="https://docs.rs/pyo3">PyO3's API docs</a>. It contains examples and documentation to explain all of PyO3's use cases in detail.</p>
+<p>Please choose from the chapters on the left to jump to individual topics, or continue below to start with PyO3's README.</p>
+<h1><a class="header" href="#pyo3" id="pyo3">PyO3</a></h1>
+<p><a href="https://github.com/PyO3/pyo3/actions"><img src="https://github.com/PyO3/pyo3/workflows/Test/badge.svg" alt="Actions Status" /></a>
+<a href="https://codecov.io/gh/PyO3/pyo3"><img src="https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg" alt="codecov" /></a>
+<a href="https://crates.io/crates/pyo3"><img src="http://meritbadge.herokuapp.com/pyo3" alt="crates.io" /></a>
+<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.39+-blue.svg" alt="minimum rustc 1.39" /></a>
+<a href="https://gitter.im/PyO3/Lobby"><img src="https://img.shields.io/gitter/room/nwjs/nw.js.svg" alt="Join the dev chat" /></a></p>
+<p><a href="http://www.rust-lang.org/">Rust</a> bindings for <a href="https://www.python.org/">Python</a>. This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.</p>
+<ul>
+<li>
+<p>User Guide: <a href="https://pyo3.rs">stable</a> | <a href="https://pyo3.rs/master">master</a></p>
+</li>
+<li>
+<p>API Documentation: <a href="https://docs.rs/pyo3/">stable</a> |  <a href="https://pyo3.rs/master/doc">master</a></p>
+</li>
+<li>
+<p>Contributing Notes: <a href="https://github.com/PyO3/pyo3/blob/master/Contributing.md">github</a></p>
+</li>
+</ul>
+<p>A comparison with rust-cpython can be found <a href="https://pyo3.rs/master/rust_cpython.html">in the guide</a>.</p>
+<h2><a class="header" href="#usage" id="usage">Usage</a></h2>
+<p>PyO3 supports Python 3.5 and up. The minimum required Rust version is 1.39.0.</p>
+<p>Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
+Please refer to the <a href="https://pyo3.rs/master/pypy.html">pypy section in the guide</a>.</p>
+<p>You can either write a native Python module in Rust, or use Python from a Rust binary.</p>
+<p>However, on some OSs, you need some additional packages. E.g. if you are on <em>Ubuntu 18.04</em>, please run</p>
+<pre><code class="language-bash">sudo apt install python3-dev python-dev
+</code></pre>
+<h2><a class="header" href="#using-rust-from-python" id="using-rust-from-python">Using Rust from Python</a></h2>
+<p>PyO3 can be used to generate a native Python module.</p>
+<p><strong><code>Cargo.toml</code></strong></p>
+<pre><code class="language-toml">[package]
+name = &quot;string-sum&quot;
+version = &quot;0.1.0&quot;
+edition = &quot;2018&quot;
+
+[lib]
+name = &quot;string_sum&quot;
+crate-type = [&quot;cdylib&quot;]
+
+[dependencies.pyo3]
+version = &quot;0.11.1&quot;
+features = [&quot;extension-module&quot;]
+</code></pre>
+<p><strong><code>src/lib.rs</code></strong></p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use pyo3::prelude::*;
+use pyo3::wrap_pyfunction;
+
+/// Formats the sum of two numbers as string.
+#[pyfunction]
+fn sum_as_string(a: usize, b: usize) -&gt; PyResult&lt;String&gt; {
+    Ok((a + b).to_string())
+}
+
+/// A Python module implemented in Rust.
+#[pymodule]
+fn string_sum(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+    m.add_function(wrap_pyfunction!(sum_as_string))?;
+
+    Ok(())
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>On Windows and Linux, you can build normally with <code>cargo build --release</code>. On macOS, you need to set additional linker arguments. One option is to compile with <code>cargo rustc --release -- -C link-arg=-undefined -C link-arg=dynamic_lookup</code>, the other is to create a <code>.cargo/config</code> with the following content:</p>
+<pre><code class="language-toml">[target.x86_64-apple-darwin]
+rustflags = [
+  &quot;-C&quot;, &quot;link-arg=-undefined&quot;,
+  &quot;-C&quot;, &quot;link-arg=dynamic_lookup&quot;,
+]
+</code></pre>
+<p>While developing, you can symlink (or copy) and rename the shared library from the target folder: On MacOS, rename <code>libstring_sum.dylib</code> to <code>string_sum.so</code>, on Windows <code>libstring_sum.dll</code> to <code>string_sum.pyd</code>, and on Linux <code>libstring_sum.so</code> to <code>string_sum.so</code>. Then open a Python shell in the same folder and you'll be able to <code>import string_sum</code>.</p>
+<p>Adding the <code>cdylib</code> arguments in the <code>Cargo.toml</code> files changes the way your crate is compiled.
+Other Rust projects using your crate will have to link against the <code>.so</code> or <code>.pyd</code> file rather than include your library directly as normal.
+In order to make available your crate in the usual way for Rust user, you you might want to consider using both <code>crate-type = [&quot;cdylib&quot;, &quot;rlib&quot;]</code> so that Rust users can use the <code>rlib</code> (the default lib crate type).
+Another possibility is to create a new crate to perform the binding.</p>
+<p>To build, test and publish your crate as a Python module, you can use <a href="https://github.com/PyO3/maturin">maturin</a> or <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>. You can find an example for setuptools-rust in <a href="https://github.com/PyO3/pyo3/tree/master/examples/word-count">examples/word-count</a>, while maturin should work on your crate without any configuration.</p>
+<h2><a class="header" href="#using-python-from-rust" id="using-python-from-rust">Using Python from Rust</a></h2>
+<p>If you want your Rust application to create a Python interpreter internally and
+use it to run Python code, add <code>pyo3</code> to your <code>Cargo.toml</code> like this:</p>
+<pre><code class="language-toml">[dependencies]
+pyo3 = &quot;0.11.1&quot;
+</code></pre>
+<p>Example program displaying the value of <code>sys.version</code> and the current user name:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
+use pyo3::types::IntoPyDict;
+
+fn main() -&gt; Result&lt;(), ()&gt; {
+    Python::with_gil(|py| {
+        main_(py).map_err(|e| {
+          // We can't display Python exceptions via std::fmt::Display,
+          // so print the error here manually.
+          e.print_and_set_sys_last_vars(py);
+        })
+    })
+}
+
+fn main_(py: Python) -&gt; PyResult&lt;()&gt; {
+    let sys = py.import(&quot;sys&quot;)?;
+    let version: String = sys.get(&quot;version&quot;)?.extract()?;
+    let locals = [(&quot;os&quot;, py.import(&quot;os&quot;)?)].into_py_dict(py);
+    let code = &quot;os.getenv('USER') or os.getenv('USERNAME') or 'Unknown'&quot;;
+    let user: String = py.eval(code, None, Some(&amp;locals))?.extract()?;
+    println!(&quot;Hello {}, I'm Python {}&quot;, user, version);
+    Ok(())
+}
+</code></pre></pre>
+<p>Our guide has <a href="https://pyo3.rs/master/python_from_rust.html">a section</a> with lots of examples
+about this topic.</p>
+<h2><a class="header" href="#tools-and-libraries" id="tools-and-libraries">Tools and libraries</a></h2>
+<ul>
+<li><a href="https://github.com/PyO3/maturin">maturin</a> <em>Zero configuration build tool for Rust-made Python extensions</em>.</li>
+<li><a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a> <em>Setuptools plugin for Rust support</em>.</li>
+<li><a href="https://github.com/PyO3/pyo3-built">pyo3-built</a> <em>Simple macro to expose metadata obtained with the <a href="https://crates.io/crates/built"><code>built</code></a> crate as a <a href="https://pyo3.github.io/pyo3/pyo3/struct.PyDict.html"><code>PyDict</code></a></em></li>
+<li><a href="https://github.com/PyO3/rust-numpy">rust-numpy</a> <em>Rust binding of NumPy C-API</em></li>
+<li><a href="https://github.com/gperinazzo/dict-derive">dict-derive</a> <em>Derive FromPyObject to automatically transform Python dicts into Rust structs</em></li>
+<li><a href="https://github.com/vorner/pyo3-log">pyo3-log</a> <em>Bridge from Rust to Python logging</em></li>
+</ul>
+<h2><a class="header" href="#examples" id="examples">Examples</a></h2>
+<ul>
+<li><a href="https://github.com/mre/hyperjson">hyperjson</a> <em>A hyper-fast Python module for reading/writing JSON data using Rust's serde-json</em></li>
+<li><a href="https://github.com/PyO3/setuptools-rust/tree/master/html-py-ever">html-py-ever</a> <em>Using <a href="https://github.com/servo/html5ever">html5ever</a> through <a href="https://github.com/kuchiki-rs/kuchiki">kuchiki</a> to speed up html parsing and css-selecting.</em></li>
+<li><a href="https://github.com/ManifoldFR/point-process-rust/tree/master/pylib">point-process</a> <em>High level API for pointprocesses as a Python library</em></li>
+<li><a href="https://github.com/autopilot-rs/autopy">autopy</a> <em>A simple, cross-platform GUI automation library for Python and Rust.</em>
+<ul>
+<li>Contains an example of building wheels on TravisCI and appveyor using <a href="https://github.com/joerick/cibuildwheel">cibuildwheel</a></li>
+</ul>
+</li>
+<li><a href="https://github.com/ijl/orjson">orjson</a>  <em>Fast Python JSON library</em></li>
+<li><a href="https://github.com/dronesforwork/inline-python">inline-python</a> <em>Inline Python code directly in your Rust code</em></li>
+<li><a href="https://github.com/kngwyu/rogue-gym">Rogue-Gym</a> <em>Customizable rogue-like game for AI experiments</em>
+<ul>
+<li>Contains an example of building wheels on Azure Pipelines</li>
+</ul>
+</li>
+<li><a href="https://github.com/thedrow/fastuuid/">fastuuid</a> <em>Python bindings to Rust's UUID library</em></li>
+<li><a href="https://github.com/wasmerio/python-ext-wasm">python-ext-wasm</a> <em>Python library to run WebAssembly binaries</em></li>
+<li><a href="https://github.com/cds-astro/mocpy">mocpy</a> <em>Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere</em></li>
+<li><a href="https://github.com/huggingface/tokenizers/tree/master/bindings/python">tokenizers</a> <em>Python bindings to the Hugging Face tokenizers (NLP) written in Rust</em></li>
+</ul>
+<h2><a class="header" href="#license" id="license">License</a></h2>
+<p>PyO3 is licensed under the <a href="http://opensource.org/licenses/APACHE-2.0">Apache-2.0 license</a>.
+Python is licensed under the <a href="https://docs.python.org/2/license.html">Python License</a>.</p>
+<h1><a class="header" href="#python-modules" id="python-modules">Python Modules</a></h1>
 <p>You can create a module as follows:</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
 
@@ -187,19 +334,26 @@ fn sum_as_string(a: i64, b: i64) -&gt; String {
 
 <span class="boring">fn main() {}
 </span></code></pre></pre>
-<p>The <code>#[pymodule]</code> procedural macro attribute takes care of exporting the initialization function of your module to Python. It can take as an argument the name of your module, which must be the name of the <code>.so</code> or <code>.pyd</code> file; the default is the Rust function's name.</p>
-<p>If the name of the module (the default being the function name) does not match the name of the <code>.so</code> or <code>.pyd</code> file, you will get an import error in Python with the following message:
+<p>The <code>#[pymodule]</code> procedural macro attribute takes care of exporting the initialization function of your 
+module to Python. It can take as an argument the name of your module, which must be the name of the <code>.so</code>
+or <code>.pyd</code> file; the default is the Rust function's name.</p>
+<p>If the name of the module (the default being the function name) does not match the name of the <code>.so</code> or
+<code>.pyd</code> file, you will get an import error in Python with the following message:
 <code>ImportError: dynamic module does not define module export function (PyInit_name_of_your_module)</code></p>
-<p>To import the module, either copy the shared library as described in <a href="https://github.com/PyO3/pyo3">the README</a> or use a tool, e.g. <code>maturin develop</code> with <a href="https://github.com/PyO3/maturin">maturin</a> or <code>python setup.py develop</code> with <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>.</p>
+<p>To import the module, either copy the shared library as described in <a href="https://github.com/PyO3/pyo3">the README</a>
+or use a tool, e.g. <code>maturin develop</code> with <a href="https://github.com/PyO3/maturin">maturin</a> or 
+<code>python setup.py develop</code> with <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>.</p>
 <h2><a class="header" href="#documentation" id="documentation">Documentation</a></h2>
-<p>The <a href="https://doc.rust-lang.org/stable/book/first-edition/comments.html">Rust doc comments</a> of the module initialization function will be applied automatically as the Python docstring of your module.</p>
+<p>The <a href="https://doc.rust-lang.org/stable/book/first-edition/comments.html">Rust doc comments</a> of the module
+initialization function will be applied automatically as the Python docstring of your module.</p>
 <pre><code class="language-python">import rust2py
 
 print(rust2py.__doc__)
 </code></pre>
 <p>Which means that the above Python code will print <code>This module is implemented in Rust.</code>.</p>
 <h2><a class="header" href="#modules-as-objects" id="modules-as-objects">Modules as objects</a></h2>
-<p>In Python, modules are first class objects. This means that you can store them as values or add them to dicts or other modules:</p>
+<p>In Python, modules are first class objects. This means that you can store them as values or add them to
+dicts or other modules:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -212,15 +366,16 @@ fn subfunction() -&gt; String {
     &quot;Subfunction&quot;.to_string()
 }
 
-#[pymodule]
-fn submodule(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    module.add_wrapped(wrap_pyfunction!(subfunction))?;
+fn init_submodule(module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+    module.add_function(wrap_pyfunction!(subfunction))?;
     Ok(())
 }
 
 #[pymodule]
-fn supermodule(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    module.add_wrapped(wrap_pymodule!(submodule))?;
+fn supermodule(py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+    let submod = PyModule::new(py, &quot;submodule&quot;)?;
+    init_submodule(submod)?;
+    module.add_submodule(submod)?;
     Ok(())
 }
 
@@ -233,6 +388,7 @@ fn supermodule(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
 </span><span class="boring">}
 </span></code></pre></pre>
 <p>This way, you can create a module hierarchy within a single extension module.</p>
+<p>It is not necessary to add <code>#[pymodule]</code> on nested modules, this is only required on the top-level module.</p>
 <h1><a class="header" href="#python-functions" id="python-functions">Python Functions</a></h1>
 <p>PyO3 supports two ways to define a free function in Python. Both require registering
 the function to a <a href="./module.html">module</a>.</p>
@@ -264,7 +420,7 @@ fn double(x: usize) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_wrapped(wrap_pyfunction!(double)).unwrap();
+    m.add_function(wrap_pyfunction!(double)).unwrap();
 
     Ok(())
 }
@@ -289,7 +445,7 @@ fn num_kwds(kwds: Option&lt;&amp;PyDict&gt;) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_wrapped(wrap_pyfunction!(num_kwds)).unwrap();
+    m.add_function(wrap_pyfunction!(num_kwds)).unwrap();
     Ok(())
 }
 
@@ -397,6 +553,42 @@ Type:      builtin_function_or_method
 <p>You can use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method. You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs (or <code>None</code>) as second parameter. There are also <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call0"><code>PyAny::call0</code></a> with no args and <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1"><code>PyAny::call1</code></a> with only positional args.</p>
 <h3><a class="header" href="#calling-rust-functions-in-python" id="calling-rust-functions-in-python">Calling Rust functions in Python</a></h3>
 <p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a> to get the corresponding <a href="https://docs.rs/pyo3/latest/pyo3/type.PyObject.html"><code>PyObject</code></a>. For dynamic functions, e.g. lambdas and functions that were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>. (A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over the FFI barrier. You can even make that class callable with <code>__call__</code> so it looks like a function in Python code.</p>
+<h3><a class="header" href="#accessing-the-module-of-a-function" id="accessing-the-module-of-a-function">Accessing the module of a function</a></h3>
+<p>It is possible to access the module of a <code>#[pyfunction]</code> and <code>#[pyfn]</code> in the
+function body by passing the <code>pass_module</code> argument to the attribute:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::wrap_pyfunction;
+use pyo3::prelude::*;
+
+#[pyfunction(pass_module)]
+fn pyfunction_with_module(module: &amp;PyModule) -&gt; PyResult&lt;&amp;str&gt; {
+    module.name()
+}
+
+#[pymodule]
+fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+    m.add_function(wrap_pyfunction!(pyfunction_with_module))
+}
+
+<span class="boring">fn main() {}
+</span></code></pre></pre>
+<p>If <code>pass_module</code> is set, the first argument <strong>must</strong> be the <code>&amp;PyModule</code>. It is then possible to use the module
+in the function body.</p>
+<p>The same works for <code>#[pyfn]</code>:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::wrap_pyfunction;
+use pyo3::prelude::*;
+
+#[pymodule]
+fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
+
+    #[pyfn(m, &quot;module_name&quot;, pass_module)]
+    fn module_name(module: &amp;PyModule) -&gt; PyResult&lt;&amp;str&gt; {
+        module.name()
+    }
+    Ok(())
+}
+
+<span class="boring">fn main() {}
+</span></code></pre></pre>
 <h1><a class="header" href="#python-classes" id="python-classes">Python Classes</a></h1>
 <p>PyO3 exposes a group of attributes powered by Rust's proc macro system for defining Python classes as Rust structs. This chapter will discuss the functionality and configuration they offer.</p>
 <p>For ease of discovery, below is a list of all custom attributes with links to the relevant section of this chapter:</p>
@@ -418,7 +610,7 @@ Type:      builtin_function_or_method
 <li><a href="class.html#method-arguments"><code>#[args]</code></a></li>
 </ul>
 </li>
-<li><a href="class.html#class-customizations"><code>#[pyproto]</code></a></li>
+<li><a href="class/protocols.html"><code>#[pyproto]</code></a></li>
 </ul>
 <h2><a class="header" href="#defining-a-new-class" id="defining-a-new-class">Defining a new class</a></h2>
 <p>To define a custom Python class, a Rust struct needs to be annotated with the
@@ -534,7 +726,7 @@ assert_eq!(obj_ref.num, 1);
 The performance improvement applies to types that are often created and deleted in a row,
 so that they can benefit from a freelist. <code>XXX</code> is a number of items for the free list.</li>
 <li><code>gc</code> - Classes with the <code>gc</code> parameter participate in Python garbage collection.
-If a custom class contains references to other Python objects that can be collected, the <a href="https://docs.rs/pyo3/latest/pyo3/class/gc/trait.PyGCProtocol.html"><code>PyGCProtocol</code></a> trait has to be implemented.</li>
+If a custom class contains references to other Python objects that can be collected, the [<code>PyGCProtocol</code>] trait has to be implemented.</li>
 <li><code>weakref</code> - Adds support for Python weak references.</li>
 <li><code>extends=BaseType</code> - Use a custom base class. The base <code>BaseType</code> must implement <code>PyTypeInfo</code>.</li>
 <li><code>subclass</code> - Allows Python classes to inherit from this class.</li>
@@ -1074,6 +1266,96 @@ py_args=(), py_kwargs=None, name=World, num=-1, debug=true
 num=44, debug=false
 num=-1, debug=false
 </code></pre>
+<h2><a class="header" href="#how-methods-are-implemented" id="how-methods-are-implemented">How methods are implemented</a></h2>
+<p>Users should be able to define a <code>#[pyclass]</code> with or without <code>#[pymethods]</code>, while PyO3 needs a
+trait with a function that returns all methods. Since it's impossible to make the code generation in
+pyclass dependent on whether there is an impl block, we'd need to implement the trait on
+<code>#[pyclass]</code> and override the implementation in <code>#[pymethods]</code>.
+To enable this, we use a static registry type provided by <a href="https://github.com/dtolnay/inventory">inventory</a>,
+which allows us to collect <code>impl</code>s from arbitrary source code by exploiting some binary trick.
+See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_derive_backend::py_class</code> for more details.
+Also for <code>#[pyproto]</code>, we use a similar, but more task-specific registry and
+initialize it using the <a href="https://github.com/mmastrac/rust-ctor">ctor</a> crate.</p>
+<p>Specifically, the following implementation is generated:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use pyo3::prelude::*;
+
+/// Class for demonstration
+struct MyClass {
+    num: i32,
+    debug: bool,
+}
+
+impl pyo3::pyclass::PyClassAlloc for MyClass {}
+
+unsafe impl pyo3::PyTypeInfo for MyClass {
+    type Type = MyClass;
+    type BaseType = PyAny;
+    type BaseLayout = pyo3::pycell::PyCellBase&lt;PyAny&gt;;
+    type Layout = PyCell&lt;Self&gt;;
+    type Initializer = PyClassInitializer&lt;Self&gt;;
+    type AsRefTarget = PyCell&lt;Self&gt;;
+
+    const NAME: &amp;'static str = &quot;MyClass&quot;;
+    const MODULE: Option&lt;&amp;'static str&gt; = None;
+    const DESCRIPTION: &amp;'static str = &quot;Class for demonstration&quot;;
+    const FLAGS: usize = 0;
+
+    #[inline]
+    fn type_object_raw(py: pyo3::Python) -&gt; *mut pyo3::ffi::PyTypeObject {
+        use pyo3::type_object::LazyStaticType;
+        static TYPE_OBJECT: LazyStaticType = LazyStaticType::new();
+        TYPE_OBJECT.get_or_init::&lt;Self&gt;(py)
+    }
+}
+
+impl pyo3::pyclass::PyClass for MyClass {
+    type Dict = pyo3::pyclass_slots::PyClassDummySlot;
+    type WeakRef = pyo3::pyclass_slots::PyClassDummySlot;
+    type BaseNativeType = PyAny;
+}
+
+impl pyo3::IntoPy&lt;PyObject&gt; for MyClass {
+    fn into_py(self, py: pyo3::Python) -&gt; pyo3::PyObject {
+        pyo3::IntoPy::into_py(pyo3::Py::new(py, self).unwrap(), py)
+    }
+}
+
+pub struct Pyo3MethodsInventoryForMyClass {
+    methods: &amp;'static [pyo3::class::PyMethodDefType],
+}
+impl pyo3::class::methods::PyMethodsInventory for Pyo3MethodsInventoryForMyClass {
+    fn new(methods: &amp;'static [pyo3::class::PyMethodDefType]) -&gt; Self {
+        Self { methods }
+    }
+    fn get(&amp;self) -&gt; &amp;'static [pyo3::class::PyMethodDefType] {
+        self.methods
+    }
+}
+impl pyo3::class::methods::HasMethodsInventory for MyClass {
+    type Methods = Pyo3MethodsInventoryForMyClass;
+}
+pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
+
+impl pyo3::class::proto_methods::HasProtoRegistry for MyClass {
+    fn registry() -&gt; &amp;'static pyo3::class::proto_methods::PyProtoRegistry {
+        static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
+            = pyo3::class::proto_methods::PyProtoRegistry::new();
+        &amp;REGISTRY
+    }
+}
+
+impl pyo3::pyclass::PyClassSend for MyClass {
+    type ThreadChecker = pyo3::pyclass::ThreadCheckerStub&lt;MyClass&gt;;
+}
+<span class="boring">let gil = Python::acquire_gil();
+</span><span class="boring">let py = gil.python();
+</span><span class="boring">let cls = py.get_type::&lt;MyClass&gt;();
+</span><span class="boring">pyo3::py_run!(py, cls, &quot;assert cls.__name__ == 'MyClass'&quot;)
+</span><span class="boring">}
+</span></code></pre></pre>
 <h2><a class="header" href="#class-customizations" id="class-customizations">Class customizations</a></h2>
 <p>Python's object model defines several protocols for different object behavior, like sequence,
 mapping or number protocols. PyO3 defines separate traits for each of them. To provide specific
@@ -1360,96 +1642,6 @@ documentation</a>.</p>
 In Python a generator can also return a value. To express this in Rust, PyO3 provides the
 <a href="https://docs.rs/pyo3/latest/pyo3/class/iter/enum.IterNextOutput.html"><code>IterNextOutput</code></a> enum to
 both <code>Yield</code> values and <code>Return</code> a final value - see its docs for further details and an example.</p>
-<h2><a class="header" href="#how-methods-are-implemented" id="how-methods-are-implemented">How methods are implemented</a></h2>
-<p>Users should be able to define a <code>#[pyclass]</code> with or without <code>#[pymethods]</code>, while PyO3 needs a
-trait with a function that returns all methods. Since it's impossible to make the code generation in
-pyclass dependent on whether there is an impl block, we'd need to implement the trait on
-<code>#[pyclass]</code> and override the implementation in <code>#[pymethods]</code>.
-To enable this, we use a static registry type provided by <a href="https://github.com/dtolnay/inventory">inventory</a>,
-which allows us to collect <code>impl</code>s from arbitrary source code by exploiting some binary trick.
-See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_derive_backend::py_class</code> for more details.
-Also for <code>#[pyproto]</code>, we use a similar, but more task-specific registry and
-initialize it using the <a href="https://github.com/mmastrac/rust-ctor">ctor</a> crate.</p>
-<p>Specifically, the following implementation is generated:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use pyo3::prelude::*;
-
-/// Class for demonstration
-struct MyClass {
-    num: i32,
-    debug: bool,
-}
-
-impl pyo3::pyclass::PyClassAlloc for MyClass {}
-
-unsafe impl pyo3::PyTypeInfo for MyClass {
-    type Type = MyClass;
-    type BaseType = PyAny;
-    type BaseLayout = pyo3::pycell::PyCellBase&lt;PyAny&gt;;
-    type Layout = PyCell&lt;Self&gt;;
-    type Initializer = PyClassInitializer&lt;Self&gt;;
-    type AsRefTarget = PyCell&lt;Self&gt;;
-
-    const NAME: &amp;'static str = &quot;MyClass&quot;;
-    const MODULE: Option&lt;&amp;'static str&gt; = None;
-    const DESCRIPTION: &amp;'static str = &quot;Class for demonstration&quot;;
-    const FLAGS: usize = 0;
-
-    #[inline]
-    fn type_object_raw(py: pyo3::Python) -&gt; *mut pyo3::ffi::PyTypeObject {
-        use pyo3::type_object::LazyStaticType;
-        static TYPE_OBJECT: LazyStaticType = LazyStaticType::new();
-        TYPE_OBJECT.get_or_init::&lt;Self&gt;(py)
-    }
-}
-
-impl pyo3::pyclass::PyClass for MyClass {
-    type Dict = pyo3::pyclass_slots::PyClassDummySlot;
-    type WeakRef = pyo3::pyclass_slots::PyClassDummySlot;
-    type BaseNativeType = PyAny;
-}
-
-impl pyo3::IntoPy&lt;PyObject&gt; for MyClass {
-    fn into_py(self, py: pyo3::Python) -&gt; pyo3::PyObject {
-        pyo3::IntoPy::into_py(pyo3::Py::new(py, self).unwrap(), py)
-    }
-}
-
-pub struct Pyo3MethodsInventoryForMyClass {
-    methods: &amp;'static [pyo3::class::PyMethodDefType],
-}
-impl pyo3::class::methods::PyMethodsInventory for Pyo3MethodsInventoryForMyClass {
-    fn new(methods: &amp;'static [pyo3::class::PyMethodDefType]) -&gt; Self {
-        Self { methods }
-    }
-    fn get(&amp;self) -&gt; &amp;'static [pyo3::class::PyMethodDefType] {
-        self.methods
-    }
-}
-impl pyo3::class::methods::HasMethodsInventory for MyClass {
-    type Methods = Pyo3MethodsInventoryForMyClass;
-}
-pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
-
-impl pyo3::class::proto_methods::HasProtoRegistry for MyClass {
-    fn registry() -&gt; &amp;'static pyo3::class::proto_methods::PyProtoRegistry {
-        static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
-            = pyo3::class::proto_methods::PyProtoRegistry::new();
-        &amp;REGISTRY
-    }
-}
-
-impl pyo3::pyclass::PyClassSend for MyClass {
-    type ThreadChecker = pyo3::pyclass::ThreadCheckerStub&lt;MyClass&gt;;
-}
-<span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
-</span><span class="boring">let cls = py.get_type::&lt;MyClass&gt;();
-</span><span class="boring">pyo3::py_run!(py, cls, &quot;assert cls.__name__ == 'MyClass'&quot;)
-</span><span class="boring">}
-</span></code></pre></pre>
 <h1><a class="header" href="#type-conversions" id="type-conversions">Type Conversions</a></h1>
 <p>In this portion of the guide we'll talk about the mapping of Python types to Rust types offered by PyO3, as well as the traits available to perform conversions between them.</p>
 <h2><a class="header" href="#mapping-of-rust-types-to-python-types" id="mapping-of-rust-types-to-python-types">Mapping of Rust types to Python types</a></h2>
@@ -1467,10 +1659,10 @@ impl pyo3::pyclass::PyClassSend for MyClass {
 <tr><td><code>float</code></td><td align="center"><code>f32</code>, <code>f64</code></td><td align="center"><code>&amp;PyFloat</code></td></tr>
 <tr><td><code>complex</code></td><td align="center"><code>num_complex::Complex</code><sup class="footnote-reference"><a href="#1">1</a></sup></td><td align="center"><code>&amp;PyComplex</code></td></tr>
 <tr><td><code>list[T]</code></td><td align="center"><code>Vec&lt;T&gt;</code></td><td align="center"><code>&amp;PyList</code></td></tr>
-<tr><td><code>dict[K, V]</code></td><td align="center"><code>HashMap&lt;K, V&gt;</code>, <code>BTreeMap&lt;K, V&gt;</code></td><td align="center"><code>&amp;PyDict</code></td></tr>
+<tr><td><code>dict[K, V]</code></td><td align="center"><code>HashMap&lt;K, V&gt;</code>, <code>BTreeMap&lt;K, V&gt;</code>, <code>hashbrown::HashMap&lt;K, V&gt;</code><sup class="footnote-reference"><a href="#2">2</a></sup></td><td align="center"><code>&amp;PyDict</code></td></tr>
 <tr><td><code>tuple[T, U]</code></td><td align="center"><code>(T, U)</code>, <code>Vec&lt;T&gt;</code></td><td align="center"><code>&amp;PyTuple</code></td></tr>
-<tr><td><code>set[T]</code></td><td align="center"><code>HashSet&lt;T&gt;</code>, <code>BTreeSet&lt;T&gt;</code></td><td align="center"><code>&amp;PySet</code></td></tr>
-<tr><td><code>frozenset[T]</code></td><td align="center"><code>HashSet&lt;T&gt;</code>, <code>BTreeSet&lt;T&gt;</code></td><td align="center"><code>&amp;PyFrozenSet</code></td></tr>
+<tr><td><code>set[T]</code></td><td align="center"><code>HashSet&lt;T&gt;</code>, <code>BTreeSet&lt;T&gt;</code>, <code>hashbrown::HashSet&lt;T&gt;</code><sup class="footnote-reference"><a href="#2">2</a></sup></td><td align="center"><code>&amp;PySet</code></td></tr>
+<tr><td><code>frozenset[T]</code></td><td align="center"><code>HashSet&lt;T&gt;</code>, <code>BTreeSet&lt;T&gt;</code>, <code>hashbrown::HashSet&lt;T&gt;</code><sup class="footnote-reference"><a href="#2">2</a></sup></td><td align="center"><code>&amp;PyFrozenSet</code></td></tr>
 <tr><td><code>bytearray</code></td><td align="center"><code>Vec&lt;u8&gt;</code></td><td align="center"><code>&amp;PyByteArray</code></td></tr>
 <tr><td><code>slice</code></td><td align="center">-</td><td align="center"><code>&amp;PySlice</code></td></tr>
 <tr><td><code>type</code></td><td align="center">-</td><td align="center"><code>&amp;PyType</code></td></tr>
@@ -1483,6 +1675,7 @@ impl pyo3::pyclass::PyClassSend for MyClass {
 <tr><td><code>typing.Optional[T]</code></td><td align="center"><code>Option&lt;T&gt;</code></td><td align="center">-</td></tr>
 <tr><td><code>typing.Sequence[T]</code></td><td align="center"><code>Vec&lt;T&gt;</code></td><td align="center"><code>&amp;PySequence</code></td></tr>
 <tr><td><code>typing.Iterator[Any]</code></td><td align="center">-</td><td align="center"><code>&amp;PyIterator</code></td></tr>
+<tr><td><code>typing.Union[...]</code></td><td align="center">See <a href="conversions/traits.html#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-enums"><code>#[derive(FromPyObject)]</code></a></td><td align="center">-</td></tr>
 </tbody></table>
 <p>There are also a few special types related to the GIL and Rust-defined <code>#[pyclass]</code>es which may come in useful:</p>
 <table><thead><tr><th>What</th><th>Description</th></tr></thead><tbody>
@@ -1493,7 +1686,7 @@ impl pyo3::pyclass::PyClassSend for MyClass {
 <tr><td><code>PyRef&lt;T&gt;</code></td><td>A <code>#[pyclass]</code> borrowed immutably.</td></tr>
 <tr><td><code>PyRefMut&lt;T&gt;</code></td><td>A <code>#[pyclass]</code> borrowed mutably.</td></tr>
 </tbody></table>
-<p>For more detail on accepting <code>#[pyclass]</code> values as function arguments, see <a href="class.html">the section of this guide on Python Classes</a>.</p>
+<p>For more detail on accepting <code>#[pyclass]</code> values as function arguments, see <a href="conversions/class.html">the section of this guide on Python Classes</a>.</p>
 <h4><a class="header" href="#using-rust-library-types-vs-python-native-types" id="using-rust-library-types-vs-python-native-types">Using Rust library types vs Python-native types</a></h4>
 <p>Using Rust library types as function arguments will incur a conversion cost compared to using the Python-native types. Using the Python-native types is almost zero-cost (they just require a type check similar to the Python builtin function <code>isinstance()</code>).</p>
 <p>However, once that conversion cost has been paid, the Rust standard library types offer a number of benefits:</p>
@@ -1507,7 +1700,7 @@ impl pyo3::pyclass::PyClassSend for MyClass {
 <h3><a class="header" href="#returning-rust-values-to-python" id="returning-rust-values-to-python">Returning Rust values to Python</a></h3>
 <p>When returning values from functions callable from Python, Python-native types (<code>&amp;PyAny</code>, <code>&amp;PyDict</code> etc.) can be used with zero cost.</p>
 <p>Because these types are references, in some situations the Rust compiler may ask for lifetime annotations. If this is the case, you should use <code>Py&lt;PyAny&gt;</code>, <code>Py&lt;PyDict&gt;</code> etc. instead - which are also zero-cost. For all of these Python-native types <code>T</code>, <code>Py&lt;T&gt;</code> can be created from <code>T</code> with an <code>.into()</code> conversion.</p>
-<p>If your function is fallible, it should return <code>PyResult&lt;T&gt;</code>, which will raise a <code>Python</code> exception if the <code>Err</code> variant is returned.</p>
+<p>If your function is fallible, it should return <code>PyResult&lt;T&gt;</code> or <code>Result&lt;T, E&gt;</code> where <code>E</code> implements <code>From&lt;E&gt; for PyErr</code>. This will raise a <code>Python</code> exception if the <code>Err</code> variant is returned.</p>
 <p>Finally, the following Rust types are also able to convert to Python as return values:</p>
 <table><thead><tr><th>Rust type</th><th align="center">Resulting Python Type</th></tr></thead><tbody>
 <tr><td><code>String</code></td><td align="center"><code>str</code></td></tr>
@@ -1526,7 +1719,13 @@ impl pyo3::pyclass::PyClassSend for MyClass {
 <tr><td><code>PyRef&lt;T: PyClass&gt;</code></td><td align="center"><code>T</code></td></tr>
 <tr><td><code>PyRefMut&lt;T: PyClass&gt;</code></td><td align="center"><code>T</code></td></tr>
 </tbody></table>
-<h2><a class="header" href="#traits" id="traits">Traits</a></h2>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>Requires the <code>num-complex</code> optional feature.</p>
+</div>
+<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
+<p>Requires the <code>hashbrown</code> optional feature.</p>
+</div>
+<h2><a class="header" href="#conversion-traits" id="conversion-traits">Conversion traits</a></h2>
 <p>PyO3 provides some handy traits to convert between Python types and Rust types.</p>
 <h3><a class="header" href="#extract-and-the-frompyobject-trait" id="extract-and-the-frompyobject-trait"><code>.extract()</code> and the <code>FromPyObject</code> trait</a></h3>
 <p>The easiest way to convert a Python object to a Rust value is using
@@ -1538,11 +1737,165 @@ fails, so usually you will use something like</p>
 variety of Rust types, which you can check out in the implementor list of
 <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a>.</p>
 <p><a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> is also implemented for your own Rust types wrapped as Python
-objects (see <a href="class.html">the chapter about classes</a>).  There, in order to both be
+objects (see <a href="conversions/class.html">the chapter about classes</a>).  There, in order to both be
 able to operate on mutable references <em>and</em> satisfy Rust's rules of non-aliasing
 mutable references, you have to extract the PyO3 reference wrappers <a href="https://docs.rs/pyo3/latest/pyo3/pycell/struct.PyRef.html"><code>PyRef</code></a>
 and <a href="https://docs.rs/pyo3/latest/pyo3/pycell/struct.PyRefMut.html"><code>PyRefMut</code></a>.  They work like the reference wrappers of
 <code>std::cell::RefCell</code> and ensure (at runtime) that Rust borrows are allowed.</p>
+<h4><a class="header" href="#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta" id="deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta">Deriving <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a></a></h4>
+<p><a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> can be automatically derived for many kinds of structs and enums
+if the member types themselves implement <code>FromPyObject</code>. This even includes members
+with a generic type <code>T: FromPyObject</code>. Derivation for empty enums, enum variants and
+structs is not supported.</p>
+<h4><a class="header" href="#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-structs" id="deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-structs">Deriving <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> for structs</a></h4>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyStruct {
+    my_string: String,
+}
+</code></pre>
+<p>The derivation generates code that will per default access the attribute <code>my_string</code> on
+the Python object, i.e. <code>obj.getattr(&quot;my_string&quot;)</code>, and call <code>extract()</code> on the attribute.
+It is also possible to access the value on the Python object through <code>obj.get_item(&quot;my_string&quot;)</code>
+by setting the attribute <code>pyo3(item)</code> on the field:</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyStruct {
+    #[pyo3(item)]
+    my_string: String,
+}
+</code></pre>
+<p>The argument passed to <code>getattr</code> and <code>get_item</code> can also be configured:</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyStruct {
+    #[pyo3(item(&quot;key&quot;))]
+    string_in_mapping: String,
+    #[pyo3(attribute(&quot;name&quot;))]
+    string_attr: String,
+}
+</code></pre>
+<p>This tries to extract <code>string_attr</code> from the attribute <code>name</code> and <code>string_in_mapping</code>
+from a mapping with the key <code>&quot;key&quot;</code>. The arguments for <code>attribute</code> are restricted to
+non-empty string literals while <code>item</code> can take any valid literal that implements
+<code>ToBorrowedObject</code>.</p>
+<h4><a class="header" href="#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-tuple-structs" id="deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-tuple-structs">Deriving <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> for tuple structs</a></h4>
+<p>Tuple structs are also supported but do not allow customizing the extraction. The input is
+always assumed to be a Python tuple with the same length as the Rust type, the <code>n</code>th field
+is extracted from the <code>n</code>th item in the Python tuple.</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyTuple(String, String);
+</code></pre>
+<p>Tuple structs with a single field are treated as wrapper types which are described in the
+following section. To override this behaviour and ensure that the input is in fact a tuple,
+specify the struct as</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyTuple((String,));
+</code></pre>
+<h4><a class="header" href="#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-wrapper-types" id="deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-wrapper-types">Deriving <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> for wrapper types</a></h4>
+<p>The <code>pyo3(transparent)</code> attribute can be used on structs with exactly one field. This results
+in extracting directly from the input object, i.e. <code>obj.extract()</code>, rather than trying to access
+an item or attribute. This behaviour is enabled per default for newtype structs and tuple-variants
+with a single field.</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+struct RustyTransparentTupleStruct(String);
+
+#[derive(FromPyObject)]
+#[pyo3(transparent)]
+struct RustyTransparentStruct {
+    inner: String,
+}
+</code></pre>
+<h4><a class="header" href="#deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-enums" id="deriving-a-hrefhttpsdocsrspyo3latestpyo3conversiontraitfrompyobjecthtmlfrompyobjecta-for-enums">Deriving <a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.FromPyObject.html"><code>FromPyObject</code></a> for enums</a></h4>
+<p>The <code>FromPyObject</code> derivation for enums generates code that tries to extract the variants in the
+order of the fields. As soon as a variant can be extracted succesfully, that variant is returned.
+This makes it possible to extract Python types like <code>Union[str, int]</code>.</p>
+<p>The same customizations and restrictions described for struct derivations apply to enum variants,
+i.e. a tuple variant assumes that the input is a Python tuple, and a struct variant defaults to
+extracting fields as attributes but can be configured in the same manner. The <code>transparent</code>
+attribute can be applied to single-field-variants.</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+enum RustyEnum&lt;'a&gt; {
+    Int(usize), // input is a positive int
+    String(String), // input is a string
+    IntTuple(usize, usize), // input is a 2-tuple with positive ints
+    StringIntTuple(String, usize), // input is a 2-tuple with String and int
+    Coordinates3d { // needs to be in front of 2d
+        x: usize,
+        y: usize,
+        z: usize,
+    },
+    Coordinates2d { // only gets checked if the input did not have `z`
+        #[pyo3(attribute(&quot;x&quot;))]
+        a: usize,
+        #[pyo3(attribute(&quot;y&quot;))]
+        b: usize,
+    },
+    #[pyo3(transparent)]
+    CatchAll(&amp;'a PyAny), // This extraction never fails
+}
+</code></pre>
+<p>If none of the enum variants match, a <code>PyValueError</code> containing the names of the
+tested variants is returned. The names reported in the error message can be customized
+through the <code>pyo3(annotation = &quot;name&quot;)</code> attribute, e.g. to use conventional Python type
+names:</p>
+<pre><code>use pyo3::prelude::*;
+
+#[derive(FromPyObject)]
+enum RustyEnum {
+    #[pyo3(transparent, annotation = &quot;str&quot;)]
+    String(String),
+    #[pyo3(transparent, annotation = &quot;int&quot;)]
+    Int(isize),
+}
+</code></pre>
+<p>If the input is neither a string nor an integer, the error message will be:
+<code>&quot;Can't convert &lt;INPUT&gt; to Union[str, int]&quot;</code>, where <code>&lt;INPUT&gt;</code> is replaced by the type name and
+<code>repr()</code> of the input object.</p>
+<h4><a class="header" href="#derivefrompyobject-container-attributes" id="derivefrompyobject-container-attributes"><code>#[derive(FromPyObject)]</code> Container Attributes</a></h4>
+<ul>
+<li><code>pyo3(transparent)</code>
+<ul>
+<li>extract the field directly from the object as <code>obj.extract()</code> instead of <code>get_item()</code> or
+<code>getattr()</code></li>
+<li>Newtype structs and tuple-variants are treated as transparent per default.</li>
+<li>only supported for single-field structs and enum variants</li>
+</ul>
+</li>
+<li><code>pyo3(annotation = &quot;name&quot;)</code>
+<ul>
+<li>changes the name of the failed variant in the generated error message in case of failure.</li>
+<li>e.g. <code>pyo3(&quot;int&quot;)</code> reports the variant's type as <code>int</code>.</li>
+<li>only supported for enum variants</li>
+</ul>
+</li>
+</ul>
+<h4><a class="header" href="#derivefrompyobject-field-attributes" id="derivefrompyobject-field-attributes"><code>#[derive(FromPyObject)]</code> Field Attributes</a></h4>
+<ul>
+<li><code>pyo3(attribute)</code>, <code>pyo3(attribute(&quot;name&quot;))</code>
+<ul>
+<li>retrieve the field from an attribute, possibly with a custom name specified as an argument</li>
+<li>argument must be a string-literal.</li>
+</ul>
+</li>
+<li><code>pyo3(item)</code>, <code>pyo3(item(&quot;key&quot;))</code>
+<ul>
+<li>retrieve the field from a mapping, possibly with the custom key specified as an argument.</li>
+<li>can be any literal that implements <code>ToBorrowedObject</code></li>
+</ul>
+</li>
+</ul>
 <h3><a class="header" href="#intopyt" id="intopyt"><code>IntoPy&lt;T&gt;</code></a></h3>
 <p>This trait defines the to-python conversion for a Rust type. It is usually implemented as
 <code>IntoPy&lt;PyObject&gt;</code>, which is the trait needed for returning a value from <code>#[pyfunction]</code> and
@@ -1646,9 +1999,6 @@ fn main() {
     obj.call(py, (), Some(kwargs.into_py_dict(py)));
 }
 </code></pre></pre>
-<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
-<p>Requires the <code>num-complex</code> optional feature.</p>
-</div>
 <h1><a class="header" href="#python-exceptions" id="python-exceptions">Python Exceptions</a></h1>
 <h2><a class="header" href="#defining-a-new-exception" id="defining-a-new-exception">Defining a new exception</a></h2>
 <p>You can use the <a href="https://docs.rs/pyo3/latest/pyo3/macro.create_exception.html"><code>create_exception!</code></a> macro to define a new exception type:</p>
@@ -2001,24 +2351,56 @@ in Rust where any type is allowed.</p>
 <p>Many general methods for interacting with Python objects are on the <code>PyAny</code> struct,
 such as <code>getattr</code>, <code>setattr</code>, and <code>.call</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p>For a <code>&amp;PyAny</code> object reference <code>any</code> where the underlying object is a Python-native type such as
+a list:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
-</span><span class="boring">use pyo3::types::PyList;
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
+</span><span class="boring">use pyo3::{Py, Python, PyAny, PyResult, types::PyList};
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
 </span>let obj: &amp;PyAny = PyList::empty(py);
 
-// Convert to &amp;ConcreteType using PyAny::downcast
-let _: &amp;PyList = obj.downcast().unwrap();
+// To &amp;PyList with PyAny::downcast
+let _: &amp;PyList = obj.downcast()?;
 
-// Convert to Py&lt;PyAny&gt; (aka PyObject) using .into()
+// To Py&lt;PyAny&gt; (aka PyObject) with .into()
 let _: Py&lt;PyAny&gt; = obj.into();
 
-// Convert to Py&lt;ConcreteType&gt; using PyAny::extract
-let _: Py&lt;PyList&gt; = obj.extract().unwrap();
-<span class="boring">}
+// To Py&lt;PyList&gt; with PyAny::extract
+let _: Py&lt;PyList&gt; = obj.extract()?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
+</span></code></pre></pre>
+<p>For a <code>&amp;PyAny</code> object reference <code>any</code> where the underlying object is a <code>#[pyclass]</code>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">use pyo3::{Py, Python, PyAny, PyResult, types::PyList};
+</span><span class="boring">#[pyclass] #[derive(Clone)] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let obj: &amp;PyAny = Py::new(py, MyClass { })?.into_ref(py);
+
+// To &amp;PyCell&lt;MyClass&gt; with PyAny::downcast
+let _: &amp;PyCell&lt;MyClass&gt; = obj.downcast()?;
+
+// To Py&lt;PyAny&gt; (aka PyObject) with .into()
+let _: Py&lt;PyAny&gt; = obj.into();
+
+// To Py&lt;MyClass&gt; with PyAny::extract
+let _: Py&lt;MyClass&gt; = obj.extract()?;
+
+// To MyClass with PyAny::extract, if MyClass: Clone
+let _: MyClass = obj.extract()?;
+
+// To PyRef&lt;MyClass&gt; or PyRefMut&lt;MyClass&gt; with PyAny::extract
+let _: PyRef&lt;MyClass&gt; = obj.extract()?;
+let _: PyRefMut&lt;MyClass&gt; = obj.extract()?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pytuple-pydict-and-many-more" id="pytuple-pydict-and-many-more"><code>PyTuple</code>, <code>PyDict</code>, and many more</a></h3>
 <p><strong>Represents:</strong> a native Python object of known type, restricted to a GIL
@@ -2036,28 +2418,29 @@ methods which can be found on <code>PyAny</code>.</p>
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span><span class="boring">use pyo3::types::PyList;
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
 </span>let list = PyList::empty(py);
 
-// Can use methods from PyAny on all Python types due to Deref implementation
-let _ = list.repr();
+// Use methods from PyAny on all Python types with Deref implementation
+let _ = list.repr()?;
 
-// Rust will convert &amp;PyList etc. to &amp;PyAny automatically due to Deref implementation
+// To &amp;PyAny automatically with Deref implementation
 let _: &amp;PyAny = list;
 
-// For more explicit &amp;PyAny conversion, use .as_ref()
+// To &amp;PyAny explicitly with .as_ref()
 let _: &amp;PyAny = list.as_ref();
 
-// To convert to Py&lt;T&gt; use .into() or Py::from()
+// To Py&lt;T&gt; with .into() or Py::from()
 let _: Py&lt;PyList&gt; = list.into();
 
-// To convert to PyObject use .into() or .to_object(py)
+// To PyObject with .into() or .to_object(py)
 let _: PyObject = list.into();
-<span class="boring">}
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
-<h3><a class="header" href="#pyt" id="pyt"><code>Py&lt;T&gt;</code></a></h3>
-<p><strong>Represents:</strong> a GIL independent reference to a Python object. This can be a Python native type
+<h3><a class="header" href="#pyt-and-pyobject" id="pyt-and-pyobject"><code>Py&lt;T&gt;</code> and <code>PyObject</code></a></h3>
+<p><strong>Represents:</strong> a GIL-independent reference to a Python object. This can be a Python native type
 (like <code>PyTuple</code>), or a <code>pyclass</code> type implemented in Rust. The most commonly-used variant,
 <code>Py&lt;PyAny&gt;</code>, is also known as <code>PyObject</code>.</p>
 <p><strong>Used:</strong> Whenever you want to carry around references to a Python object without caring about a
@@ -2065,6 +2448,7 @@ GIL lifetime.  For example, storing Python object references in a Rust struct th
 Python-Rust FFI boundary, or returning objects from functions implemented in Rust back to Python.</p>
 <p>Can be cloned using Python reference counts with <code>.clone()</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p>For a <code>Py&lt;PyList&gt;</code>, the conversions are as below:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -2074,21 +2458,49 @@ Python-Rust FFI boundary, or returning objects from functions implemented in Rus
 </span><span class="boring">let py = gil.python();
 </span>let list: Py&lt;PyList&gt; = PyList::empty(py).into();
 
-// Access to the native type using Py::as_ref(py) or Py::into_ref(py)
-// (For #[pyclass] types T, these will return &amp;PyCell&lt;T&gt;)
-
-// Py::as_ref() borrows the object
+// To &amp;PyList with Py::as_ref() (borrows from the Py)
 let _: &amp;PyList = list.as_ref(py);
 
-<span class="boring">let list_clone = list.clone(); // Just so that the .into() example for PyObject compiles.
-</span>// Py::into_ref() moves the reference into pyo3's &quot;object storage&quot;; useful for making APIs
-// which return gil-bound references.
+<span class="boring">let list_clone = list.clone(); // Because `.into_ref()` will consume `list`.
+</span>// To &amp;PyList with Py::into_ref() (moves the pointer into PyO3's object storage)
 let _: &amp;PyList = list.into_ref(py);
 
 <span class="boring">let list = list_clone;
-</span>// Convert to PyObject with .into()
-let _: PyObject = list.into();
+</span>// To Py&lt;PyAny&gt; (aka PyObject) with .into()
+let _: Py&lt;PyAny&gt; = list.into();
 <span class="boring">}
+</span></code></pre></pre>
+<p>For a <code>#[pyclass] struct MyClass</code>, the conversions for <code>Py&lt;MyClass&gt;</code> are below:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">let gil = Python::acquire_gil();
+</span><span class="boring">let py = gil.python();
+</span><span class="boring">#[pyclass] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let my_class: Py&lt;MyClass&gt; = Py::new(py, MyClass { })?;
+
+// To &amp;PyCell&lt;MyClass&gt; with Py::as_ref() (borrows from the Py)
+let _: &amp;PyCell&lt;MyClass&gt; = my_class.as_ref(py);
+
+<span class="boring">let my_class_clone = my_class.clone(); // Because `.into_ref()` will consume `my_class`.
+</span>// To &amp;PyCell&lt;MyClass&gt; with Py::into_ref() (moves the pointer into PyO3's object storage)
+let _: &amp;PyCell&lt;MyClass&gt; = my_class.into_ref(py);
+
+<span class="boring">let my_class = my_class_clone.clone();
+</span>// To Py&lt;PyAny&gt; (aka PyObject) with .into_py(py)
+let _: Py&lt;PyAny&gt; = my_class.into_py(py);
+
+<span class="boring">let my_class = my_class_clone;
+</span>// To PyRef&lt;MyClass&gt; with Py::borrow or Py::try_borrow
+let _: PyRef&lt;MyClass&gt; = my_class.try_borrow(py)?;
+
+// To PyRefMut&lt;MyClass&gt; with Py::borrow_mut or Py::try_borrow_mut
+let _: PyRefMut&lt;MyClass&gt; = my_class.try_borrow_mut(py)?;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pycellsometype" id="pycellsometype"><code>PyCell&lt;SomeType&gt;</code></a></h3>
 <p><strong>Represents:</strong> a reference to a Rust object (instance of <code>PyClass</code>) which is
@@ -2100,36 +2512,49 @@ Rust references.</p>
 <p>Like pyo3's Python native types, <code>PyCell&lt;T&gt;</code> implements <code>Deref&lt;Target = PyAny&gt;</code>,
 so it also exposes all of the methods on <code>PyAny</code>.</p>
 <p><strong>Conversions:</strong></p>
+<p><code>PyCell&lt;T&gt;</code> can be used to access <code>&amp;T</code> and <code>&amp;mut T</code> via <code>PyRef&lt;T&gt;</code> and <code>PyRefMut&lt;T&gt;</code> respectively.</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span><span class="boring">use pyo3::types::PyList;
 </span><span class="boring">#[pyclass] struct MyClass { }
-</span><span class="boring">let gil = Python::acquire_gil();
-</span><span class="boring">let py = gil.python();
-</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { }).unwrap();
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { })?;
 
-// Obtain PyRef&lt;T&gt; with .try_borrow()
-let pr: PyRef&lt;MyClass&gt; = cell.try_borrow().unwrap();
-<span class="boring">drop(pr);
+// To PyRef&lt;T&gt; with .borrow() or .try_borrow()
+let py_ref: PyRef&lt;MyClass&gt; = cell.try_borrow()?;
+let _: &amp;MyClass = &amp;*py_ref;
+<span class="boring">drop(py_ref);
 </span>
-// Obtain PyRefMut&lt;T&gt; with .try_borrow_mut()
-let prm: PyRefMut&lt;MyClass&gt; = cell.try_borrow_mut().unwrap();
-<span class="boring">drop(prm);
-</span>
-// Can use methods from PyAny on PyCell&lt;T&gt; due to Deref implementation
-let _ = cell.repr();
+// To PyRefMut&lt;T&gt; with .borrow_mut() or .try_borrow_mut()
+let mut py_ref_mut: PyRefMut&lt;MyClass&gt; = cell.try_borrow_mut()?;
+let _: &amp;mut MyClass = &amp;mut *py_ref_mut;
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
+</span></code></pre></pre>
+<p><code>PyCell&lt;T&gt;</code> can also be accessed like a Python-native type.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::prelude::*;
+</span><span class="boring">use pyo3::types::PyList;
+</span><span class="boring">#[pyclass] struct MyClass { }
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let cell: &amp;PyCell&lt;MyClass&gt; = PyCell::new(py, MyClass { })?;
 
-// Rust will convert &amp;PyCell&lt;T&gt; to &amp;PyAny automatically due to Deref implementation
+// Use methods from PyAny on PyCell&lt;T&gt; with Deref implementation
+let _ = cell.repr()?;
+
+// To &amp;PyAny automatically with Deref implementation
 let _: &amp;PyAny = cell;
 
-// For more explicit &amp;PyAny conversion, use .as_ref()
-let any: &amp;PyAny = cell.as_ref();
-
-// To obtain a PyCell&lt;T&gt; from PyAny, use PyAny::downcast
-let _: &amp;PyCell&lt;MyClass&gt; = any.downcast().unwrap();
-<span class="boring">}
+// To &amp;PyAny explicitly with .as_ref()
+let _: &amp;PyAny = cell.as_ref();
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
 </span></code></pre></pre>
 <h3><a class="header" href="#pyrefsometype-and-pyrefmutsometype" id="pyrefsometype-and-pyrefmutsometype"><code>PyRef&lt;SomeType&gt;</code> and <code>PyRefMut&lt;SomeType&gt;</code></a></h3>
 <p><strong>Represents:</strong> reference wrapper types employed by <code>PyCell</code> to keep track of
@@ -2270,20 +2695,35 @@ pyo3 = &quot;0.6&quot;
 <li>A toolchain for your target.</li>
 <li>The appropriate options in your Cargo <code>.config</code> for the platform you're targeting and the toolchain you are using.</li>
 <li>A Python interpreter that's already been compiled for your target.</li>
+<li>A Python interpreter that is built for your host and available through the <code>PATH</code> or setting the <a href="building_and_distribution.html#python-version"><code>PYO3_PYTHON</code></a> variable.</li>
 <li>The headers that match the above interpreter.</li>
 </ul>
 <p>See https://github.com/japaric/rust-cross for a primer on cross compiling Rust in general.</p>
 <p>After you've obtained the above, you can build a cross compiled PyO3 module by setting a few extra environment variables:</p>
 <ul>
-<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable must be set to the directory containing the headers for the target's Python interpreter.</li>
-<li><code>PYO3_CROSS_LIB_DIR</code>: This variable must be set to the directory containing the target's libpython DSO.</li>
+<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable must be set to the directory containing the headers for the target's Python interpreter. <strong>It is only necessary if targeting Windows platforms</strong></li>
+<li><code>PYO3_CROSS_LIB_DIR</code>: This variable must be set to the directory containing the target's libpython DSO and the associated <code>_sysconfigdata*.py</code> file.</li>
+<li><code>PYO3_CROSS_PYTHON_VERSION</code>: This variable must be set if there are multiple versions of python compiled for a unix machine.</li>
 </ul>
 <p>An example might look like the following (assuming your target's sysroot is at <code>/home/pyo3/cross/sysroot</code> and that your target is <code>armv7</code>):</p>
-<pre><code class="language-sh">export PYO3_CROSS_INCLUDE_DIR=&quot;/home/pyo3/cross/sysroot/usr/include&quot;
+<pre><code class="language-sh">export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
+
+cargo build --target armv7-unknown-linux-gnueabihf
+</code></pre>
+<p>If there are multiple python versions at the cross lib directory and you cannot set a more precise location to include both the <code>libpython</code> DSO and <code>_sysconfigdata*.py</code> files, you can set the required version:</p>
+<pre><code class="language-sh">export PYO3_CROSS_PYTHON_VERSION=3.8
 export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
 
 cargo build --target armv7-unknown-linux-gnueabihf
 </code></pre>
+<p>Or another example with the same sys root but building for windows:</p>
+<pre><code class="language-sh">export PYO3_CROSS_INCLUDE_DIR=&quot;/home/pyo3/cross/sysroot/usr/include&quot;
+export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;
+
+cargo build --target x86_64-pc-windows-gnu
+</code></pre>
+<h2><a class="header" href="#bazel" id="bazel">Bazel</a></h2>
+<p>For an example of how to build python extensions using Bazel, see https://github.com/TheButlah/rules_pyo3</p>
 <h1><a class="header" href="#pypy-support" id="pypy-support">PyPy Support</a></h1>
 <p>Using PyPy is supported via cpyext.</p>
 <p>Support is only provided for building Rust extension for code running under PyPy. This means that PyPy <strong>cannot</strong> be called from rust via cpyext. Note that there some differences in the ffi module between PyPy and CPython.</p>
@@ -2319,74 +2759,9 @@ version = &quot;*&quot;
 extension-module = [&quot;pyo3/extension-module&quot;]
 default = [&quot;extension-module&quot;]
 </code></pre>
-<h1><a class="header" href="#appendix-a-pyo3-and-rust-cpython" id="appendix-a-pyo3-and-rust-cpython">Appendix A: PyO3 and rust-cpython</a></h1>
-<p>PyO3 began as fork of <a href="https://github.com/dgrunwald/rust-cpython">rust-cpython</a> when rust-cpython wasn't maintained. Over the time PyO3 has become fundamentally different from rust-cpython.</p>
-<p>This chapter is based on the discussion in <a href="https://github.com/PyO3/pyo3/issues/55">PyO3/pyo3#55</a>.</p>
-<h2><a class="header" href="#macros-1" id="macros-1">Macros</a></h2>
-<p>While rust-cpython has a <code>macro_rules!</code> based dsl for declaring modules and classes, PyO3 uses proc macros. PyO3 also doesn't change your struct and functions so you can still use them as normal Rust functions.</p>
-<p><strong>rust-cpython</strong></p>
-<pre><code class="language-rust ignore">py_class!(class MyClass |py| {
-    data number: i32;
-    def __new__(_cls, arg: i32) -&gt; PyResult&lt;MyClass&gt; {
-        MyClass::create_instance(py, arg)
-    }
-    def half(&amp;self) -&gt; PyResult&lt;i32&gt; {
-        Ok(self.number(py) / 2)
-    }
-});
-</code></pre>
-<p><strong>pyo3</strong></p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use pyo3::prelude::*;
-
-#[pyclass]
-struct MyClass {
-   num: u32,
-}
-
-#[pymethods]
-impl MyClass {
-    #[new]
-    fn new(num: u32) -&gt; Self {
-        MyClass { num }
-    }
-
-    fn half(&amp;self) -&gt; PyResult&lt;u32&gt; {
-        Ok(self.num / 2)
-    }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<h2><a class="header" href="#ownership-and-lifetimes" id="ownership-and-lifetimes">Ownership and lifetimes</a></h2>
-<p>While in rust-cpython you always own python objects, PyO3 allows efficient <em>borrowed objects</em>
-and most APIs are available with references.</p>
-<p>Here is an example of the PyList API:</p>
-<p><strong>rust-cpython</strong></p>
-<pre><code class="language-rust ignore">impl PyList {
-
-   fn new(py: Python) -&gt; PyList {...}
-
-   fn get_item(&amp;self, py: Python, index: isize) -&gt; PyObject {...}
-}
-</code></pre>
-<p><strong>pyo3</strong></p>
-<pre><code class="language-rust ignore">impl PyList {
-
-   fn new(py: Python) -&gt; &amp;PyList {...}
-
-   fn get_item(&amp;self, index: isize) -&gt; &amp;PyAny {...}
-}
-</code></pre>
-<p>In PyO3, all object references are bounded by the GIL lifetime.
-So the owned Python object is not required, and it is safe to have functions like <code>fn py&lt;'p&gt;(&amp;'p self) -&gt; Python&lt;'p&gt; {}</code>.</p>
-<h2><a class="header" href="#error-handling" id="error-handling">Error handling</a></h2>
-<p>rust-cpython requires a <code>Python</code> parameter for constructing a <code>PyErr</code>, so error handling ergonomics is pretty bad. It is not possible to use <code>?</code> with Rust errors.</p>
-<p>PyO3 on other hand does not require <code>Python</code> for constructing a <code>PyErr</code>, it is only required if you want to raise an exception in Python with the <code>PyErr::restore()</code> method. Due to various <code>std::convert::From&lt;E&gt; for PyErr</code> implementations for Rust standard error types <code>E</code>, propagating <code>?</code> is supported automatically.</p>
-<h1><a class="header" href="#appendix-b-migrating-from-older-pyo3-versions" id="appendix-b-migrating-from-older-pyo3-versions">Appendix B: Migrating from older PyO3 versions</a></h1>
+<h1><a class="header" href="#migrating-from-older-pyo3-versions" id="migrating-from-older-pyo3-versions">Migrating from older PyO3 versions</a></h1>
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
-For a detailed list of all changes, see <a href="https://github.com/PyO3/pyo3/blob/master/CHANGELOG.md">CHANGELOG.md</a></p>
+For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
 <h2><a class="header" href="#from-011-to-012" id="from-011-to-012">from 0.11.* to 0.12</a></h2>
 <h3><a class="header" href="#frompy-has-been-removed" id="frompy-has-been-removed"><code>FromPy</code> has been removed</a></h3>
 <p>To simplify the PyO3 public conversion trait hierarchy, the <code>FromPy</code> has been removed. In PyO3
@@ -2637,7 +3012,7 @@ impl MyClass {
 <span class="boring">}
 </span></code></pre></pre>
 <p>Basically you can return <code>Self</code> or <code>Result&lt;Self&gt;</code> directly.
-For more, see <a href="https://pyo3.rs/master/class.html#constructor">the constructor section</a> of this guide.</p>
+For more, see <a href="class.html#constructor">the constructor section</a> of this guide.</p>
 <h3><a class="header" href="#pycell" id="pycell">PyCell</a></h3>
 <p>PyO3 0.9 introduces <a href="https://docs.rs/pyo3/latest/pyo3/pycell/struct.PyCell.html"><code>PyCell</code></a>, which is a <a href="https://doc.rust-lang.org/std/cell/struct.RefCell.html"><code>RefCell</code></a>-like object wrapper
 for ensuring Rust's rules regarding aliasing of references are upheld.
@@ -2792,8 +3167,72 @@ impl PySequenceProtocol for ByteSequence {
 }
 <span class="boring">}
 </span></code></pre></pre>
+<h1><a class="header" href="#pyo3-and-rust-cpython" id="pyo3-and-rust-cpython">PyO3 and rust-cpython</a></h1>
+<p>PyO3 began as fork of <a href="https://github.com/dgrunwald/rust-cpython">rust-cpython</a> when rust-cpython wasn't maintained. Over time PyO3 has become fundamentally different from rust-cpython.</p>
+<h2><a class="header" href="#macros-1" id="macros-1">Macros</a></h2>
+<p>While rust-cpython has a <code>macro_rules!</code> based dsl for declaring modules and classes, PyO3 uses proc macros. PyO3 also doesn't change your struct and functions so you can still use them as normal Rust functions.</p>
+<p><strong>rust-cpython</strong></p>
+<pre><code class="language-rust ignore">py_class!(class MyClass |py| {
+    data number: i32;
+    def __new__(_cls, arg: i32) -&gt; PyResult&lt;MyClass&gt; {
+        MyClass::create_instance(py, arg)
+    }
+    def half(&amp;self) -&gt; PyResult&lt;i32&gt; {
+        Ok(self.number(py) / 2)
+    }
+});
+</code></pre>
+<p><strong>pyo3</strong></p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use pyo3::prelude::*;
+
+#[pyclass]
+struct MyClass {
+   num: u32,
+}
+
+#[pymethods]
+impl MyClass {
+    #[new]
+    fn new(num: u32) -&gt; Self {
+        MyClass { num }
+    }
+
+    fn half(&amp;self) -&gt; PyResult&lt;u32&gt; {
+        Ok(self.num / 2)
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<h2><a class="header" href="#ownership-and-lifetimes" id="ownership-and-lifetimes">Ownership and lifetimes</a></h2>
+<p>While in rust-cpython you always own python objects, PyO3 allows efficient <em>borrowed objects</em>
+and most APIs are available with references.</p>
+<p>Here is an example of the PyList API:</p>
+<p><strong>rust-cpython</strong></p>
+<pre><code class="language-rust ignore">impl PyList {
+
+   fn new(py: Python) -&gt; PyList {...}
+
+   fn get_item(&amp;self, py: Python, index: isize) -&gt; PyObject {...}
+}
+</code></pre>
+<p><strong>pyo3</strong></p>
+<pre><code class="language-rust ignore">impl PyList {
+
+   fn new(py: Python) -&gt; &amp;PyList {...}
+
+   fn get_item(&amp;self, index: isize) -&gt; &amp;PyAny {...}
+}
+</code></pre>
+<p>In PyO3, all object references are bounded by the GIL lifetime.
+So the owned Python object is not required, and it is safe to have functions like <code>fn py&lt;'p&gt;(&amp;'p self) -&gt; Python&lt;'p&gt; {}</code>.</p>
+<h2><a class="header" href="#error-handling" id="error-handling">Error handling</a></h2>
+<p>rust-cpython requires a <code>Python</code> parameter for constructing a <code>PyErr</code>, so error handling ergonomics is pretty bad. It is not possible to use <code>?</code> with Rust errors.</p>
+<p>PyO3 on other hand does not require <code>Python</code> for constructing a <code>PyErr</code>, it is only required if you want to raise an exception in Python with the <code>PyErr::restore()</code> method. Due to various <code>std::convert::From&lt;E&gt; for PyErr</code> implementations for Rust standard error types <code>E</code>, propagating <code>?</code> is supported automatically.</p>
 <h1><a class="header" href="#using-in-python-a-rust-function-with-trait-bounds" id="using-in-python-a-rust-function-with-trait-bounds">Using in Python a Rust function with trait bounds</a></h1>
-<p>PyO3 allows for easy conversion from Rust to Python for certain functions and classes (see the <a href="https://pyo3.rs/master/conversions.html">conversion table</a>).
+<p>PyO3 allows for easy conversion from Rust to Python for certain functions and classes (see the <a href="conversions/tables.html">conversion table</a>.
 However, it is not always straightforward to convert Rust code that requires a given trait implementation as an argument.</p>
 <p>This tutorial explains how to convert a Rust function that takes a trait as argument for use in Python with classes implementing the same methods as the trait.</p>
 <p>Why is this useful?</p>
@@ -3242,7 +3681,7 @@ pub struct UserModel {
 #[pymodule]
 fn trait_exposure(_py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
     m.add_class::&lt;UserModel&gt;()?;
-    m.add_wrapped(wrap_pyfunction!(solve_wrapper))?;
+    m.add_function(wrap_pyfunction!(solve_wrapper))?;
     Ok(())
 }
 
@@ -3343,7 +3782,7 @@ fn my_module(_py: Python&lt;'_&gt;, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
     // A good place to install the Rust -&gt; Python logger.
     pyo3_log::init();
 
-    m.add_wrapped(wrap_pyfunction!(log_something))?;
+    m.add_function(wrap_pyfunction!(log_something))?;
     Ok(())
 }
 <span class="boring">}
@@ -3364,6 +3803,559 @@ possible to satisfy, read the documentation about <a href="https://docs.rs/pyo3-
 <p>To best of our knowledge nobody implemented the reverse direction yet, though it
 should be possible. If interested, the <code>pyo3</code> community would be happy to
 provide guidance.</p>
+<h1><a class="header" href="#changelog" id="changelog">Changelog</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="http://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>
+and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0111headunreleaseda" id="a-hrefhttpsgithubcompyo3pyo3comparev0111headunreleaseda"><a href="https://github.com/pyo3/pyo3/compare/v0.11.1...HEAD">Unreleased</a></a></h2>
+<h3><a class="header" href="#added" id="added">Added</a></h3>
+<ul>
+<li>Add FFI definitions <code>Py_FinalizeEx</code>, <code>PyOS_getsig</code>, <code>PyOS_setsig</code>. <a href="https://github.com/PyO3/pyo3/pull/1021">#1021</a></li>
+<li>Add <code>Python::with_gil</code> for executing a closure with the Python GIL. <a href="https://github.com/PyO3/pyo3/pull/1037">#1037</a></li>
+<li>Implement <code>Debug</code> for <code>PyIterator</code>. <a href="https://github.com/PyO3/pyo3/pull/1051">#1051</a></li>
+<li>Implement type information for conversion failures. <a href="https://github.com/PyO3/pyo3/pull/1050">#1050</a></li>
+<li>Add <code>PyBytes::new_with</code> and <code>PyByteArray::new_with</code> for initialising Python-allocated bytes and bytearrays using a closure. <a href="https://github.com/PyO3/pyo3/pull/1074">#1074</a></li>
+<li>Add <code>Py::as_ref</code> and <code>Py::into_ref</code>. <a href="https://github.com/PyO3/pyo3/pull/1098">#1098</a></li>
+<li>Add optional implementations of <code>ToPyObject</code>, <code>IntoPy</code>, and <code>FromPyObject</code> for <a href="https://crates.io/crates/hashbrown">hashbrown</a>'s <code>HashMap</code> and <code>HashSet</code> types. The <code>hashbrown</code> feature must be enabled for these implementations to be built. <a href="https://github.com/PyO3/pyo3/pull/1114/">#1114</a></li>
+<li>Allow other <code>Result</code> types when using <code>#[pyfunction]</code>. <a href="https://github.com/PyO3/pyo3/issues/1106">#1106</a>.</li>
+<li>Add <code>#[derive(FromPyObject)]</code> macro for enums and structs. <a href="https://github.com/PyO3/pyo3/pull/1065">#1065</a></li>
+<li>Add macro attribute to <code>#[pyfn]</code> and <code>#[pyfunction]</code> to pass the module of a Python function to the function
+body. <a href="https://github.com/PyO3/pyo3/pull/1143">#1143</a></li>
+<li>Add <code>add_function()</code> and <code>add_submodule()</code> functions to <code>PyModule</code> <a href="https://github.com/PyO3/pyo3/pull/1143">#1143</a></li>
+</ul>
+<h3><a class="header" href="#changed" id="changed">Changed</a></h3>
+<ul>
+<li>Exception types have been renamed from e.g. <code>RuntimeError</code> to <code>PyRuntimeError</code>, and are now only accessible by <code>&amp;T</code> or <code>Py&lt;T&gt;</code> similar to other Python-native types. The old names continue to exist but are deprecated. <a href="https://github.com/PyO3/pyo3/pull/1024">#1024</a></li>
+<li>Correct FFI definitions <code>Py_SetProgramName</code> and <code>Py_SetPythonHome</code> to take <code>*const</code> argument instead of <code>*mut</code>. <a href="https://github.com/PyO3/pyo3/pull/1021">#1021</a></li>
+<li>Rename <code>PyString::to_string</code> to <code>to_str</code>, change return type <code>Cow&lt;str&gt;</code> to <code>&amp;str</code>. <a href="https://github.com/PyO3/pyo3/pull/1023">#1023</a></li>
+<li>Correct FFI definition <code>_PyLong_AsByteArray</code> <code>*mut c_uchar</code> argument instead of <code>*const c_uchar</code>. <a href="https://github.com/PyO3/pyo3/pull/1029">#1029</a></li>
+<li>Add <code>T: Send</code> bound to the return value of <code>Python::allow_threads</code>. <a href="https://github.com/PyO3/pyo3/pull/1036">#1036</a></li>
+<li>Rename <code>PYTHON_SYS_EXECUTABLE</code> to <code>PYO3_PYTHON</code>. The old name will continue to work but will be undocumented, and will be removed in a future release. <a href="https://github.com/PyO3/pyo3/pull/1039">#1039</a></li>
+<li><code>PyType::as_type_ptr</code> is no longer <code>unsafe</code>. <a href="https://github.com/PyO3/pyo3/pull/1047">#1047</a></li>
+<li>Change <code>PyIterator::from_object</code> to return <code>PyResult&lt;PyIterator&gt;</code> instead of <code>Result&lt;PyIterator, PyDowncastError&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/1051">#1051</a></li>
+<li><code>IntoPy</code> is no longer implied by <code>FromPy</code>. <a href="https://github.com/PyO3/pyo3/pull/1063">#1063</a></li>
+<li><code>PyObject</code> is now just a type alias for <code>Py&lt;PyAny&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/1063">#1063</a></li>
+<li>Implement <code>Send + Sync</code> for <code>PyErr</code>. <code>PyErr::new</code>, <code>PyErr::from_type</code>, <code>PyException::py_err</code> and <code>PyException::into</code> have had these bounds added to their arguments. <a href="https://github.com/PyO3/pyo3/pull/1067">#1067</a></li>
+<li>Change <code>#[pyproto]</code> to return NotImplemented for operators for which Python can try a reversed operation. #<a href="https://github.com/PyO3/pyo3/pull/1072">1072</a></li>
+<li><code>PyModule::add</code> now uses <code>IntoPy&lt;PyObject&gt;</code> instead of <code>ToPyObject</code>. #<a href="https://github.com/PyO3/pyo3/pull/1124">1124</a></li>
+<li>Add nested modules as <code>&amp;PyModule</code> instead of using the wrapper generated by <code>#[pymodule]</code>. <a href="https://github.com/PyO3/pyo3/pull/1143">#1143</a></li>
+</ul>
+<h3><a class="header" href="#removed" id="removed">Removed</a></h3>
+<ul>
+<li>Remove <code>PyString::as_bytes</code>. <a href="https://github.com/PyO3/pyo3/pull/1023">#1023</a></li>
+<li>Remove <code>Python::register_any</code>. <a href="https://github.com/PyO3/pyo3/pull/1023">#1023</a></li>
+<li>Remove <code>GILGuard::acquire</code> from the public API. Use <code>Python::acquire_gil</code> or <code>Python::with_gil</code>. <a href="https://github.com/PyO3/pyo3/pull/1036">#1036</a></li>
+<li>Remove <code>FromPy</code>. <a href="https://github.com/PyO3/pyo3/pull/1063">#1063</a></li>
+<li>Remove <code>AsPyRef</code>. <a href="https://github.com/PyO3/pyo3/pull/1098">#1098</a></li>
+</ul>
+<h3><a class="header" href="#fixed" id="fixed">Fixed</a></h3>
+<ul>
+<li>Conversion from types with an <code>__index__</code> method to Rust BigInts. <a href="https://github.com/PyO3/pyo3/pull/1027">#1027</a></li>
+<li>Fix segfault with #[pyclass(dict, unsendable)] <a href="https://github.com/PyO3/pyo3/pull/1058">#1058</a></li>
+<li>Don't rely on the order of structmembers to compute offsets in PyCell. Related to
+<a href="https://github.com/PyO3/pyo3/pull/1058">#1058</a>. <a href="https://github.com/PyO3/pyo3/pull/1059">#1059</a></li>
+<li>Allows <code>&amp;Self</code> as a <code>#[pymethods]</code> argument again. <a href="https://github.com/PyO3/pyo3/pull/1071">#1071</a></li>
+<li>Fix best-effort build against PyPy 3.6. #<a href="https://github.com/PyO3/pyo3/pull/1092">1092</a></li>
+<li>Improve lifetime elision in <code>#[pyproto]</code>. <a href="https://github.com/PyO3/pyo3/pull/1093">#1093</a></li>
+<li>Fix python configuration detection when cross-compiling. <a href="https://github.com/PyO3/pyo3/pull/1095">#1095</a></li>
+<li>Link against libpython on android with <code>extension-module</code> set. <a href="https://github.com/PyO3/pyo3/pull/1095">#1095</a></li>
+<li>Fix support for both <code>__add__</code> and <code>__radd__</code>  in the <code>+</code> operator when both are defined in <code>PyNumberProtocol</code>
+(and similar for all other reversible operators). <a href="https://github.com/PyO3/pyo3/pull/1107">#1107</a></li>
+<li>Associate Python functions with their module by passing the Module and Module name <a href="https://github.com/PyO3/pyo3/pull/1143">#1143</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0110v01110111a---2020-06-30" id="a-hrefhttpsgithubcompyo3pyo3comparev0110v01110111a---2020-06-30"><a href="https://github.com/pyo3/pyo3/compare/v0.11.0...v0.11.1">0.11.1</a> - 2020-06-30</a></h2>
+<h3><a class="header" href="#added-1" id="added-1">Added</a></h3>
+<ul>
+<li><code>#[pyclass(unsendable)]</code>. <a href="https://github.com/PyO3/pyo3/pull/1009">#1009</a></li>
+</ul>
+<h3><a class="header" href="#changed-1" id="changed-1">Changed</a></h3>
+<ul>
+<li>Update <code>parking_lot</code> dependency to <code>0.11</code>. <a href="https://github.com/PyO3/pyo3/pull/1010">#1010</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0101v01100110a---2020-06-28" id="a-hrefhttpsgithubcompyo3pyo3comparev0101v01100110a---2020-06-28"><a href="https://github.com/pyo3/pyo3/compare/v0.10.1...v0.11.0">0.11.0</a> - 2020-06-28</a></h2>
+<h3><a class="header" href="#added-2" id="added-2">Added</a></h3>
+<ul>
+<li>Support stable versions of Rust (&gt;=1.39). <a href="https://github.com/PyO3/pyo3/pull/969">#969</a></li>
+<li>Add FFI definition <code>PyObject_AsFileDescriptor</code>. <a href="https://github.com/PyO3/pyo3/pull/938">#938</a></li>
+<li>Add <code>PyByteArray::data</code>, <code>PyByteArray::as_bytes</code>, and <code>PyByteArray::as_bytes_mut</code>. <a href="https://github.com/PyO3/pyo3/pull/967">#967</a></li>
+<li>Add <code>GILOnceCell</code> to use in situations where <code>lazy_static</code> or <code>once_cell</code> can deadlock. <a href="https://github.com/PyO3/pyo3/pull/975">#975</a></li>
+<li>Add <code>Py::borrow</code>, <code>Py::borrow_mut</code>, <code>Py::try_borrow</code>, and <code>Py::try_borrow_mut</code> for accessing <code>#[pyclass]</code> values. <a href="https://github.com/PyO3/pyo3/pull/976">#976</a></li>
+<li>Add <code>IterNextOutput</code> and <code>IterANextOutput</code> for returning from <code>__next__</code> / <code>__anext__</code>. <a href="https://github.com/PyO3/pyo3/pull/997">#997</a></li>
+</ul>
+<h3><a class="header" href="#changed-2" id="changed-2">Changed</a></h3>
+<ul>
+<li>Simplify internals of <code>#[pyo3(get)]</code> attribute. (Remove the hidden API <code>GetPropertyValue</code>.) <a href="https://github.com/PyO3/pyo3/pull/934">#934</a></li>
+<li>Call <code>Py_Finalize</code> at exit to flush buffers, etc. <a href="https://github.com/PyO3/pyo3/pull/943">#943</a></li>
+<li>Add type parameter to PyBuffer. #<a href="https://github.com/PyO3/pyo3/pull/951">951</a></li>
+<li>Require <code>Send</code> bound for <code>#[pyclass]</code>. <a href="https://github.com/PyO3/pyo3/pull/966">#966</a></li>
+<li>Add <code>Python</code> argument to most methods on <code>PyObject</code> and <code>Py&lt;T&gt;</code> to ensure GIL safety. <a href="https://github.com/PyO3/pyo3/pull/970">#970</a></li>
+<li>Change signature of <code>PyTypeObject::type_object()</code> - now takes <code>Python</code> argument and returns <code>&amp;PyType</code>. <a href="https://github.com/PyO3/pyo3/pull/970">#970</a></li>
+<li>Change return type of <code>PyTuple::slice()</code> and <code>PyTuple::split_from()</code> from <code>Py&lt;PyTuple&gt;</code> to <code>&amp;PyTuple</code>. <a href="https://github.com/PyO3/pyo3/pull/970">#970</a></li>
+<li>Change return type of <code>PyTuple::as_slice</code> to <code>&amp;[&amp;PyAny]</code>. <a href="https://github.com/PyO3/pyo3/pull/971">#971</a></li>
+<li>Rename <code>PyTypeInfo::type_object</code> to <code>type_object_raw</code>, and add <code>Python</code> argument. <a href="https://github.com/PyO3/pyo3/pull/975">#975</a></li>
+<li>Update <code>num-complex</code> optional dependendency from <code>0.2</code> to <code>0.3</code>. <a href="https://github.com/PyO3/pyo3/pull/977">#977</a></li>
+<li>Update <code>num-bigint</code> optional dependendency from <code>0.2</code> to <code>0.3</code>. <a href="https://github.com/PyO3/pyo3/pull/978">#978</a></li>
+<li><code>#[pyproto]</code> is re-implemented without specialization. <a href="https://github.com/PyO3/pyo3/pull/961">#961</a></li>
+<li><code>PyClassAlloc::alloc</code> is renamed to <code>PyClassAlloc::new</code>. <a href="https://github.com/PyO3/pyo3/pull/990">#990</a></li>
+<li><code>#[pyproto]</code> methods can now have return value <code>T</code> or <code>PyResult&lt;T&gt;</code> (previously only <code>PyResult&lt;T&gt;</code> was supported). <a href="https://github.com/PyO3/pyo3/pull/996">#996</a></li>
+<li><code>#[pyproto]</code> methods can now skip annotating the return type if it is <code>()</code>. <a href="https://github.com/PyO3/pyo3/pull/998">#998</a></li>
+</ul>
+<h3><a class="header" href="#removed-1" id="removed-1">Removed</a></h3>
+<ul>
+<li>Remove <code>ManagedPyRef</code> (unused, and needs specialization) <a href="https://github.com/PyO3/pyo3/pull/930">#930</a></li>
+</ul>
+<h3><a class="header" href="#fixed-1" id="fixed-1">Fixed</a></h3>
+<ul>
+<li>Fix passing explicit <code>None</code> to <code>Option&lt;T&gt;</code> argument <code>#[pyfunction]</code> with a default value. <a href="https://github.com/PyO3/pyo3/pull/936">#936</a></li>
+<li>Fix <code>PyClass.__new__</code>'s not respecting subclasses when inherited by a Python class. <a href="https://github.com/PyO3/pyo3/pull/990">#990</a></li>
+<li>Fix returning <code>Option&lt;T&gt;</code> from <code>#[pyproto]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/996">#996</a></li>
+<li>Fix accepting <code>PyRef&lt;Self&gt;</code> and <code>PyRefMut&lt;Self&gt;</code> to <code>#[getter]</code> and <code>#[setter]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/999">#999</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0100v01010101a---2020-05-14" id="a-hrefhttpsgithubcompyo3pyo3comparev0100v01010101a---2020-05-14"><a href="https://github.com/pyo3/pyo3/compare/v0.10.0...v0.10.1">0.10.1</a> - 2020-05-14</a></h2>
+<h3><a class="header" href="#fixed-2" id="fixed-2">Fixed</a></h3>
+<ul>
+<li>Fix deadlock in <code>Python::acquire_gil()</code> after dropping a <code>PyObject</code> or <code>Py&lt;T&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/924">#924</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev092v01000100a---2020-05-13" id="a-hrefhttpsgithubcompyo3pyo3comparev092v01000100a---2020-05-13"><a href="https://github.com/pyo3/pyo3/compare/v0.9.2...v0.10.0">0.10.0</a> - 2020-05-13</a></h2>
+<h3><a class="header" href="#added-3" id="added-3">Added</a></h3>
+<ul>
+<li>Add FFI definition <code>_PyDict_NewPresized</code>. <a href="https://github.com/PyO3/pyo3/pull/849">#849</a></li>
+<li>Implement <code>IntoPy&lt;PyObject&gt;</code> for <code>HashSet</code> and <code>BTreeSet</code>. <a href="https://github.com/PyO3/pyo3/pull/864">#864</a></li>
+<li>Add <code>PyAny::dir</code> method. <a href="https://github.com/PyO3/pyo3/pull/886">#886</a></li>
+<li>Gate macros behind a <code>macros</code> feature (enabled by default). <a href="https://github.com/PyO3/pyo3/pull/897">#897</a></li>
+<li>Add ability to define class attributes using <code>#[classattr]</code> on functions in <code>#[pymethods]</code>. <a href="https://github.com/PyO3/pyo3/pull/905">#905</a></li>
+<li>Implement <code>Clone</code> for <code>PyObject</code> and <code>Py&lt;T&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/908">#908</a></li>
+<li>Implement <code>Deref&lt;Target = PyAny&gt;</code> for all builtin types. (<code>PyList</code>, <code>PyTuple</code>, <code>PyDict</code> etc.) <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
+<li>Implement <code>Deref&lt;Target = PyAny&gt;</code> for <code>PyCell&lt;T&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
+<li>Add <code>#[classattr]</code> support for associated constants in <code>#[pymethods]</code>. <a href="https://github.com/PyO3/pyo3/pull/914">#914</a></li>
+</ul>
+<h3><a class="header" href="#changed-3" id="changed-3">Changed</a></h3>
+<ul>
+<li>Panics will now be raised as a Python <code>PanicException</code>. <a href="https://github.com/PyO3/pyo3/pull/797">#797</a></li>
+<li>Change <code>PyObject</code> and <code>Py&lt;T&gt;</code> reference counts to decrement immediately upon drop when the GIL is held. <a href="https://github.com/PyO3/pyo3/pull/851">#851</a></li>
+<li>Allow <code>PyIterProtocol</code> methods to use either <code>PyRef</code> or <code>PyRefMut</code> as the receiver type. <a href="https://github.com/PyO3/pyo3/pull/856">#856</a></li>
+<li>Change the implementation of <code>FromPyObject</code> for <code>Py&lt;T&gt;</code> to apply to a wider range of <code>T</code>, including all <code>T: PyClass</code>. <a href="https://github.com/PyO3/pyo3/pull/880">#880</a></li>
+<li>Move all methods from the <code>ObjectProtocol</code> trait to the <code>PyAny</code> struct. <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
+<li>Remove need for <code>#![feature(specialization)]</code> in crates depending on PyO3. <a href="https://github.com/PyO3/pyo3/pull/917">#917</a></li>
+</ul>
+<h3><a class="header" href="#removed-2" id="removed-2">Removed</a></h3>
+<ul>
+<li>Remove <code>PyMethodsProtocol</code> trait. <a href="https://github.com/PyO3/pyo3/pull/889">#889</a></li>
+<li>Remove <code>num-traits</code> dependency. <a href="https://github.com/PyO3/pyo3/pull/895">#895</a></li>
+<li>Remove <code>ObjectProtocol</code> trait. <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
+<li>Remove <code>PyAny::None</code>. Users should use <code>Python::None</code> instead. <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
+<li>Remove all <code>*ProtocolImpl</code> traits. <a href="https://github.com/PyO3/pyo3/pull/917">#917</a></li>
+</ul>
+<h3><a class="header" href="#fixed-3" id="fixed-3">Fixed</a></h3>
+<ul>
+<li>Fix support for <code>__radd__</code> and other <code>__r*__</code> methods as implementations for Python mathematical operators. <a href="https://github.com/PyO3/pyo3/pull/839">#839</a></li>
+<li>Fix panics during garbage collection when traversing objects that were already mutably borrowed. <a href="https://github.com/PyO3/pyo3/pull/855">#855</a></li>
+<li>Prevent <code>&amp;'static</code> references to Python objects as arguments to <code>#[pyfunction]</code> and <code>#[pymethods]</code>. <a href="https://github.com/PyO3/pyo3/pull/869">#869</a></li>
+<li>Fix lifetime safety bug with <code>AsPyRef::as_ref</code>. <a href="https://github.com/PyO3/pyo3/pull/876">#876</a></li>
+<li>Fix <code>#[pyo3(get)]</code> attribute on <code>Py&lt;T&gt;</code> fields. <a href="https://github.com/PyO3/pyo3/pull/880">#880</a></li>
+<li>Fix segmentation faults caused by functions such as <code>PyList::get_item</code> returning borrowed objects when it was not safe to do so. <a href="https://github.com/PyO3/pyo3/pull/890">#890</a></li>
+<li>Fix segmentation faults caused by nested <code>Python::acquire_gil</code> calls creating dangling references. <a href="https://github.com/PyO3/pyo3/pull/893">#893</a></li>
+<li>Fix segmentatation faults when a panic occurs during a call to <code>Python::allow_threads</code>. <a href="https://github.com/PyO3/pyo3/pull/912">#912</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev091v092092a---2020-04-09" id="a-hrefhttpsgithubcompyo3pyo3comparev091v092092a---2020-04-09"><a href="https://github.com/pyo3/pyo3/compare/v0.9.1...v0.9.2">0.9.2</a> - 2020-04-09</a></h2>
+<h3><a class="header" href="#added-4" id="added-4">Added</a></h3>
+<ul>
+<li><code>FromPyObject</code> implementations for <code>HashSet</code> and <code>BTreeSet</code>. <a href="https://github.com/PyO3/pyo3/pull/842">#842</a></li>
+</ul>
+<h3><a class="header" href="#fixed-4" id="fixed-4">Fixed</a></h3>
+<ul>
+<li>Correctly detect 32bit architecture. <a href="https://github.com/PyO3/pyo3/pull/830">#830</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev090v091091a---2020-03-23" id="a-hrefhttpsgithubcompyo3pyo3comparev090v091091a---2020-03-23"><a href="https://github.com/pyo3/pyo3/compare/v0.9.0...v0.9.1">0.9.1</a> - 2020-03-23</a></h2>
+<h3><a class="header" href="#fixed-5" id="fixed-5">Fixed</a></h3>
+<ul>
+<li>Error messages for <code>#[pyclass]</code>. <a href="https://github.com/PyO3/pyo3/pull/826">#826</a></li>
+<li><code>FromPyObject</code> implementation for <code>PySequence</code>. <a href="https://github.com/PyO3/pyo3/pull/827">#827</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev085v090090a---2020-03-19" id="a-hrefhttpsgithubcompyo3pyo3comparev085v090090a---2020-03-19"><a href="https://github.com/pyo3/pyo3/compare/v0.8.5...v0.9.0">0.9.0</a> - 2020-03-19</a></h2>
+<h3><a class="header" href="#added-5" id="added-5">Added</a></h3>
+<ul>
+<li><code>PyCell</code>, which has RefCell-like features. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li><code>PyClass</code>, <code>PyLayout</code>, <code>PyClassInitializer</code>. <a href="https://github.com/PyO3/pyo3/pull/683">#683</a></li>
+<li>Implemented <code>IntoIterator</code> for <code>PySet</code> and <code>PyFrozenSet</code>. <a href="https://github.com/PyO3/pyo3/pull/716">#716</a></li>
+<li><code>FromPyObject</code> is now automatically implemented for <code>T: Clone</code> pyclasses. <a href="https://github.com/PyO3/pyo3/pull/730">#730</a></li>
+<li><code>#[pyo3(get)]</code> and <code>#[pyo3(set)]</code> will now use the Rust doc-comment from the field for the Python property. <a href="https://github.com/PyO3/pyo3/pull/755">#755</a></li>
+<li><code>#[setter]</code> functions may now take an argument of <code>Pyo3::Python</code>. <a href="https://github.com/PyO3/pyo3/pull/760">#760</a></li>
+<li><code>PyTypeInfo::BaseLayout</code> and <code>PyClass::BaseNativeType</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li><code>PyDowncastImpl</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li>Implement <code>FromPyObject</code> and <code>IntoPy&lt;PyObject&gt;</code> traits for arrays (up to 32). <a href="https://github.com/PyO3/pyo3/pull/778">#778</a></li>
+<li><code>migration.md</code> and <code>types.md</code> in the guide. <a href="https://github.com/PyO3/pyo3/pull/795">#795</a>, #<a href="https://github.com/PyO3/pyo3/pull/802">802</a></li>
+<li><code>ffi::{_PyBytes_Resize, _PyDict_Next, _PyDict_Contains, _PyDict_GetDictPtr}</code>. #<a href="https://github.com/PyO3/pyo3/pull/820">820</a></li>
+</ul>
+<h3><a class="header" href="#changed-4" id="changed-4">Changed</a></h3>
+<ul>
+<li><code>#[new]</code> does not take <code>PyRawObject</code> and can return <code>Self</code>. <a href="https://github.com/PyO3/pyo3/pull/683">#683</a></li>
+<li>The blanket implementations for <code>FromPyObject</code> for <code>&amp;T</code> and <code>&amp;mut T</code> are no longer specializable. Implement <code>PyTryFrom</code> for your type to control the behavior of <code>FromPyObject::extract()</code> for your types. <a href="https://github.com/PyO3/pyo3/pull/713">#713</a></li>
+<li>The implementation for <code>IntoPy&lt;U&gt; for T</code> where <code>U: FromPy&lt;T&gt;</code> is no longer specializable. Control the behavior of this via the implementation of <code>FromPy</code>. <a href="https://github.com/PyO3/pyo3/pull/713">#713</a></li>
+<li>Use <code>parking_lot::Mutex</code> instead of <code>spin::Mutex</code>. <a href="https://github.com/PyO3/pyo3/pull/734">#734</a></li>
+<li>Bumped minimum Rust version to <code>1.42.0-nightly 2020-01-21</code>. <a href="https://github.com/PyO3/pyo3/pull/761">#761</a></li>
+<li><code>PyRef</code> and <code>PyRefMut</code> are renewed for <code>PyCell</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li>Some new FFI functions for Python 3.8. <a href="https://github.com/PyO3/pyo3/pull/784">#784</a></li>
+<li><code>PyAny</code> is now on the top level module and prelude. <a href="https://github.com/PyO3/pyo3/pull/816">#816</a></li>
+</ul>
+<h3><a class="header" href="#removed-3" id="removed-3">Removed</a></h3>
+<ul>
+<li><code>PyRawObject</code>. <a href="https://github.com/PyO3/pyo3/pull/683">#683</a></li>
+<li><code>PyNoArgsFunction</code>. <a href="https://github.com/PyO3/pyo3/pull/741">#741</a></li>
+<li><code>initialize_type()</code>. To set the module name for a <code>#[pyclass]</code>, use the <code>module</code> argument to the macro. #<a href="https://github.com/PyO3/pyo3/pull/751">751</a></li>
+<li><code>AsPyRef::as_mut/with/with_mut/into_py/into_mut_py</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li><code>PyTryFrom::try_from_mut/try_from_mut_exact/try_from_mut_unchecked</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li><code>Python::mut_from_owned_ptr/mut_from_borrowed_ptr</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+<li><code>ObjectProtocol::get_base/get_mut_base</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
+</ul>
+<h3><a class="header" href="#fixed-6" id="fixed-6">Fixed</a></h3>
+<ul>
+<li>Fixed unsoundness of subclassing. <a href="https://github.com/PyO3/pyo3/pull/683">#683</a>.</li>
+<li>Clear error indicator when the exception is handled on the Rust side. <a href="https://github.com/PyO3/pyo3/pull/719">#719</a></li>
+<li>Usage of raw identifiers with <code>#[pyo3(set)]</code>. <a href="https://github.com/PyO3/pyo3/pull/745">#745</a></li>
+<li>Usage of <code>PyObject</code> with <code>#[pyo3(get)]</code>. <a href="https://github.com/PyO3/pyo3/pull/760">#760</a></li>
+<li><code>#[pymethods]</code> used in conjunction with <code>#[cfg]</code>. #<a href="https://github.com/PyO3/pyo3/pull/769">769</a></li>
+<li><code>&quot;*&quot;</code> in a <code>#[pyfunction()]</code> argument list incorrectly accepting any number of positional arguments (use <code>args = &quot;*&quot;</code> when this behaviour is desired). #<a href="https://github.com/PyO3/pyo3/pull/792">792</a></li>
+<li><code>PyModule::dict</code>. #<a href="https://github.com/PyO3/pyo3/pull/809">809</a></li>
+<li>Fix the case where <code>DESCRIPTION</code> is not null-terminated. #<a href="https://github.com/PyO3/pyo3/pull/822">822</a></li>
+</ul>
+<h2><a class="header" href="#085---2020-01-05" id="085---2020-01-05">[0.8.5] - 2020-01-05</a></h2>
+<h3><a class="header" href="#added-6" id="added-6">Added</a></h3>
+<ul>
+<li>Implemented <code>FromPyObject</code> for <code>HashMap</code> and <code>BTreeMap</code></li>
+<li>Support for <code>#[name = &quot;foo&quot;]</code> attribute for <code>#[pyfunction]</code> and in <code>#[pymethods]</code>. <a href="https://github.com/PyO3/pyo3/pull/692">#692</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev084v085084a---2019-12-14" id="a-hrefhttpsgithubcompyo3pyo3comparev084v085084a---2019-12-14"><a href="https://github.com/pyo3/pyo3/compare/v0.8.4...v0.8.5">0.8.4</a> - 2019-12-14</a></h2>
+<h3><a class="header" href="#added-7" id="added-7">Added</a></h3>
+<ul>
+<li>Support for <code>#[text_signature]</code> attribute. <a href="https://github.com/PyO3/pyo3/pull/675">#675</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev082v083083a---2019-11-23" id="a-hrefhttpsgithubcompyo3pyo3comparev082v083083a---2019-11-23"><a href="https://github.com/pyo3/pyo3/compare/v0.8.2...v0.8.3">0.8.3</a> - 2019-11-23</a></h2>
+<h3><a class="header" href="#removed-4" id="removed-4">Removed</a></h3>
+<ul>
+<li><code>#[init]</code> is removed. <a href="https://github.com/PyO3/pyo3/pull/658">#658</a></li>
+</ul>
+<h3><a class="header" href="#fixed-7" id="fixed-7">Fixed</a></h3>
+<ul>
+<li>Now all <code>&amp;Py~</code> types have <code>!Send</code> bound. <a href="https://github.com/PyO3/pyo3/pull/655">#655</a></li>
+<li>Fix a compile error raised by the stabilization of <code>!</code> type. <a href="https://github.com/PyO3/pyo3/issues/672">#672</a>.</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev081v082082a---2019-10-27" id="a-hrefhttpsgithubcompyo3pyo3comparev081v082082a---2019-10-27"><a href="https://github.com/pyo3/pyo3/compare/v0.8.1...v0.8.2">0.8.2</a> - 2019-10-27</a></h2>
+<h3><a class="header" href="#added-8" id="added-8">Added</a></h3>
+<ul>
+<li>FFI compatibility for PEP 590 Vectorcall. <a href="https://github.com/PyO3/pyo3/pull/641">#641</a></li>
+</ul>
+<h3><a class="header" href="#fixed-8" id="fixed-8">Fixed</a></h3>
+<ul>
+<li>Fix PySequenceProtocol::set_item. <a href="https://github.com/PyO3/pyo3/pull/624">#624</a></li>
+<li>Fix a corner case of BigInt::FromPyObject. <a href="https://github.com/PyO3/pyo3/pull/630">#630</a></li>
+<li>Fix index errors in parameter conversion. <a href="https://github.com/PyO3/pyo3/pull/631">#631</a></li>
+<li>Fix handling of invalid utf-8 sequences in <code>PyString::as_bytes</code>. <a href="https://github.com/PyO3/pyo3/pull/639">#639</a>
+and <code>PyString::to_string_lossy</code> <a href="https://github.com/PyO3/pyo3/pull/642">#642</a>.</li>
+<li>Remove <code>__contains__</code> and <code>__iter__</code> from PyMappingProtocol. <a href="https://github.com/PyO3/pyo3/pull/644">#644</a></li>
+<li>Fix proc-macro definition of PySetAttrProtocol. <a href="https://github.com/PyO3/pyo3/pull/645">#645</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev080v081081a---2019-10-08" id="a-hrefhttpsgithubcompyo3pyo3comparev080v081081a---2019-10-08"><a href="https://github.com/pyo3/pyo3/compare/v0.8.0...v0.8.1">0.8.1</a> - 2019-10-08</a></h2>
+<h3><a class="header" href="#added-9" id="added-9">Added</a></h3>
+<ul>
+<li>Conversion between <a href="https://github.com/rust-num/num-bigint">num-bigint</a> and Python int. <a href="https://github.com/PyO3/pyo3/pull/608">#608</a></li>
+</ul>
+<h3><a class="header" href="#fixed-9" id="fixed-9">Fixed</a></h3>
+<ul>
+<li>Make sure the right Python interpreter is used in OSX builds. <a href="https://github.com/PyO3/pyo3/pull/604">#604</a></li>
+<li>Patch specialization being broken by Rust 1.40. <a href="https://github.com/PyO3/pyo3/issues/614">#614</a></li>
+<li>Fix a segfault around PyErr. <a href="https://github.com/PyO3/pyo3/pull/597">#597</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev070v080080a---2019-09-16" id="a-hrefhttpsgithubcompyo3pyo3comparev070v080080a---2019-09-16"><a href="https://github.com/pyo3/pyo3/compare/v0.7.0...v0.8.0">0.8.0</a> - 2019-09-16</a></h2>
+<h3><a class="header" href="#added-10" id="added-10">Added</a></h3>
+<ul>
+<li><code>module</code> argument to <code>pyclass</code> macro. <a href="https://github.com/PyO3/pyo3/pull/499">#499</a></li>
+<li><code>py_run!</code> macro <a href="https://github.com/PyO3/pyo3/pull/512">#512</a></li>
+<li>Use existing fields and methods before calling custom <strong>getattr</strong>. <a href="https://github.com/PyO3/pyo3/pull/505">#505</a></li>
+<li><code>PyBytes</code> can now be indexed just like <code>Vec&lt;u8&gt;</code></li>
+<li>Implement <code>IntoPy&lt;PyObject&gt;</code> for <code>PyRef</code> and <code>PyRefMut</code>.</li>
+</ul>
+<h3><a class="header" href="#changed-5" id="changed-5">Changed</a></h3>
+<ul>
+<li>Implementing the Using the <code>gc</code> parameter for <code>pyclass</code> (e.g. <code>#[pyclass(gc)]</code>) without implementing the <code>class::PyGCProtocol</code> trait is now a compile-time error. Failing to implement this trait could lead to segfaults. <a href="https://github.com/PyO3/pyo3/pull/532">#532</a></li>
+<li><code>PyByteArray::data</code> has been replaced with <code>PyDataArray::to_vec</code> because returning a <code>&amp;[u8]</code> is unsound. (See <a href="https://github.com/PyO3/pyo3/issues/373#issuecomment-512332696">this comment</a> for a great write-up for why that was unsound)</li>
+<li>Replace <code>mashup</code> with <code>paste</code>.</li>
+<li><code>GILPool</code> gained a <code>Python</code> marker to prevent it from being misused to release Python objects without the GIL held.</li>
+</ul>
+<h3><a class="header" href="#removed-5" id="removed-5">Removed</a></h3>
+<ul>
+<li><code>IntoPyObject</code> was replaced with <code>IntoPy&lt;PyObject&gt;</code></li>
+<li><code>#[pyclass(subclass)]</code> is hidden a <code>unsound-subclass</code> feature because it's causing segmentation faults.</li>
+</ul>
+<h3><a class="header" href="#fixed-10" id="fixed-10">Fixed</a></h3>
+<ul>
+<li>More readable error message for generics in pyclass <a href="https://github.com/PyO3/pyo3/pull/503">#503</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev060v070070a---2019-05-26" id="a-hrefhttpsgithubcompyo3pyo3comparev060v070070a---2019-05-26"><a href="https://github.com/pyo3/pyo3/compare/v0.6.0...v0.7.0">0.7.0</a> - 2019-05-26</a></h2>
+<h3><a class="header" href="#added-11" id="added-11">Added</a></h3>
+<ul>
+<li>PyPy support by omerbenamram in <a href="https://github.com/PyO3/pyo3/pull/393">#393</a></li>
+<li>Have <code>PyModule</code> generate an index of its members (<code>__all__</code> list).</li>
+<li>Allow <code>slf: PyRef&lt;T&gt;</code> for pyclass(#419)</li>
+<li>Allow to use lifetime specifiers in <code>pymethods</code></li>
+<li>Add <code>marshal</code> module. <a href="https://github.com/PyO3/pyo3/pull/460">#460</a></li>
+</ul>
+<h3><a class="header" href="#changed-6" id="changed-6">Changed</a></h3>
+<ul>
+<li><code>Python::run</code> returns <code>PyResult&lt;()&gt;</code> instead of <code>PyResult&lt;&amp;PyAny&gt;</code>.</li>
+<li>Methods decorated with <code>#[getter]</code> and <code>#[setter]</code> can now omit wrapping the
+result type in <code>PyResult</code> if they don't raise exceptions.</li>
+</ul>
+<h3><a class="header" href="#fixed-11" id="fixed-11">Fixed</a></h3>
+<ul>
+<li><code>type_object::PyTypeObject</code> has been marked unsafe because breaking the contract <code>type_object::PyTypeObject::init_type</code> can lead to UB.</li>
+<li>Fixed automatic derive of <code>PySequenceProtocol</code> implementation in <a href="https://github.com/PyO3/pyo3/pull/423">#423</a>.</li>
+<li>Capitalization &amp; better wording to README.md.</li>
+<li>Docstrings of properties is now properly set using the doc of the <code>#[getter]</code> method.</li>
+<li>Fixed issues with <code>pymethods</code> crashing on doc comments containing double quotes.</li>
+<li><code>PySet::new</code> and <code>PyFrozenSet::new</code> now return <code>PyResult&lt;&amp;Py[Frozen]Set&gt;</code>; exceptions are raised if
+the items are not hashable.</li>
+<li>Fixed building using <code>venv</code> on Windows.</li>
+<li><code>PyTuple::new</code> now returns <code>&amp;PyTuple</code> instead of <code>Py&lt;PyTuple&gt;</code>.</li>
+<li>Fixed several issues with argument parsing; notable, the <code>*args</code> and <code>**kwargs</code>
+tuple/dict now doesn't contain arguments that are otherwise assigned to parameters.</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev053v060060a---2019-03-28" id="a-hrefhttpsgithubcompyo3pyo3comparev053v060060a---2019-03-28"><a href="https://github.com/pyo3/pyo3/compare/v0.5.3...v0.6.0">0.6.0</a> - 2019-03-28</a></h2>
+<h3><a class="header" href="#regressions" id="regressions">Regressions</a></h3>
+<ul>
+<li>Currently, <a href="https://github.com/PyO3/pyo3/issues/341">#341</a> causes <code>cargo test</code> to fail with weird linking errors when the <code>extension-module</code> feature is activated. For now you can work around this by making the <code>extension-module</code> feature optional and running the tests with <code>cargo test --no-default-features</code>:</li>
+</ul>
+<pre><code class="language-toml">[dependencies.pyo3]
+version = &quot;0.6.0&quot;
+
+[features]
+extension-module = [&quot;pyo3/extension-module&quot;]
+default = [&quot;extension-module&quot;]
+</code></pre>
+<h3><a class="header" href="#added-12" id="added-12">Added</a></h3>
+<ul>
+<li>Added a <code>wrap_pymodule!</code> macro similar to the existing <code>wrap_pyfunction!</code> macro. Only available on python 3</li>
+<li>Added support for cross compiling (e.g. to arm v7) by mtp401 in <a href="https://github.com/PyO3/pyo3/pull/327">#327</a>. See the &quot;Cross Compiling&quot; section in the &quot;Building and Distribution&quot; chapter of the guide for more details.</li>
+<li>The <code>PyRef</code> and <code>PyRefMut</code> types, which allow to differentiate between an instance of a rust struct on the rust heap and an instance that is embedded inside a python object. By kngwyu in <a href="https://github.com/PyO3/pyo3/pull/335">#335</a></li>
+<li>Added <code>FromPy&lt;T&gt;</code> and <code>IntoPy&lt;T&gt;</code> which are equivalent to <code>From&lt;T&gt;</code> and <code>Into&lt;T&gt;</code> except that they require a gil token.</li>
+<li>Added <code>ManagedPyRef</code>, which should eventually replace <code>ToBorrowedObject</code>.</li>
+</ul>
+<h3><a class="header" href="#changed-7" id="changed-7">Changed</a></h3>
+<ul>
+<li>Renamed <code>PyObjectRef</code> to <code>PyAny</code> in #388</li>
+<li>Renamed <code>add_function</code> to <code>add_wrapped</code> as it now also supports modules.</li>
+<li>Renamed <code>#[pymodinit]</code> to <code>#[pymodule]</code></li>
+<li><code>py.init(|| value)</code> becomes <code>Py::new(value)</code></li>
+<li><code>py.init_ref(|| value)</code> becomes <code>PyRef::new(value)</code></li>
+<li><code>py.init_mut(|| value)</code> becomes <code>PyRefMut::new(value)</code>.</li>
+<li><code>PyRawObject::init</code> is now infallible, e.g. it returns <code>()</code> instead of <code>PyResult&lt;()&gt;</code>.</li>
+<li>Renamed <code>py_exception!</code> to <code>create_exception!</code> and refactored the error macros.</li>
+<li>Renamed <code>wrap_function!</code> to <code>wrap_pyfunction!</code></li>
+<li>Renamed <code>#[prop(get, set)]</code> to <code>#[pyo3(get, set)]</code></li>
+<li><code>#[pyfunction]</code> now supports the same arguments as <code>#[pyfn()]</code></li>
+<li>Some macros now emit proper spanned errors instead of panics.</li>
+<li>Migrated to the 2018 edition</li>
+<li><code>crate::types::exceptions</code> moved to <code>crate::exceptions</code></li>
+<li>Replace <code>IntoPyTuple</code> with <code>IntoPy&lt;Py&lt;PyTuple&gt;&gt;</code>.</li>
+<li><code>IntoPyPointer</code> and <code>ToPyPointer</code> moved into the crate root.</li>
+<li><code>class::CompareOp</code> moved into <code>class::basic::CompareOp</code></li>
+<li>PyTypeObject is now a direct subtrait PyTypeCreate, removing the old cyclical implementation in <a href="https://github.com/PyO3/pyo3/pull/350">#350</a></li>
+<li>Add <code>PyList::{sort, reverse}</code> by chr1sj0nes in <a href="https://github.com/PyO3/pyo3/pull/357">#357</a> and <a href="https://github.com/PyO3/pyo3/pull/358">#358</a></li>
+<li>Renamed the <code>typeob</code> module to <code>type_object</code></li>
+</ul>
+<h3><a class="header" href="#removed-6" id="removed-6">Removed</a></h3>
+<ul>
+<li><code>PyToken</code> was removed due to unsoundness (See <a href="https://github.com/PyO3/pyo3/issues/94">#94</a>).</li>
+<li>Removed the unnecessary type parameter from <code>PyObjectAlloc</code></li>
+<li><code>NoArgs</code>. Just use an empty tuple</li>
+<li><code>PyObjectWithGIL</code>. <code>PyNativeType</code> is sufficient now that PyToken is removed.</li>
+</ul>
+<h3><a class="header" href="#fixed-12" id="fixed-12">Fixed</a></h3>
+<ul>
+<li>A soudness hole where every instances of a <code>#[pyclass]</code> struct was considered to be part of a python object, even though you can create instances that are not part of the python heap. This was fixed through <code>PyRef</code> and <code>PyRefMut</code>.</li>
+<li>Fix kwargs support in <a href="https://github.com/PyO3/pyo3/pull/328">#328</a>.</li>
+<li>Add full support for <code>__dict__</code> in <a href="https://github.com/PyO3/pyo3/pull/403">#403</a>.</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev052v053053a---2019-01-04" id="a-hrefhttpsgithubcompyo3pyo3comparev052v053053a---2019-01-04"><a href="https://github.com/pyo3/pyo3/compare/v0.5.2...v0.5.3">0.5.3</a> - 2019-01-04</a></h2>
+<h3><a class="header" href="#fixed-13" id="fixed-13">Fixed</a></h3>
+<ul>
+<li>Fix memory leak in ArrayList by kngwyu <a href="https://github.com/PyO3/pyo3/pull/316">#316</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev050v052052a---2018-11-25" id="a-hrefhttpsgithubcompyo3pyo3comparev050v052052a---2018-11-25"><a href="https://github.com/pyo3/pyo3/compare/v0.5.0...v0.5.2">0.5.2</a> - 2018-11-25</a></h2>
+<h3><a class="header" href="#fixed-14" id="fixed-14">Fixed</a></h3>
+<ul>
+<li>Fix undeterministic segfaults when creating many objects by kngwyu in <a href="https://github.com/PyO3/pyo3/pull/281">#281</a></li>
+</ul>
+<h2><a class="header" href="#051---2018-11-24" id="051---2018-11-24">[0.5.1] - 2018-11-24</a></h2>
+<p>Yanked</p>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev041v050050a---2018-11-11" id="a-hrefhttpsgithubcompyo3pyo3comparev041v050050a---2018-11-11"><a href="https://github.com/pyo3/pyo3/compare/v0.4.1...v0.5.0">0.5.0</a> - 2018-11-11</a></h2>
+<h3><a class="header" href="#added-13" id="added-13">Added</a></h3>
+<ul>
+<li><code>#[pyclass]</code> objects can now be returned from rust functions</li>
+<li><code>PyComplex</code> by kngwyu in <a href="https://github.com/PyO3/pyo3/pull/226">#226</a></li>
+<li><code>PyDict::from_sequence()</code>, equivalent to <code>dict([(key, val), ...])</code></li>
+<li>Bindings for the <code>datetime</code> standard library types: <code>PyDate</code>, <code>PyTime</code>, <code>PyDateTime</code>, <code>PyTzInfo</code>, <code>PyDelta</code> with associated <code>ffi</code> types, by pganssle <a href="https://github.com/PyO3/pyo3/pull/200">#200</a>.</li>
+<li><code>PyString</code>, <code>PyUnicode</code>, and <code>PyBytes</code> now have an <code>as_bytes()</code> method that returns <code>&amp;[u8]</code>.</li>
+<li><code>PyObjectProtocol::get_type_ptr()</code> by ijl in <a href="https://github.com/PyO3/pyo3/pull/242">#242</a></li>
+</ul>
+<h3><a class="header" href="#changed-8" id="changed-8">Changed</a></h3>
+<ul>
+<li>Removes the types from the root module and the prelude. They now live in <code>pyo3::types</code> instead.</li>
+<li>All exceptions are consturcted with <code>py_err</code> instead of <code>new</code>, as they return <code>PyErr</code> and not <code>Self</code>.</li>
+<li><code>as_mut</code> and friends take and <code>&amp;mut self</code> instead of <code>&amp;self</code></li>
+<li><code>ObjectProtocol::call</code> now takes an <code>Option&lt;&amp;PyDict&gt;</code> for the kwargs instead of an <code>IntoPyDictPointer</code>.</li>
+<li><code>IntoPyDictPointer</code> was replace by <code>IntoPyDict</code> which doesn't convert <code>PyDict</code> itself anymore and returns a <code>PyDict</code> instead of <code>*mut PyObject</code>.</li>
+<li><code>PyTuple::new</code> now takes an <code>IntoIterator</code> instead of a slice</li>
+<li>Updated to syn 0.15</li>
+<li>Splitted <code>PyTypeObject</code> into <code>PyTypeObject</code> without the create method and <code>PyTypeCreate</code> with requires <code>PyObjectAlloc&lt;Self&gt; + PyTypeInfo + Sized</code>.</li>
+<li>Ran <code>cargo edition --fix</code> which prefixed path with <code>crate::</code> for rust 2018</li>
+<li>Renamed <code>async</code> to <code>pyasync</code> as async will be a keyword in the 2018 edition.</li>
+<li>Starting to use <code>NonNull&lt;*mut PyObject&gt;</code> for Py and PyObject by ijl <a href="https://github.com/PyO3/pyo3/pull/260">#260</a></li>
+</ul>
+<h3><a class="header" href="#removed-7" id="removed-7">Removed</a></h3>
+<ul>
+<li>Removed most entries from the prelude. The new prelude is small and clear.</li>
+<li>Slowly removing specialization uses</li>
+<li><code>PyString</code>, <code>PyUnicode</code>, and <code>PyBytes</code> no longer have a <code>data()</code> method
+(replaced by <code>as_bytes()</code>) and <code>PyStringData</code> has been removed.</li>
+<li>The pyobject_extract macro</li>
+</ul>
+<h3><a class="header" href="#fixed-15" id="fixed-15">Fixed</a></h3>
+<ul>
+<li>Added an explanation that the GIL can temporarily be released even while holding a GILGuard.</li>
+<li>Lots of clippy errors</li>
+<li>Fix segfault on calling an unknown method on a PyObject</li>
+<li>Work around a <a href="https://github.com/rust-lang/rust/issues/55380">bug</a> in the rust compiler by kngwyu <a href="https://github.com/PyO3/pyo3/pull/252">#252</a></li>
+<li>Fixed a segfault with subclassing pyo3 create classes and using <code>__class__</code> by kngwyu <a href="https://github.com/PyO3/pyo3/pull/263">#263</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev040v041041a---2018-08-20" id="a-hrefhttpsgithubcompyo3pyo3comparev040v041041a---2018-08-20"><a href="https://github.com/pyo3/pyo3/compare/v0.4.0...v0.4.1">0.4.1</a> - 2018-08-20</a></h2>
+<h3><a class="header" href="#changed-9" id="changed-9">Changed</a></h3>
+<ul>
+<li>PyTryFrom's error is always to <code>PyDowncastError</code></li>
+</ul>
+<h3><a class="header" href="#fixed-16" id="fixed-16">Fixed</a></h3>
+<ul>
+<li>Fixed compilation on nightly since <code>use_extern_macros</code> was stabilized</li>
+</ul>
+<h3><a class="header" href="#removed-8" id="removed-8">Removed</a></h3>
+<ul>
+<li>The pyobject_downcast macro</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev032v040040a---2018-07-30" id="a-hrefhttpsgithubcompyo3pyo3comparev032v040040a---2018-07-30"><a href="https://github.com/pyo3/pyo3/compare/v0.3.2...v0.4.0">0.4.0</a> - 2018-07-30</a></h2>
+<h3><a class="header" href="#changed-10" id="changed-10">Changed</a></h3>
+<ul>
+<li>Merged both examples into one</li>
+<li>Rustfmt all the things :heavy_check_mark:</li>
+<li>Switched to <a href="http://keepachangelog.com/en/1.0.0/">Keep a Changelog</a></li>
+</ul>
+<h3><a class="header" href="#removed-9" id="removed-9">Removed</a></h3>
+<ul>
+<li>Conversions from tuples to PyDict due to <a href="https://github.com/rust-lang/rust/issues/52050">rust-lang/rust#52050</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev031v032032a---2018-07-22" id="a-hrefhttpsgithubcompyo3pyo3comparev031v032032a---2018-07-22"><a href="https://github.com/pyo3/pyo3/compare/v0.3.1...v0.3.2">0.3.2</a> - 2018-07-22</a></h2>
+<h3><a class="header" href="#changed-11" id="changed-11">Changed</a></h3>
+<ul>
+<li>Replaced <code>concat_idents</code> with mashup</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev030v031031a---2018-07-18" id="a-hrefhttpsgithubcompyo3pyo3comparev030v031031a---2018-07-18"><a href="https://github.com/pyo3/pyo3/compare/v0.3.0...v0.3.1">0.3.1</a> - 2018-07-18</a></h2>
+<h3><a class="header" href="#fixed-17" id="fixed-17">Fixed</a></h3>
+<ul>
+<li>Fixed scoping bug in pyobject_native_type that would break rust-numpy</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev027v030030a---2018-07-18" id="a-hrefhttpsgithubcompyo3pyo3comparev027v030030a---2018-07-18"><a href="https://github.com/pyo3/pyo3/compare/v0.2.7...v0.3.0">0.3.0</a> - 2018-07-18</a></h2>
+<h3><a class="header" href="#added-14" id="added-14">Added</a></h3>
+<ul>
+<li>A few internal macros became part of the public api (<a href="https://github.com/PyO3/pyo3/pull/155">#155</a>, <a href="https://github.com/PyO3/pyo3/pull/186">#186</a>)</li>
+<li>Always clone in getters. This allows using the get-annotation on all Clone-Types</li>
+</ul>
+<h3><a class="header" href="#changed-12" id="changed-12">Changed</a></h3>
+<ul>
+<li>Upgraded to syn 0.14 which means much better error messages :tada:</li>
+<li>128 bit integer support by <a href="https://github.com/kngwyu">kngwyu</a> (<a href="https://github.com/PyO3/pyo3/pull/173">#137</a>)</li>
+<li><code>proc_macro</code> has been stabilized on nightly (<a href="https://github.com/rust-lang/rust/pull/52081">rust-lang/rust#52081</a>). This means that we can remove the <code>proc_macro</code> feature, but now we need the <code>use_extern_macros</code> from the 2018 edition instead.</li>
+<li>All proc macro are now prefixed with <code>py</code> and live in the prelude. This means you can use <code>#[pyclass]</code>, <code>#[pymethods]</code>, <code>#[pyproto]</code>, <code>#[pyfunction]</code> and <code>#[pymodinit]</code> directly, at least after a <code>use pyo3::prelude::*</code>. They were also moved into a module called <code>proc_macro</code>. You shouldn't use <code>#[pyo3::proc_macro::pyclass]</code> or other longer paths in attributes because <code>proc_macro_path_invoc</code> isn't going to be stabilized soon.</li>
+<li>Renamed the <code>base</code> option in the <code>pyclass</code> macro to <code>extends</code>.</li>
+<li><code>#[pymodinit]</code> uses the function name as module name, unless the name is overrriden with <code>#[pymodinit(name)]</code></li>
+<li>The guide is now properly versioned.</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev026v027027a---2018-05-18" id="a-hrefhttpsgithubcompyo3pyo3comparev026v027027a---2018-05-18"><a href="https://github.com/pyo3/pyo3/compare/v0.2.6...v0.2.7">0.2.7</a> - 2018-05-18</a></h2>
+<h3><a class="header" href="#fixed-18" id="fixed-18">Fixed</a></h3>
+<ul>
+<li>Fix nightly breakage with proc_macro_path</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev025v026026a---2018-04-03" id="a-hrefhttpsgithubcompyo3pyo3comparev025v026026a---2018-04-03"><a href="https://github.com/pyo3/pyo3/compare/v0.2.5...v0.2.6">0.2.6</a> - 2018-04-03</a></h2>
+<h3><a class="header" href="#fixed-19" id="fixed-19">Fixed</a></h3>
+<ul>
+<li>Fix compatibility with TryFrom trait #137</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev024v025025a---2018-02-21" id="a-hrefhttpsgithubcompyo3pyo3comparev024v025025a---2018-02-21"><a href="https://github.com/pyo3/pyo3/compare/v0.2.4...v0.2.5">0.2.5</a> - 2018-02-21</a></h2>
+<h3><a class="header" href="#added-15" id="added-15">Added</a></h3>
+<ul>
+<li>CPython 3.7 support</li>
+</ul>
+<h3><a class="header" href="#fixed-20" id="fixed-20">Fixed</a></h3>
+<ul>
+<li>Embedded CPython 3.7b1 crashes on initialization #110</li>
+<li>Generated extension functions are weakly typed #108</li>
+<li>call_method*() crashes when the method does not exist #113</li>
+<li>Allow importing exceptions from nested modules #116</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev023v024024a---2018-01-19" id="a-hrefhttpsgithubcompyo3pyo3comparev023v024024a---2018-01-19"><a href="https://github.com/pyo3/pyo3/compare/v0.2.3...v0.2.4">0.2.4</a> - 2018-01-19</a></h2>
+<h3><a class="header" href="#added-16" id="added-16">Added</a></h3>
+<ul>
+<li>Allow to get mutable ref from PyObject #106</li>
+<li>Drop <code>RefFromPyObject</code> trait</li>
+<li>Add Python::register_any() method</li>
+</ul>
+<h3><a class="header" href="#fixed-21" id="fixed-21">Fixed</a></h3>
+<ul>
+<li>Fix impl <code>FromPyObject</code> for <code>Py&lt;T&gt;</code></li>
+<li>Mark method that work with raw pointers as unsafe #95</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev022v023023a---11-27-2017" id="a-hrefhttpsgithubcompyo3pyo3comparev022v023023a---11-27-2017"><a href="https://github.com/pyo3/pyo3/compare/v0.2.2...v0.2.3">0.2.3</a> - 11-27-2017</a></h2>
+<h3><a class="header" href="#changed-13" id="changed-13">Changed</a></h3>
+<ul>
+<li>Rustup to 1.23.0-nightly 2017-11-07</li>
+</ul>
+<h3><a class="header" href="#fixed-22" id="fixed-22">Fixed</a></h3>
+<ul>
+<li>Proper <code>c_char</code> usage #93</li>
+</ul>
+<h3><a class="header" href="#removed-10" id="removed-10">Removed</a></h3>
+<ul>
+<li>Remove use of now unneeded 'AsciiExt' trait</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev021v022022a---09-26-2017" id="a-hrefhttpsgithubcompyo3pyo3comparev021v022022a---09-26-2017"><a href="https://github.com/pyo3/pyo3/compare/v0.2.1...v0.2.2">0.2.2</a> - 09-26-2017</a></h2>
+<h3><a class="header" href="#changed-14" id="changed-14">Changed</a></h3>
+<ul>
+<li>Rustup to 1.22.0-nightly 2017-09-30</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev020v021021a---09-26-2017" id="a-hrefhttpsgithubcompyo3pyo3comparev020v021021a---09-26-2017"><a href="https://github.com/pyo3/pyo3/compare/v0.2.0...v0.2.1">0.2.1</a> - 09-26-2017</a></h2>
+<h3><a class="header" href="#fixed-23" id="fixed-23">Fixed</a></h3>
+<ul>
+<li>Fix rustc const_fn nightly breakage</li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev010v020020a---08-12-2017" id="a-hrefhttpsgithubcompyo3pyo3comparev010v020020a---08-12-2017"><a href="https://github.com/pyo3/pyo3/compare/v0.1.0...v0.2.0">0.2.0</a> - 08-12-2017</a></h2>
+<h3><a class="header" href="#added-17" id="added-17">Added</a></h3>
+<ul>
+<li>Added inheritance support #15</li>
+<li>Added weakref support #56</li>
+<li>Added subclass support #64</li>
+<li>Added <code>self.__dict__</code> supoort #68</li>
+<li>Added <code>pyo3::prelude</code> module #70</li>
+<li>Better <code>Iterator</code> support for PyTuple, PyList, PyDict #75</li>
+<li>Introduce IntoPyDictPointer similar to IntoPyTuple #69</li>
+</ul>
+<h3><a class="header" href="#changed-15" id="changed-15">Changed</a></h3>
+<ul>
+<li>Allow to add gc support without implementing PyGCProtocol #57</li>
+<li>Refactor <code>PyErr</code> implementation. Drop <code>py</code> parameter from constructor.</li>
+</ul>
+<h2><a class="header" href="#010---07-23-2017" id="010---07-23-2017">0.1.0 - 07-23-2017</a></h2>
+<h3><a class="header" href="#added-18" id="added-18">Added</a></h3>
+<ul>
+<li>Initial release</li>
+</ul>
 
                     </main>
 
