@@ -13,6 +13,7 @@ pub use self::datetime::{
 };
 pub use self::dict::{IntoPyDict, PyDict};
 pub use self::floatob::PyFloat;
+pub use self::function::{PyCFunction, PyFunction};
 pub use self::iterator::PyIterator;
 pub use self::list::PyList;
 pub use self::module::PyModule;
@@ -71,15 +72,6 @@ macro_rules! pyobject_native_type_named (
                 unsafe { $crate::Py::from_borrowed_ptr(py, self.as_ptr()) }
             }
         }
-
-        impl<$($type_param,)*> From<&'_ $name> for $crate::Py<$name> {
-            #[inline]
-            fn from(other: &$name) -> Self {
-                use $crate::AsPyPointer;
-                use $crate::PyNativeType;
-                unsafe { $crate::Py::from_borrowed_ptr(other.py(), other.as_ptr()) }
-            }
-        }
     };
 );
 
@@ -94,6 +86,18 @@ macro_rules! pyobject_native_type_core {
         impl<'a, $($type_param,)*> ::std::convert::From<&'a $name> for &'a $crate::PyAny {
             fn from(ob: &'a $name) -> Self {
                 unsafe{&*(ob as *const $name as *const $crate::PyAny)}
+            }
+        }
+
+
+        // TODO: Rust>=1.40 allows this impl for rust-numpy.
+        // So we should move this to `named` or `convert` when we bump MSRV.
+        impl<$($type_param,)*> From<&'_ $name> for $crate::Py<$name> {
+            #[inline]
+            fn from(other: &$name) -> Self {
+                use $crate::AsPyPointer;
+                use $crate::PyNativeType;
+                unsafe { $crate::Py::from_borrowed_ptr(other.py(), other.as_ptr()) }
             }
         }
     }
@@ -226,6 +230,7 @@ mod complex;
 mod datetime;
 mod dict;
 mod floatob;
+mod function;
 mod iterator;
 mod list;
 mod module;

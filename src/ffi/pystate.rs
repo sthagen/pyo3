@@ -1,17 +1,15 @@
-#[cfg(Py_3_6)]
 use crate::ffi::ceval::_PyFrameEvalFunction;
+use crate::ffi::frameobject::PyFrameObject;
 use crate::ffi::moduleobject::PyModuleDef;
 use crate::ffi::object::PyObject;
 use std::os::raw::{c_int, c_long};
 
-#[cfg(Py_3_6)]
 pub const MAX_CO_EXTRA_USERS: c_int = 255;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct PyInterpreterState {
     pub ob_base: PyObject,
-    #[cfg(Py_3_6)]
     pub eval_frame: _PyFrameEvalFunction,
 }
 
@@ -70,3 +68,10 @@ extern "C" {
 pub unsafe fn PyThreadState_GET() -> *mut PyThreadState {
     PyThreadState_Get()
 }
+
+pub type Py_tracefunc = extern "C" fn(
+    obj: *mut PyObject,
+    frame: *mut PyFrameObject,
+    what: c_int,
+    arg: *mut PyObject,
+) -> c_int;

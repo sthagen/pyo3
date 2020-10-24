@@ -132,18 +132,12 @@ fn standard_element_type_from_type_char(type_char: u8) -> ElementType {
 
 #[cfg(target_endian = "little")]
 fn is_matching_endian(c: u8) -> bool {
-    match c {
-        b'@' | b'=' | b'<' => true,
-        _ => false,
-    }
+    c == b'@' || c == b'=' || c == b'>'
 }
 
 #[cfg(target_endian = "big")]
 fn is_matching_endian(c: u8) -> bool {
-    match c {
-        b'@' | b'=' | b'>' | b'!' => true,
-        _ => false,
-    }
+    c == b'@' || c == b'=' || c == b'>' || c == b'!'
 }
 
 /// Trait implemented for possible element types of `PyBuffer`.
@@ -156,10 +150,10 @@ pub unsafe trait Element: Copy {
 fn validate(b: &ffi::Py_buffer) -> PyResult<()> {
     // shape and stride information must be provided when we use PyBUF_FULL_RO
     if b.shape.is_null() {
-        return Err(exceptions::PyBufferError::py_err("Shape is Null"));
+        return Err(exceptions::PyBufferError::new_err("Shape is Null"));
     }
     if b.strides.is_null() {
-        return Err(exceptions::PyBufferError::py_err(
+        return Err(exceptions::PyBufferError::new_err(
             "PyBuffer: Strides is Null",
         ));
     }
@@ -190,7 +184,7 @@ impl<T: Element> PyBuffer<T> {
             {
                 Ok(buf)
             } else {
-                Err(exceptions::PyBufferError::py_err(
+                Err(exceptions::PyBufferError::new_err(
                     "Incompatible type as buffer",
                 ))
             }
@@ -441,7 +435,7 @@ impl<T: Element> PyBuffer<T> {
 
     fn copy_to_slice_impl(&self, py: Python, target: &mut [T], fort: u8) -> PyResult<()> {
         if mem::size_of_val(target) != self.len_bytes() {
-            return Err(exceptions::PyBufferError::py_err(
+            return Err(exceptions::PyBufferError::new_err(
                 "Slice length does not match buffer length.",
             ));
         }
@@ -528,7 +522,7 @@ impl<T: Element> PyBuffer<T> {
             return buffer_readonly_error();
         }
         if mem::size_of_val(source) != self.len_bytes() {
-            return Err(exceptions::PyBufferError::py_err(
+            return Err(exceptions::PyBufferError::new_err(
                 "Slice length does not match buffer length.",
             ));
         }
@@ -564,7 +558,7 @@ impl<T: Element> PyBuffer<T> {
 
 #[inline(always)]
 fn buffer_readonly_error() -> PyResult<()> {
-    Err(exceptions::PyBufferError::py_err(
+    Err(exceptions::PyBufferError::new_err(
         "Cannot write to read-only buffer.",
     ))
 }

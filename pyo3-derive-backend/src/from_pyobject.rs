@@ -73,12 +73,8 @@ impl<'a> Enum<'a> {
         quote!(
             #(#var_extracts)*
             let type_name = obj.get_type().name();
-            let from = obj
-                .repr()
-                .map(|s| format!("{} ({})", s.to_string_lossy(), type_name))
-                .unwrap_or_else(|_| type_name.to_string());
-            let err_msg = format!("Can't convert {} to {}", from, #error_names);
-            Err(::pyo3::exceptions::PyTypeError::py_err(err_msg))
+            let err_msg = format!("'{}' object cannot be converted to '{}'", type_name, #error_names);
+            Err(::pyo3::exceptions::PyTypeError::new_err(err_msg))
         )
     }
 }
@@ -133,7 +129,9 @@ impl<'a> Container<'a> {
                 "Cannot derive FromPyObject for empty structs and variants.",
             ));
         }
-        let transparent = attrs.iter().any(ContainerAttribute::transparent);
+        let transparent = attrs
+            .iter()
+            .any(|attr| *attr == ContainerAttribute::Transparent);
         if transparent {
             Self::check_transparent_len(fields)?;
         }
@@ -182,7 +180,6 @@ impl<'a> Container<'a> {
         let err_name = attrs
             .iter()
             .find_map(|a| a.annotation())
-            .cloned()
             .unwrap_or_else(|| path.segments.last().unwrap().ident.to_string());
 
         let v = Container {
@@ -263,7 +260,7 @@ impl<'a> Container<'a> {
         quote!(
             let s = <::pyo3::types::PyTuple as ::pyo3::conversion::PyTryFrom>::try_from(obj)?;
             if s.len() != #len {
-                return Err(::pyo3::exceptions::PyValueError::py_err(#msg))
+                return Err(::pyo3::exceptions::PyValueError::new_err(#msg))
             }
             let slice = s.as_slice();
             Ok(#self_ty(#fields))
@@ -306,18 +303,10 @@ enum ContainerAttribute {
 }
 
 impl ContainerAttribute {
-    /// Return whether this attribute is `Transparent`
-    fn transparent(&self) -> bool {
-        match self {
-            ContainerAttribute::Transparent => true,
-            _ => false,
-        }
-    }
-
     /// Convenience method to access `ErrorAnnotation`.
-    fn annotation(&self) -> Option<&String> {
+    fn annotation(&self) -> Option<String> {
         match self {
-            ContainerAttribute::ErrorAnnotation(s) => Some(s),
+            ContainerAttribute::ErrorAnnotation(s) => Some(s.to_string()),
             _ => None,
         }
     }

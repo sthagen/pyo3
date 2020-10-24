@@ -126,7 +126,7 @@ impl<'p> Python<'p> {
     ///             .collect();
     ///         let mut sum = 0;
     ///         for t in threads {
-    ///             sum += t.join().map_err(|_| PyErr::new::<PyRuntimeError, _>(()))?;
+    ///             sum += t.join().map_err(|_| PyRuntimeError::new_err(()))?;
     ///         }
     ///         Ok(sum)
     ///     })
@@ -134,7 +134,7 @@ impl<'p> Python<'p> {
     /// let gil = Python::acquire_gil();
     /// let py = gil.python();
     /// let m = PyModule::new(py, "pcount").unwrap();
-    /// m.add_function(wrap_pyfunction!(parallel_count)).unwrap();
+    /// m.add_function(wrap_pyfunction!(parallel_count, m).unwrap()).unwrap();
     /// let locals = [("pcount", m)].into_py_dict(py);
     /// py.run(r#"
     ///    s = ["Flow", "my", "tears", "the", "Policeman", "Said"]
@@ -280,13 +280,11 @@ impl<'p> Python<'p> {
                 .unwrap_or_else(|| ffi::PyModule_GetDict(mptr));
             let locals = locals.map(AsPyPointer::as_ptr).unwrap_or(globals);
 
-            let res_ptr = ffi::PyRun_StringFlags(
-                code.as_ptr(),
-                start,
-                globals,
-                locals,
-                ::std::ptr::null_mut(),
-            );
+            let code_obj = ffi::Py_CompileString(code.as_ptr(), "<string>\0".as_ptr() as _, start);
+            if code_obj.is_null() {
+                return Err(PyErr::fetch(self));
+            }
+            let res_ptr = ffi::PyEval_EvalCode(code_obj, globals, locals);
 
             self.from_owned_ptr_or_err(res_ptr)
         }
@@ -499,6 +497,26 @@ impl<'p> Python<'p> {
     #[inline]
     pub fn xdecref<T: IntoPyPointer>(self, ptr: T) {
         unsafe { ffi::Py_XDECREF(ptr.into_ptr()) };
+    }
+
+    /// Lets the Python interpreter check for pending signals and invoke the
+    /// corresponding signal handlers. This can run arbitrary Python code.
+    ///
+    /// If an exception is raised by the signal handler, or the default signal
+    /// handler raises an exception (such as `KeyboardInterrupt` for `SIGINT`),
+    /// an `Err` is returned.
+    ///
+    /// This is a wrapper of the C function `PyErr_CheckSignals()`. It is good
+    /// practice to call this regularly in a long-running calculation since
+    /// SIGINT and other signals handled by Python code are left pending for its
+    /// entire duration.
+    pub fn check_signals(self) -> PyResult<()> {
+        let v = unsafe { ffi::PyErr_CheckSignals() };
+        if v == -1 {
+            Err(PyErr::fetch(self))
+        } else {
+            Ok(())
+        }
     }
 }
 

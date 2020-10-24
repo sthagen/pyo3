@@ -11,6 +11,7 @@ pub use self::code::*;
 pub use self::codecs::*;
 pub use self::compile::*;
 pub use self::complexobject::*;
+pub use self::context::*;
 pub use self::datetime::*;
 pub use self::descrobject::*;
 pub use self::dictobject::*;
@@ -19,6 +20,7 @@ pub use self::eval::*;
 pub use self::fileobject::*;
 pub use self::floatobject::*;
 pub use self::frameobject::PyFrameObject;
+pub use self::funcobject::*;
 pub use self::genobject::*;
 pub use self::import::*;
 pub use self::intrcheck::*;
@@ -33,7 +35,6 @@ pub use self::moduleobject::*;
 pub use self::object::*;
 pub use self::objectabstract::*;
 pub use self::objimpl::*;
-#[cfg(Py_3_6)]
 pub use self::osmodule::*;
 pub use self::pyarena::*;
 pub use self::pycapsule::*;
@@ -123,7 +124,6 @@ mod pythonrun; // TODO some functions need to be moved to pylifecycle
 mod ceval; // TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5
 mod import;
 mod intrcheck; // TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5
-#[cfg(Py_3_6)]
 mod osmodule;
 mod sysmodule; // TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5
 
@@ -136,6 +136,13 @@ mod code {}
 mod code;
 
 mod compile; // TODO: incomplete
+
+#[cfg(all(Py_3_8, not(Py_LIMITED_API)))]
+mod context; // It's actually 3.7.1, but no cfg for patches.
+
+#[cfg(not(all(Py_3_8, not(Py_LIMITED_API))))]
+mod context {}
+
 mod eval; // TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5
 
 // mod pyctype; TODO excluded by PEP-384
@@ -157,3 +164,5 @@ pub mod frameobject {
 
 pub(crate) mod datetime;
 pub(crate) mod marshal;
+
+pub(crate) mod funcobject;

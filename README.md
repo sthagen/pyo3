@@ -18,7 +18,7 @@ A comparison with rust-cpython can be found [in the guide](https://pyo3.rs/maste
 
 ## Usage
 
-PyO3 supports Python 3.5 and up. The minimum required Rust version is 1.39.0.
+PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.39.0.
 
 Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
 Please refer to the [pypy section in the guide](https://pyo3.rs/master/pypy.html).
@@ -48,7 +48,7 @@ name = "string_sum"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.11.1"
+version = "0.12.3"
 features = ["extension-module"]
 ```
 
@@ -67,7 +67,7 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 /// A Python module implemented in Rust.
 #[pymodule]
 fn string_sum(py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string))?;
+    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
 
     Ok(())
 }
@@ -99,7 +99,7 @@ use it to run Python code, add `pyo3` to your `Cargo.toml` like this:
 
 ```toml
 [dependencies]
-pyo3 = "0.11.1"
+pyo3 = "0.12.3"
 ```
 
 Example program displaying the value of `sys.version` and the current user name:
@@ -135,7 +135,7 @@ about this topic.
 ## Tools and libraries
  * [maturin](https://github.com/PyO3/maturin) _Zero configuration build tool for Rust-made Python extensions_.
  * [setuptools-rust](https://github.com/PyO3/setuptools-rust) _Setuptools plugin for Rust support_.
- * [pyo3-built](https://github.com/PyO3/pyo3-built) _Simple macro to expose metadata obtained with the [`built`](https://crates.io/crates/built) crate as a [`PyDict`](https://pyo3.github.io/pyo3/pyo3/struct.PyDict.html)_
+ * [pyo3-built](https://github.com/PyO3/pyo3-built) _Simple macro to expose metadata obtained with the [`built`](https://crates.io/crates/built) crate as a [`PyDict`](https://docs.rs/pyo3/0.12.0/pyo3/types/struct.PyDict.html)_
  * [rust-numpy](https://github.com/PyO3/rust-numpy) _Rust binding of NumPy C-API_
  * [dict-derive](https://github.com/gperinazzo/dict-derive) _Derive FromPyObject to automatically transform Python dicts into Rust structs_
  * [pyo3-log](https://github.com/vorner/pyo3-log) _Bridge from Rust to Python logging_
@@ -152,9 +152,10 @@ about this topic.
  * [Rogue-Gym](https://github.com/kngwyu/rogue-gym) _Customizable rogue-like game for AI experiments_
    * Contains an example of building wheels on Azure Pipelines
  * [fastuuid](https://github.com/thedrow/fastuuid/) _Python bindings to Rust's UUID library_
- * [python-ext-wasm](https://github.com/wasmerio/python-ext-wasm) _Python library to run WebAssembly binaries_
+ * [wasmer-python](https://github.com/wasmerio/wasmer-python) _Python library to run WebAssembly binaries_
  * [mocpy](https://github.com/cds-astro/mocpy) _Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere_
  * [tokenizers](https://github.com/huggingface/tokenizers/tree/master/bindings/python) _Python bindings to the Hugging Face tokenizers (NLP) written in Rust_
+ * [pyre](https://github.com/Project-Dream-Weaver/Pyre) _Fast Python HTTP server written in Rust_
 
 ## License
 

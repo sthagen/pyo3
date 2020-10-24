@@ -148,7 +148,9 @@ impl CrossCompileConfig {
 }
 
 fn cross_compiling() -> Result<Option<CrossCompileConfig>> {
-    if env::var("TARGET")? == env::var("HOST")? {
+    let target = env::var("TARGET")?;
+    let host = env::var("HOST")?;
+    if target == host || (target == "i686-pc-windows-msvc" && host == "x86_64-pc-windows-msvc") {
         return Ok(None);
     }
 
@@ -680,8 +682,14 @@ import platform
 import struct
 import sys
 import sysconfig
+import os.path
 
 PYPY = platform.python_implementation() == "PyPy"
+
+# Anaconda based python distributions have a static python executable, but include
+# the shared library. Use the shared library for embedding to avoid rust trying to
+# LTO the static library (and failing with newer gcc's, because it is old).
+ANACONDA = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
 try:
     base_prefix = sys.base_prefix
@@ -697,7 +705,7 @@ if libdir is not None:
     print("libdir", libdir)
 print("ld_version", sysconfig.get_config_var('LDVERSION') or sysconfig.get_config_var('py_version_short'))
 print("base_prefix", base_prefix)
-print("shared", PYPY or bool(sysconfig.get_config_var('Py_ENABLE_SHARED')))
+print("shared", PYPY or ANACONDA or bool(sysconfig.get_config_var('Py_ENABLE_SHARED')))
 print("executable", sys.executable)
 print("calcsize_pointer", struct.calcsize("P"))
 "#;
@@ -762,7 +770,7 @@ fn configure(interpreter_config: &InterpreterConfig) -> Result<String> {
     }
 
     if let Some(minor) = interpreter_config.version.minor {
-        for i in 5..(minor + 1) {
+        for i in 6..=minor {
             println!("cargo:rustc-cfg=Py_3_{}", i);
             flags += format!("CFG_Py_3_{},", i).as_ref();
         }
@@ -885,16 +893,19 @@ fn main() -> Result<()> {
         // TODO: Find out how we can set -undefined dynamic_lookup here (if this is possible)
     }
 
-    let env_vars = [
-        "LD_LIBRARY_PATH",
-        "PATH",
-        "PYTHON_SYS_EXECUTABLE",
-        "PYO3_PYTHON",
-        "LIB",
-    ];
-
-    for var in env_vars.iter() {
+    for var in ["LIB", "LD_LIBRARY_PATH", "PYO3_PYTHON"].iter() {
         println!("cargo:rerun-if-env-changed={}", var);
+    }
+
+    if env::var_os("PYO3_PYTHON").is_none() {
+        // When PYO3_PYTHON is not used, PYTHON_SYS_EXECUTABLE has the highest priority.
+        // Let's watch it.
+        println!("cargo:rerun-if-env-changed=PYTHON_SYS_EXECUTABLE");
+        if env::var_os("PYTHON_SYS_EXECUTABLE").is_none() {
+            // When PYTHON_SYS_EXECUTABLE is also not used, then we use PATH.
+            // Let's watch this, too.
+            println!("cargo:rerun-if-env-changed=PATH");
+        }
     }
 
     Ok(())

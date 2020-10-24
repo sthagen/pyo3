@@ -42,7 +42,7 @@ fn make_time<'p>(
     )
 }
 
-#[cfg(Py_3_6)]
+#[cfg(not(PyPy))]
 #[pyfunction]
 fn time_with_fold<'p>(
     py: Python<'p>,
@@ -77,7 +77,7 @@ fn get_time_tuple<'p>(py: Python<'p>, dt: &PyTime) -> &'p PyTuple {
     )
 }
 
-#[cfg(all(Py_3_6, not(PyPy)))]
+#[cfg(not(PyPy))]
 #[pyfunction]
 fn get_time_tuple_fold<'p>(py: Python<'p>, dt: &PyTime) -> &'p PyTuple {
     PyTuple::new(
@@ -156,7 +156,7 @@ fn get_datetime_tuple<'p>(py: Python<'p>, dt: &PyDateTime) -> &'p PyTuple {
     )
 }
 
-#[cfg(all(Py_3_6, not(PyPy)))]
+#[cfg(not(PyPy))]
 #[pyfunction]
 fn get_datetime_tuple_fold<'p>(py: Python<'p>, dt: &PyDateTime) -> &'p PyTuple {
     PyTuple::new(
@@ -215,29 +215,26 @@ impl TzClass {
 
 #[pymodule]
 fn datetime(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(make_date))?;
-    m.add_function(wrap_pyfunction!(get_date_tuple))?;
-    m.add_function(wrap_pyfunction!(date_from_timestamp))?;
-    m.add_function(wrap_pyfunction!(make_time))?;
-    m.add_function(wrap_pyfunction!(get_time_tuple))?;
-    m.add_function(wrap_pyfunction!(make_delta))?;
-    m.add_function(wrap_pyfunction!(get_delta_tuple))?;
-    m.add_function(wrap_pyfunction!(make_datetime))?;
-    m.add_function(wrap_pyfunction!(get_datetime_tuple))?;
-    m.add_function(wrap_pyfunction!(datetime_from_timestamp))?;
+    m.add_function(wrap_pyfunction!(make_date, m)?)?;
+    m.add_function(wrap_pyfunction!(get_date_tuple, m)?)?;
+    m.add_function(wrap_pyfunction!(date_from_timestamp, m)?)?;
+    m.add_function(wrap_pyfunction!(make_time, m)?)?;
+    m.add_function(wrap_pyfunction!(get_time_tuple, m)?)?;
+    m.add_function(wrap_pyfunction!(make_delta, m)?)?;
+    m.add_function(wrap_pyfunction!(get_delta_tuple, m)?)?;
+    m.add_function(wrap_pyfunction!(make_datetime, m)?)?;
+    m.add_function(wrap_pyfunction!(get_datetime_tuple, m)?)?;
+    m.add_function(wrap_pyfunction!(datetime_from_timestamp, m)?)?;
 
-    // Python 3.6+ functions
-    #[cfg(Py_3_6)]
+    // Functions not supported by PyPy
+    #[cfg(not(PyPy))]
     {
-        m.add_function(wrap_pyfunction!(time_with_fold))?;
-        #[cfg(not(PyPy))]
-        {
-            m.add_function(wrap_pyfunction!(get_time_tuple_fold))?;
-            m.add_function(wrap_pyfunction!(get_datetime_tuple_fold))?;
-        }
+        m.add_function(wrap_pyfunction!(time_with_fold, m)?)?;
+        m.add_function(wrap_pyfunction!(get_time_tuple_fold, m)?)?;
+        m.add_function(wrap_pyfunction!(get_datetime_tuple_fold, m)?)?;
     }
 
-    m.add_function(wrap_pyfunction!(issue_219))?;
+    m.add_function(wrap_pyfunction!(issue_219, m)?)?;
     m.add_class::<TzClass>()?;
 
     Ok(())

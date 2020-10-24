@@ -163,7 +163,7 @@ impl PyAny {
             } else if do_compare(other, ffi::Py_GT)? {
                 Ok(Ordering::Greater)
             } else {
-                Err(PyTypeError::py_err(
+                Err(PyTypeError::new_err(
                     "PyAny::compare(): All comparisons returned false",
                 ))
             }
@@ -362,7 +362,7 @@ impl PyAny {
     ///
     /// This is typically a new iterator but if the argument is an iterator,
     /// this returns itself.
-    pub fn iter(&self) -> PyResult<PyIterator> {
+    pub fn iter(&self) -> PyResult<&PyIterator> {
         PyIterator::from_object(self.py(), self)
     }
 

@@ -215,14 +215,14 @@ fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
     quote! {
         #[doc(hidden)]
         pub struct #inventory_cls {
-            methods: &'static [pyo3::class::PyMethodDefType],
+            methods: Vec<pyo3::class::PyMethodDefType>,
         }
         impl pyo3::class::methods::PyMethodsInventory for #inventory_cls {
-            fn new(methods: &'static [pyo3::class::PyMethodDefType]) -> Self {
+            fn new(methods: Vec<pyo3::class::PyMethodDefType>) -> Self {
                 Self { methods }
             }
-            fn get(&self) -> &'static [pyo3::class::PyMethodDefType] {
-                self.methods
+            fn get(&'static self) -> &'static [pyo3::class::PyMethodDefType] {
+                &self.methods
             }
         }
 
@@ -267,7 +267,7 @@ fn impl_class(
             quote! {
                 impl pyo3::freelist::PyClassWithFreeList for #cls {
                     #[inline]
-                    fn get_free_list() -> &'static mut pyo3::freelist::FreeList<*mut pyo3::ffi::PyObject> {
+                    fn get_free_list(_py: pyo3::Python) -> &mut pyo3::freelist::FreeList<*mut pyo3::ffi::PyObject> {
                         static mut FREELIST: *mut pyo3::freelist::FreeList<*mut pyo3::ffi::PyObject> = 0 as *mut _;
                         unsafe {
                             if FREELIST.is_null() {
@@ -483,7 +483,7 @@ fn impl_descriptors(
         pyo3::inventory::submit! {
             #![crate = pyo3] {
                 type Inventory = <#cls as pyo3::class::methods::HasMethodsInventory>::Methods;
-                <Inventory as pyo3::class::methods::PyMethodsInventory>::new(&[#(#py_methods),*])
+                <Inventory as pyo3::class::methods::PyMethodsInventory>::new(vec![#(#py_methods),*])
             }
         }
     })

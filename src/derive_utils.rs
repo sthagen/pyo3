@@ -8,7 +8,7 @@ use crate::err::{PyErr, PyResult};
 use crate::exceptions::PyTypeError;
 use crate::instance::PyNativeType;
 use crate::pyclass::{PyClass, PyClassThreadChecker};
-use crate::types::{PyAny, PyDict, PyModule, PyTuple};
+use crate::types::{PyAny, PyDict, PyModule, PyString, PyTuple};
 use crate::{ffi, GILPool, IntoPy, PyCell, Python};
 use std::cell::UnsafeCell;
 
@@ -43,7 +43,7 @@ pub fn parse_fn_args<'p>(
     let nargs = args.len();
     let mut used_args = 0;
     macro_rules! raise_error {
-        ($s: expr $(,$arg:expr)*) => (return Err(PyTypeError::py_err(format!(
+        ($s: expr $(,$arg:expr)*) => (return Err(PyTypeError::new_err(format!(
             concat!("{} ", $s), fname.unwrap_or("function") $(,$arg)*
         ))))
     }
@@ -109,6 +109,19 @@ pub fn parse_fn_args<'p>(
         kwargs
     };
     Ok((args, kwargs))
+}
+
+/// Add the argument name to the error message of an error which occurred during argument extraction
+pub fn argument_extraction_error(py: Python, arg_name: &str, error: PyErr) -> PyErr {
+    if error.ptype(py) == py.get_type::<PyTypeError>() {
+        let reason = error
+            .instance(py)
+            .str()
+            .unwrap_or_else(|_| PyString::new(py, ""));
+        PyTypeError::new_err(format!("argument '{}': {}", arg_name, reason))
+    } else {
+        error
+    }
 }
 
 /// `Sync` wrapper of `ffi::PyModuleDef`.
@@ -209,17 +222,16 @@ where
 }
 
 /// Enum to abstract over the arguments of Python function wrappers.
-#[doc(hidden)]
-pub enum WrapPyFunctionArguments<'a> {
+pub enum PyFunctionArguments<'a> {
     Python(Python<'a>),
     PyModule(&'a PyModule),
 }
 
-impl<'a> WrapPyFunctionArguments<'a> {
+impl<'a> PyFunctionArguments<'a> {
     pub fn into_py_and_maybe_module(self) -> (Python<'a>, Option<&'a PyModule>) {
         match self {
-            WrapPyFunctionArguments::Python(py) => (py, None),
-            WrapPyFunctionArguments::PyModule(module) => {
+            PyFunctionArguments::Python(py) => (py, None),
+            PyFunctionArguments::PyModule(module) => {
                 let py = module.py();
                 (py, Some(module))
             }
@@ -227,14 +239,14 @@ impl<'a> WrapPyFunctionArguments<'a> {
     }
 }
 
-impl<'a> From<Python<'a>> for WrapPyFunctionArguments<'a> {
-    fn from(py: Python<'a>) -> WrapPyFunctionArguments<'a> {
-        WrapPyFunctionArguments::Python(py)
+impl<'a> From<Python<'a>> for PyFunctionArguments<'a> {
+    fn from(py: Python<'a>) -> PyFunctionArguments<'a> {
+        PyFunctionArguments::Python(py)
     }
 }
 
-impl<'a> From<&'a PyModule> for WrapPyFunctionArguments<'a> {
-    fn from(module: &'a PyModule) -> WrapPyFunctionArguments<'a> {
-        WrapPyFunctionArguments::PyModule(module)
+impl<'a> From<&'a PyModule> for PyFunctionArguments<'a> {
+    fn from(module: &'a PyModule) -> PyFunctionArguments<'a> {
+        PyFunctionArguments::PyModule(module)
     }
 }
