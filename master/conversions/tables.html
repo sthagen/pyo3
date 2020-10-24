@@ -197,7 +197,7 @@
 <tr><td><code>PyRef&lt;T&gt;</code></td><td>A <code>#[pyclass]</code> borrowed immutably.</td></tr>
 <tr><td><code>PyRefMut&lt;T&gt;</code></td><td>A <code>#[pyclass]</code> borrowed mutably.</td></tr>
 </tbody></table>
-<p>For more detail on accepting <code>#[pyclass]</code> values as function arguments, see <a href="class.html">the section of this guide on Python Classes</a>.</p>
+<p>For more detail on accepting <code>#[pyclass]</code> values as function arguments, see <a href="../class.html">the section of this guide on Python Classes</a>.</p>
 <h4><a class="header" href="#using-rust-library-types-vs-python-native-types" id="using-rust-library-types-vs-python-native-types">Using Rust library types vs Python-native types</a></h4>
 <p>Using Rust library types as function arguments will incur a conversion cost compared to using the Python-native types. Using the Python-native types is almost zero-cost (they just require a type check similar to the Python builtin function <code>isinstance()</code>).</p>
 <p>However, once that conversion cost has been paid, the Rust standard library types offer a number of benefits:</p>

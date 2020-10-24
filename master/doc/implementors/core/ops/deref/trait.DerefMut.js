@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["pyo3"] = [{"text":"impl&lt;'p, T:&nbsp;<a class=\"trait\" href=\"pyo3/pyclass/trait.PyClass.html\" title=\"trait pyo3::pyclass::PyClass\">PyClass</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a> for <a class=\"struct\" href=\"pyo3/pycell/struct.PyRefMut.html\" title=\"struct pyo3::pycell::PyRefMut\">PyRefMut</a>&lt;'p, T&gt;","synthetic":false,"types":["pyo3::pycell::PyRefMut"]}];
+implementors["pyo3"] = [{"text":"impl&lt;'p, T:&nbsp;PyClass&gt; DerefMut for PyRefMut&lt;'p, T&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

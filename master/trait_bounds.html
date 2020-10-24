@@ -605,7 +605,7 @@ pub struct UserModel {
 #[pymodule]
 fn trait_exposure(_py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
     m.add_class::&lt;UserModel&gt;()?;
-    m.add_function(wrap_pyfunction!(solve_wrapper))?;
+    m.add_function(wrap_pyfunction!(solve_wrapper, m)?)?;
     Ok(())
 }
 

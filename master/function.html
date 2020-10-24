@@ -186,7 +186,7 @@ fn double(x: usize) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_function(wrap_pyfunction!(double)).unwrap();
+    m.add_function(wrap_pyfunction!(double, m)?).unwrap();
 
     Ok(())
 }
@@ -211,7 +211,7 @@ fn num_kwds(kwds: Option&lt;&amp;PyDict&gt;) -&gt; usize {
 
 #[pymodule]
 fn module_with_functions(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_function(wrap_pyfunction!(num_kwds)).unwrap();
+    m.add_function(wrap_pyfunction!(num_kwds, m)?).unwrap();
     Ok(())
 }
 
@@ -314,11 +314,26 @@ Docstring: This function adds two unsigned 64-bit integers.
 Type:      builtin_function_or_method
 </code></pre>
 <h2><a class="header" href="#closures" id="closures">Closures</a></h2>
-<p>Currently, there are no conversions between <code>Fn</code>s in Rust and callables in Python. This would definitely be possible and very useful, so contributions are welcome. In the meantime, you can do the following:</p>
+<p>Currently, there are no conversions between <code>Fn</code>s in Rust and callables in Python. This would
+definitely be possible and very useful, so contributions are welcome. In the meantime, you can do
+the following:</p>
 <h3><a class="header" href="#calling-python-functions-in-rust" id="calling-python-functions-in-rust">Calling Python functions in Rust</a></h3>
-<p>You can use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method. You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs (or <code>None</code>) as second parameter. There are also <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call0"><code>PyAny::call0</code></a> with no args and <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1"><code>PyAny::call1</code></a> with only positional args.</p>
+<p>You can pass Python <code>def</code>'d functions and built-in functions to Rust functions <code>[PyFunction]</code>
+corresponds to regular Python functions while <code>[PyCFunction]</code> describes built-ins such as
+<code>repr()</code>.</p>
+<p>You can also use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will 
+return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method. 
+You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs 
+(or <code>None</code>) as second parameter. There are also <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call0"><code>PyAny::call0</code></a> with no args and <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1"><code>PyAny::call1</code></a>
+with only positional args.</p>
 <h3><a class="header" href="#calling-rust-functions-in-python" id="calling-rust-functions-in-python">Calling Rust functions in Python</a></h3>
-<p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a> to get the corresponding <a href="https://docs.rs/pyo3/latest/pyo3/type.PyObject.html"><code>PyObject</code></a>. For dynamic functions, e.g. lambdas and functions that were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>. (A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over the FFI barrier. You can even make that class callable with <code>__call__</code> so it looks like a function in Python code.</p>
+<p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a>
+to get the corresponding [<code>PyCFunction</code>]. For dynamic functions, e.g. lambdas and functions that
+were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>.
+(A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can
+then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over
+the FFI barrier. You can even make that class callable with <code>__call__</code> so it looks like a function
+in Python code.</p>
 <h3><a class="header" href="#accessing-the-module-of-a-function" id="accessing-the-module-of-a-function">Accessing the module of a function</a></h3>
 <p>It is possible to access the module of a <code>#[pyfunction]</code> and <code>#[pyfn]</code> in the
 function body by passing the <code>pass_module</code> argument to the attribute:</p>
@@ -332,7 +347,7 @@ fn pyfunction_with_module(module: &amp;PyModule) -&gt; PyResult&lt;&amp;str&gt; 
 
 #[pymodule]
 fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    m.add_function(wrap_pyfunction!(pyfunction_with_module))
+    m.add_function(wrap_pyfunction!(pyfunction_with_module, m)?)
 }
 
 <span class="boring">fn main() {}
@@ -355,6 +370,15 @@ fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
 
 <span class="boring">fn main() {}
 </span></code></pre></pre>
+<h2><a class="header" href="#accessing-the-ffi-functions" id="accessing-the-ffi-functions">Accessing the FFI functions</a></h2>
+<p>In order to make Rust functions callable from Python, PyO3 generates a 
+<code>extern &quot;C&quot; Fn(slf: *mut PyObject, args: *mut PyObject, kwargs: *mut PyObject) -&gt; *mut Pyobject</code>
+function and embeds the call to the Rust function inside this FFI-wrapper function. This
+wrapper handles extraction of the regular arguments and the keyword arguments from the input
+<code>PyObjects</code>. Since this function is not user-defined but required to build a <code>PyCFunction</code>, PyO3
+offers the <code>raw_pycfunction!()</code> macro to get the identifier of this generated wrapper.</p>
+<p>The <code>wrap_pyfunction</code> macro can be used to directly get a <code>PyCFunction</code> given a
+<code>#[pyfunction]</code> and a <code>PyModule</code>: <code>wrap_pyfunction!(rust_fun, module)</code>.</p>
 
                     </main>
 

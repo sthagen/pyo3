@@ -291,8 +291,7 @@ enum RustyEnum {
 }
 </code></pre>
 <p>If the input is neither a string nor an integer, the error message will be:
-<code>&quot;Can't convert &lt;INPUT&gt; to Union[str, int]&quot;</code>, where <code>&lt;INPUT&gt;</code> is replaced by the type name and
-<code>repr()</code> of the input object.</p>
+<code>&quot;'&lt;INPUT_TYPE&gt;' cannot be converted to 'Union[str, int]'&quot;</code>.</p>
 <h4><a class="header" href="#derivefrompyobject-container-attributes" id="derivefrompyobject-container-attributes"><code>#[derive(FromPyObject)]</code> Container Attributes</a></h4>
 <ul>
 <li><code>pyo3(transparent)</code>
@@ -347,88 +346,6 @@ impl IntoPy&lt;PyObject&gt; for MyPyObjectWrapper {
 <p><a href="https://docs.rs/pyo3/latest/pyo3/conversion/trait.ToPyObject.html"><code>ToPyObject</code></a> is a conversion trait that allows various objects to be
 converted into <a href="https://docs.rs/pyo3/latest/pyo3/type.PyObject.html"><code>PyObject</code></a>. <code>IntoPy&lt;PyObject&gt;</code> serves the
 same purpose, except that it consumes <code>self</code>.</p>
-<h3><a class="header" href="#args-and-kwargs-for-python-object-calls" id="args-and-kwargs-for-python-object-calls"><code>*args</code> and <code>**kwargs</code> for Python object calls</a></h3>
-<p>There are several ways how to pass positional and keyword arguments to a Python object call.
-<a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html"><code>PyAny</code></a> provides two methods:</p>
-<ul>
-<li><code>call</code> - call any callable Python object.</li>
-<li><code>call_method</code> - call a specific method on the object, shorthand for <code>get_attr</code> then <code>call</code>.</li>
-</ul>
-<p>Both methods need <code>args</code> and <code>kwargs</code> arguments, but there are variants for less
-complex calls, such as <code>call1</code> for only <code>args</code> and <code>call0</code> for no arguments at all.</p>
-<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyTuple};
-
-struct SomeObject;
-impl SomeObject {
-    fn new(py: Python) -&gt; PyObject {
-        PyDict::new(py).to_object(py)
-    }
-}
-
-fn main() {
-    let arg1 = &quot;arg1&quot;;
-    let arg2 = &quot;arg2&quot;;
-    let arg3 = &quot;arg3&quot;;
-
-    let gil = Python::acquire_gil();
-    let py = gil.python();
-
-    let obj = SomeObject::new(py);
-
-    // call object without empty arguments
-    obj.call0(py);
-
-    // call object with PyTuple
-    let args = PyTuple::new(py, &amp;[arg1, arg2, arg3]);
-    obj.call1(py, args);
-
-    // pass arguments as rust tuple
-    let args = (arg1, arg2, arg3);
-    obj.call1(py, args);
-}
-</code></pre></pre>
-<p><code>kwargs</code> can be <code>None</code> or <code>Some(&amp;PyDict)</code>. You can use the
-<a href="https://docs.rs/pyo3/latest/pyo3/types/trait.IntoPyDict.html"><code>IntoPyDict</code></a> trait to convert other dict-like containers,
-e.g. <code>HashMap</code> or <code>BTreeMap</code>, as well as tuples with up to 10 elements and
-<code>Vec</code>s where each element is a two-element tuple.</p>
-<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
-use pyo3::types::{IntoPyDict, PyDict};
-use std::collections::HashMap;
-
-struct SomeObject;
-
-impl SomeObject {
-    fn new(py: Python) -&gt; PyObject {
-        PyDict::new(py).to_object(py)
-    }
-}
-
-fn main() {
-    let key1 = &quot;key1&quot;;
-    let val1 = 1;
-    let key2 = &quot;key2&quot;;
-    let val2 = 2;
-
-    let gil = Python::acquire_gil();
-    let py = gil.python();
-
-    let obj = SomeObject::new(py);
-
-    // call object with PyDict
-    let kwargs = [(key1, val1)].into_py_dict(py);
-    obj.call(py, (), Some(kwargs));
-
-    // pass arguments as Vec
-    let kwargs = vec![(key1, val1), (key2, val2)];
-    obj.call(py, (), Some(kwargs.into_py_dict(py)));
-
-    // pass arguments as HashMap
-    let mut kwargs = HashMap::&lt;&amp;str, i32&gt;::new();
-    kwargs.insert(key1, 1);
-    obj.call(py, (), Some(kwargs.into_py_dict(py)));
-}
-</code></pre></pre>
 
                     </main>
 

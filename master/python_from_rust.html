@@ -156,9 +156,99 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#calling-python-in-rust-code" id="calling-python-in-rust-code">Calling Python in Rust code</a></h1>
-<p>These APIs work from Rust whenever you have a <code>Python</code> object handy, whether
-PyO3 is built for an extension module or not.</p>
-<h2><a class="header" href="#want-to-access-python-apis-then-use-pymoduleimport" id="want-to-access-python-apis-then-use-pymoduleimport">Want to access Python APIs? Then use <code>PyModule::import</code>.</a></h2>
+<p>This chapter of the guide documents some ways to interact with Python code from Rust:</p>
+<ul>
+<li>How to call Python functions</li>
+<li>How to execute existing Python code</li>
+</ul>
+<h2><a class="header" href="#calling-python-functions" id="calling-python-functions">Calling Python functions</a></h2>
+<p>Any Python-native object reference (such as <code>&amp;PyAny</code>, <code>&amp;PyList</code>, or <code>&amp;PyCell&lt;MyClass&gt;</code>) can be used to call Python functions.</p>
+<p>PyO3 offers two APIs to make function calls:</p>
+<ul>
+<li><a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call"><code>call</code></a> - call any callable Python object.</li>
+<li><a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call_method"><code>call_method</code></a> - call a method on the Python object.</li>
+</ul>
+<p>Both of these APIs take <code>args</code> and <code>kwargs</code> arguments (for positional and keyword arguments respectively). There are variants for less complex calls:</p>
+<ul>
+<li><a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call1"><code>call1</code></a> and <a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call_method1"><code>call_method1</code></a> to call only with positional <code>args</code>.</li>
+<li><a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call0"><code>call0</code></a> and <a href="https://docs.rs/pyo3/0.12.3/pyo3/struct.PyAny.html#method.call_method0"><code>call_method0</code></a> to call with no arguments.</li>
+</ul>
+<p>For convenience the <a href="types.html#pyt-and-pyobject"><code>Py&lt;T&gt;</code></a> smart pointer also exposes these same six API methods, but needs a <code>Python</code> token as an additional first argument to prove the GIL is held.</p>
+<p>The example below shows a calling Python functions behind a <code>PyObject</code> (aka <code>Py&lt;PyAny&gt;</code>) reference:</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyTuple};
+
+struct SomeObject;
+impl SomeObject {
+    fn new(py: Python) -&gt; PyObject {
+        PyDict::new(py).to_object(py)
+    }
+}
+
+fn main() {
+    let arg1 = &quot;arg1&quot;;
+    let arg2 = &quot;arg2&quot;;
+    let arg3 = &quot;arg3&quot;;
+
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+
+    let obj = SomeObject::new(py);
+
+    // call object without empty arguments
+    obj.call0(py);
+
+    // call object with PyTuple
+    let args = PyTuple::new(py, &amp;[arg1, arg2, arg3]);
+    obj.call1(py, args);
+
+    // pass arguments as rust tuple
+    let args = (arg1, arg2, arg3);
+    obj.call1(py, args);
+}
+</code></pre></pre>
+<h3><a class="header" href="#creating-keyword-arguments" id="creating-keyword-arguments">Creating keyword arguments</a></h3>
+<p>For the <code>call</code> and <code>call_method</code> APIs, <code>kwargs</code> can be <code>None</code> or <code>Some(&amp;PyDict)</code>. You can use the <a href="https://docs.rs/pyo3/latest/pyo3/types/trait.IntoPyDict.html"><code>IntoPyDict</code></a> trait to convert other dict-like containers, e.g. <code>HashMap</code> or <code>BTreeMap</code>, as well as tuples with up to 10 elements and <code>Vec</code>s where each element is a two-element tuple.</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
+use pyo3::types::{IntoPyDict, PyDict};
+use std::collections::HashMap;
+
+struct SomeObject;
+
+impl SomeObject {
+    fn new(py: Python) -&gt; PyObject {
+        PyDict::new(py).to_object(py)
+    }
+}
+
+fn main() {
+    let key1 = &quot;key1&quot;;
+    let val1 = 1;
+    let key2 = &quot;key2&quot;;
+    let val2 = 2;
+
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+
+    let obj = SomeObject::new(py);
+
+    // call object with PyDict
+    let kwargs = [(key1, val1)].into_py_dict(py);
+    obj.call(py, (), Some(kwargs));
+
+    // pass arguments as Vec
+    let kwargs = vec![(key1, val1), (key2, val2)];
+    obj.call(py, (), Some(kwargs.into_py_dict(py)));
+
+    // pass arguments as HashMap
+    let mut kwargs = HashMap::&lt;&amp;str, i32&gt;::new();
+    kwargs.insert(key1, 1);
+    obj.call(py, (), Some(kwargs.into_py_dict(py)));
+}
+</code></pre></pre>
+<h2><a class="header" href="#executing-existing-python-code" id="executing-existing-python-code">Executing existing Python code</a></h2>
+<p>If you already have some existing Python code that you need to execute from Rust, the following FAQs can help you select the right PyO3 functionality for your situation:</p>
+<h3><a class="header" href="#want-to-access-python-apis-then-use-pymoduleimport" id="want-to-access-python-apis-then-use-pymoduleimport">Want to access Python APIs? Then use <code>PyModule::import</code>.</a></h3>
 <p><a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyModule.html#method.import"><code>Pymodule::import</code></a> can
 be used to get handle to a Python module from Rust. You can use this to import and use any Python
 module available in your environment.</p>
@@ -173,25 +263,25 @@ fn main() -&gt; PyResult&lt;()&gt; {
     })
 }
 </code></pre></pre>
-<h2><a class="header" href="#want-to-run-just-an-expression-then-use-eval" id="want-to-run-just-an-expression-then-use-eval">Want to run just an expression? Then use <code>eval</code>.</a></h2>
+<h3><a class="header" href="#want-to-run-just-an-expression-then-use-eval" id="want-to-run-just-an-expression-then-use-eval">Want to run just an expression? Then use <code>eval</code>.</a></h3>
 <p><a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.eval"><code>Python::eval</code></a> is
 a method to execute a <a href="https://docs.python.org/3.7/reference/expressions.html">Python expression</a>
 and return the evaluated value as a <code>&amp;PyAny</code> object.</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
 use pyo3::types::IntoPyDict;
 
-fn main() -&gt; Result&lt;(), ()&gt; {
-    Python::with_gil(|py| {
-        let result = py.eval(&quot;[i * 10 for i in range(5)]&quot;, None, None).map_err(|e| {
-            e.print_and_set_sys_last_vars(py);
-        })?;
-        let res: Vec&lt;i64&gt; = result.extract().unwrap();
-        assert_eq!(res, vec![0, 10, 20, 30, 40]);
-        Ok(())
-    })
-}
-</code></pre></pre>
-<h2><a class="header" href="#want-to-run-statements-then-use-run" id="want-to-run-statements-then-use-run">Want to run statements? Then use <code>run</code>.</a></h2>
+<span class="boring">fn main() -&gt; Result&lt;(), ()&gt; {
+</span>Python::with_gil(|py| {
+    let result = py.eval(&quot;[i * 10 for i in range(5)]&quot;, None, None).map_err(|e| {
+        e.print_and_set_sys_last_vars(py);
+    })?;
+    let res: Vec&lt;i64&gt; = result.extract().unwrap();
+    assert_eq!(res, vec![0, 10, 20, 30, 40]);
+    Ok(())
+})
+<span class="boring">}
+</span></code></pre></pre>
+<h3><a class="header" href="#want-to-run-statements-then-use-run" id="want-to-run-statements-then-use-run">Want to run statements? Then use <code>run</code>.</a></h3>
 <p><a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.run"><code>Python::run</code></a> is a method to execute one or more
 <a href="https://docs.python.org/3.7/reference/simple_stmts.html">Python statements</a>.
 This method returns nothing (like any Python statement), but you can get
@@ -201,18 +291,21 @@ Since <a href="https://docs.rs/pyo3/latest/pyo3/macro.py_run.html"><code>py_run!
 quickly testing your Python extensions.</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
 use pyo3::{PyCell, PyObjectProtocol, py_run};
-<span class="boring"> fn main() {
+
+<span class="boring">fn main() {
 </span>#[pyclass]
 struct UserData {
     id: u32,
     name: String,
 }
+
 #[pymethods]
 impl UserData {
     fn as_tuple(&amp;self) -&gt; (u32, String) {
         (self.id, self.name.clone())
     }
 }
+
 #[pyproto]
 impl PyObjectProtocol for UserData {
     fn __repr__(&amp;self) -&gt; PyResult&lt;String&gt; {
@@ -234,12 +327,13 @@ assert userdata.as_tuple() == userdata_as_tuple
 })
 <span class="boring">}
 </span></code></pre></pre>
-<h2><a class="header" href="#you-have-a-python-file-or-python-function-then-use-pymodulefrom_code" id="you-have-a-python-file-or-python-function-then-use-pymodulefrom_code">You have a Python file or Python function? Then use <code>PyModule::from_code</code>.</a></h2>
+<h2><a class="header" href="#you-have-a-python-file-or-code-snippet-then-use-pymodulefrom_code" id="you-have-a-python-file-or-code-snippet-then-use-pymodulefrom_code">You have a Python file or code snippet? Then use <code>PyModule::from_code</code>.</a></h2>
 <p><a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyModule.html#method.from_code">PyModule::from_code</a>
 can be used to generate a Python module which can then be used just as if it was imported with
 <code>PyModule::import</code>.</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::{prelude::*, types::{IntoPyDict, PyModule}};
-<span class="boring"> fn main() -&gt; PyResult&lt;()&gt; {
+
+<span class="boring">fn main() -&gt; PyResult&lt;()&gt; {
 </span>Python::with_gil(|py| {
     let activators = PyModule::from_code(py, r#&quot;
 def relu(x):

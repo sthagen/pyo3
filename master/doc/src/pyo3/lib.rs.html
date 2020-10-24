@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -356,6 +357,33 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">specialization</span>))]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span> <span class="comment">// FIXME (#698)</span>
@@ -411,7 +439,7 @@
 <span class="doccomment">//! crate-type = [&quot;cdylib&quot;]</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [dependencies.pyo3]</span>
-<span class="doccomment">//! version = &quot;0.11.1&quot;</span>
+<span class="doccomment">//! version = &quot;0.12.3&quot;</span>
 <span class="doccomment">//! features = [&quot;extension-module&quot;]</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -430,7 +458,7 @@
 <span class="doccomment">//! #[pymodule]</span>
 <span class="doccomment">//! /// A Python module implemented in Rust.</span>
 <span class="doccomment">//! fn string_sum(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
-<span class="doccomment">//!     m.add_function(wrap_pyfunction!(sum_as_string))?;</span>
+<span class="doccomment">//!     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     Ok(())</span>
 <span class="doccomment">//! }</span>
@@ -468,7 +496,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
 <span class="doccomment">//! [dependencies]</span>
-<span class="doccomment">//! pyo3 = &quot;0.11.1&quot;</span>
+<span class="doccomment">//! pyo3 = &quot;0.12.3&quot;</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Example program displaying the value of `sys.version`:</span>
@@ -497,7 +525,7 @@
     <span class="ident">AsPyPointer</span>, <span class="ident">FromPyObject</span>, <span class="ident">FromPyPointer</span>, <span class="ident">IntoPy</span>, <span class="ident">IntoPyPointer</span>, <span class="ident">PyTryFrom</span>, <span class="ident">PyTryInto</span>,
     <span class="ident">ToBorrowedObject</span>, <span class="ident">ToPyObject</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyDowncastError</span>, <span class="ident">PyErr</span>, <span class="ident">PyErrArguments</span>, <span class="ident">PyErrValue</span>, <span class="ident">PyResult</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">err</span>::{<span class="ident">PyDowncastError</span>, <span class="ident">PyErr</span>, <span class="ident">PyErrArguments</span>, <span class="ident">PyResult</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>::{<span class="ident">GILGuard</span>, <span class="ident">GILPool</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">instance</span>::{<span class="ident">Py</span>, <span class="ident">PyNativeType</span>, <span class="ident">PyObject</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pycell</span>::{<span class="ident">PyCell</span>, <span class="ident">PyRef</span>, <span class="ident">PyRefMut</span>};
@@ -555,12 +583,6 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 
-<span class="doccomment">/// Internal utilities exposed for rust-numpy</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">internal_utils</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gil</span>::{<span class="ident">ensure_gil</span>, <span class="ident">EnsureGIL</span>};
-}
-
 <span class="doccomment">/// The proc macros, which are also part of the prelude.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proc_macro</span> {
@@ -574,8 +596,41 @@
 <span class="doccomment">/// Use this together with `#[pyfunction]` and [types::PyModule::add_wrapped].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wrap_pyfunction</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>) <span class="op">=&gt;</span> {{
         <span class="kw-2">&amp;</span><span class="ident">pyo3</span>::<span class="ident">paste</span>::<span class="macro">expr</span><span class="macro">!</span> { [<span class="op">&lt;</span><span class="ident">__pyo3_get_function_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span><span class="op">&gt;</span>] }
+    }};
+
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="ident">expr</span>) <span class="op">=&gt;</span> {
+        <span class="ident">pyo3</span>::<span class="macro">wrap_pyfunction</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>)(<span class="ident">pyo3</span>::<span class="ident">derive_utils</span>::<span class="ident">PyFunctionArguments</span>::<span class="ident">from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>))
+    };
+}
+
+<span class="doccomment">/// Returns the function that is called in the C-FFI.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Use this together with `#[pyfunction]` and [types::PyCFunction].</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use pyo3::prelude::*;</span>
+<span class="doccomment">/// use pyo3::types::PyCFunction;</span>
+<span class="doccomment">/// use pyo3::raw_pycfunction;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[pyfunction]</span>
+<span class="doccomment">/// fn some_fun() -&gt; PyResult&lt;()&gt; {</span>
+<span class="doccomment">///     Ok(())</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[pymodule]</span>
+<span class="doccomment">/// fn module(_py: Python, module: &amp;PyModule) -&gt; PyResult&lt;()&gt; {</span>
+<span class="doccomment">///     let ffi_wrapper_fun = raw_pycfunction!(some_fun);</span>
+<span class="doccomment">///     let docs = &quot;Some documentation string with null-termination\0&quot;;</span>
+<span class="doccomment">///     let py_cfunction =</span>
+<span class="doccomment">///         PyCFunction::new_with_keywords(ffi_wrapper_fun, &quot;function_name&quot;, docs, module.into())?;</span>
+<span class="doccomment">///     module.add_function(py_cfunction)</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">raw_pycfunction</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>) <span class="op">=&gt;</span> {{
+        <span class="ident">pyo3</span>::<span class="ident">paste</span>::<span class="macro">expr</span><span class="macro">!</span> { [<span class="op">&lt;</span><span class="ident">__pyo3_raw_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span><span class="op">&gt;</span>] }
     }};
 }
 
@@ -584,7 +639,7 @@
 <span class="doccomment">/// Use this together with `#[pymodule]` and [types::PyModule::add_wrapped].</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">wrap_pymodule</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">module_name</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">module_name</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {{
         <span class="ident">pyo3</span>::<span class="ident">paste</span>::<span class="macro">expr</span><span class="macro">!</span> {
             <span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">py</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">pyo3</span>::<span class="ident">PyObject</span>::<span class="ident">from_owned_ptr</span>(<span class="ident">py</span>, [<span class="op">&lt;</span><span class="ident">PyInit_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">module_name</span><span class="op">&gt;</span>]()) }
         }
@@ -646,10 +701,10 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">py_run</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">literal</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">literal</span>) <span class="op">=&gt;</span> {{
         <span class="ident">pyo3</span>::<span class="macro">py_run_impl</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>)<span class="op">+</span>, <span class="ident">pyo3</span>::<span class="ident">indoc</span>::<span class="macro">indoc</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>))
     }};
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
         <span class="ident">pyo3</span>::<span class="macro">py_run_impl</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>)<span class="op">+</span>, <span class="kw-2">&amp;</span><span class="ident">pyo3</span>::<span class="ident">unindent</span>::<span class="ident">unindent</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>))
     }};
 }
@@ -658,7 +713,7 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">py_run_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">ident</span>)<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> {{
         <span class="kw">use</span> <span class="ident">pyo3</span>::<span class="ident">types</span>::<span class="ident">IntoPyDict</span>;
         <span class="kw">use</span> <span class="ident">pyo3</span>::<span class="ident">ToPyObject</span>;
         <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> [$((<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>.<span class="ident">to_object</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>)),)<span class="op">+</span>].<span class="ident">into_py_dict</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>);
@@ -680,14 +735,14 @@
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">doc_test</span> {
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">doc_comment</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>]</span>
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tt</span>)<span class="op">*</span>
         };
     }
 
     <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">doctest</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
             <span class="macro">doc_comment</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>), <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span> {});
         };
     }

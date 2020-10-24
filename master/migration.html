@@ -159,12 +159,70 @@
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
 <h2><a class="header" href="#from-011-to-012" id="from-011-to-012">from 0.11.* to 0.12</a></h2>
+<h3><a class="header" href="#pyerr-has-been-reworked" id="pyerr-has-been-reworked"><code>PyErr</code> has been reworked</a></h3>
+<p>In PyO3 <code>0.12</code> the <code>PyErr</code> type has been re-implemented to be significantly more compatible with
+the standard Rust error handling ecosystem. Specificially <code>PyErr</code> now implements
+<code>Error + Send + Sync</code>, which are the standard traits used for error types.</p>
+<p>While this has necessitated the removal of a number of APIs, the resulting <code>PyErr</code> type should now
+be much more easier to work with. The following sections list the changes in detail and how to
+migrate to the new APIs.</p>
+<h4><a class="header" href="#pyerrnew-and-pyerrfrom_type-now-require-send--sync-for-their-argument" id="pyerrnew-and-pyerrfrom_type-now-require-send--sync-for-their-argument"><code>PyErr::new</code> and <code>PyErr::from_type</code> now require <code>Send + Sync</code> for their argument</a></h4>
+<p>For most uses no change will be needed. If you are trying to construct <code>PyErr</code> from a value that is
+not <code>Send + Sync</code>, you will need to first create the Python object and then use
+<code>PyErr::from_instance</code>.</p>
+<p>Similarly, any types which implemented <code>PyErrArguments</code> will now need to be <code>Send + Sync</code>.</p>
+<h4><a class="header" href="#pyerrs-contents-are-now-private" id="pyerrs-contents-are-now-private"><code>PyErr</code>'s contents are now private</a></h4>
+<p>It is no longer possible to access the fields <code>.ptype</code>, <code>.pvalue</code> and <code>.ptraceback</code> of a <code>PyErr</code>.
+You should instead now use the new methods <code>PyErr::ptype()</code>, <code>PyErr::pvalue()</code> and <code>PyErr::ptraceback()</code>.</p>
+<h4><a class="header" href="#pyerrvalue-and-pyerrfrom_value-have-been-removed" id="pyerrvalue-and-pyerrfrom_value-have-been-removed"><code>PyErrValue</code> and <code>PyErr::from_value</code> have been removed</a></h4>
+<p>As these were part the internals of <code>PyErr</code> which have been reworked, these APIs no longer exist.</p>
+<p>If you used this API, it is recommended to use <code>PyException::new_err</code> (see <a href="#exception-types-have-been-reworked">the section on
+Exception types</a>).</p>
+<h4><a class="header" href="#intopyresultt-for-pyerr-has-been-removed" id="intopyresultt-for-pyerr-has-been-removed"><code>Into&lt;PyResult&lt;T&gt;&gt;</code> for <code>PyErr</code> has been removed</a></h4>
+<p>This implementation was redundant. Just construct the <code>Result::Err</code> variant directly.</p>
+<p>Before:</p>
+<pre><code class="language-rust ignore">let result: PyResult&lt;()&gt; = PyErr::new::&lt;TypeError, _&gt;(&quot;error message&quot;).into();
+</code></pre>
+<p>After (also using the new reworked exception types; see the following section):</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::{PyErr, PyResult, exceptions::PyTypeError};
+</span>let result: PyResult&lt;()&gt; = Err(PyTypeError::new_err(&quot;error message&quot;));
+<span class="boring">}
+</span></code></pre></pre>
+<h3><a class="header" href="#exception-types-have-been-reworked" id="exception-types-have-been-reworked">Exception types have been reworked</a></h3>
+<p>Previously exception types were zero-sized marker types purely used to construct <code>PyErr</code>. In PyO3
+0.12, these types have been replaced with full definitions and are usable in the same way as <code>PyAny</code>, <code>PyDict</code> etc. This
+makes it possible to interact with Python exception objects.</p>
+<p>The new types also have names starting with the &quot;Py&quot; prefix. For example, before:</p>
+<pre><code class="language-rust ignore">let err: PyErr = TypeError::py_err(&quot;error message&quot;);
+</code></pre>
+<p>After:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use pyo3::{PyErr, PyResult, Python, type_object::PyTypeObject};
+</span><span class="boring">use pyo3::exceptions::{PyBaseException, PyTypeError};
+</span><span class="boring">Python::with_gil(|py| -&gt; PyResult&lt;()&gt; {
+</span>let err: PyErr = PyTypeError::new_err(&quot;error message&quot;);
+
+// Uses Display for PyErr, new for PyO3 0.12
+assert_eq!(err.to_string(), &quot;TypeError: error message&quot;);
+
+// Now possible to interact with exception instances, new for PyO3 0.12
+let instance: &amp;PyBaseException = err.instance(py);
+assert_eq!(instance.getattr(&quot;__class__&quot;)?, PyTypeError::type_object(py).as_ref());
+<span class="boring">Ok(())
+</span><span class="boring">}).unwrap();
+</span><span class="boring">}
+</span></code></pre></pre>
 <h3><a class="header" href="#frompy-has-been-removed" id="frompy-has-been-removed"><code>FromPy</code> has been removed</a></h3>
-<p>To simplify the PyO3 public conversion trait hierarchy, the <code>FromPy</code> has been removed. In PyO3
-<code>0.11</code> there were two ways to define the to-Python conversion for a type: <code>FromPy&lt;T&gt; for PyObject</code>,
-and <code>IntoPy&lt;PyObject&gt; for T</code>.</p>
-<p>Now, the canonical implementation is always <code>IntoPy</code>, so downstream crates may need to adjust
-accordingly.</p>
+<p>To simplify the PyO3 conversion traits, the <code>FromPy</code> trait has been removed. Previously there were
+two ways to define the to-Python conversion for a type:
+<code>FromPy&lt;T&gt; for PyObject</code> and <code>IntoPy&lt;PyObject&gt; for T</code>.</p>
+<p>Now there is only one way to define the conversion, <code>IntoPy</code>, so downstream crates may need to
+adjust accordingly.</p>
 <p>Before:</p>
 <pre><code class="language-rust ignore"><span class="boring">use pyo3::prelude::*;
 </span>struct MyPyObjectWrapper(PyObject);
