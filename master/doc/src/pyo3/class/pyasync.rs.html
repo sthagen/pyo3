@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/class/pyasync.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pyasync.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/class/pyasync.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pyasync.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -133,31 +135,6 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -179,28 +156,28 @@
 <span class="doccomment">/// Each method in this trait corresponds to Python async/await implementation.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyAsyncProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>: <span class="ident">PyClass</span> {
-    <span class="kw">fn</span> <span class="ident">__await__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    <span class="kw">fn</span> <span class="ident">__await__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyAsyncAwaitProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">__aiter__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    <span class="kw">fn</span> <span class="ident">__aiter__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyAsyncAiterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">__anext__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    <span class="kw">fn</span> <span class="ident">__anext__</span>(<span class="ident">slf</span>: <span class="self">Self</span>::<span class="ident">Receiver</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyAsyncAnextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">__aenter__</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    <span class="kw">fn</span> <span class="ident">__aenter__</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyAsyncAenterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
@@ -212,7 +189,7 @@
         <span class="ident">exc_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">ExcType</span><span class="op">&gt;</span>,
         <span class="ident">exc_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">ExcValue</span><span class="op">&gt;</span>,
         <span class="ident">traceback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Traceback</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">PyAsyncAexitProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
     {
@@ -246,28 +223,11 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>;
 }
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">impl</span> <span class="ident">ffi</span>::<span class="ident">PyAsyncMethods</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_await</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyAsyncAwaitProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-    {
-        <span class="self">self</span>.<span class="ident">am_await</span> <span class="op">=</span> <span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">PyAsyncAwaitProtocol</span>, <span class="ident">T</span>::<span class="ident">__await__</span>);
-    }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_aiter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyAsyncAiterProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-    {
-        <span class="self">self</span>.<span class="ident">am_aiter</span> <span class="op">=</span> <span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">PyAsyncAiterProtocol</span>, <span class="ident">T</span>::<span class="ident">__aiter__</span>);
-    }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_anext</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>)
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyAsyncAnextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-    {
-        <span class="self">self</span>.<span class="ident">am_anext</span> <span class="op">=</span> <span class="ident">am_anext</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-    }
-}
+<span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">await_</span>, <span class="ident">PyAsyncAwaitProtocol</span>, <span class="self">Self</span>::<span class="ident">__await__</span>);
+<span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">aiter</span>, <span class="ident">PyAsyncAiterProtocol</span>, <span class="self">Self</span>::<span class="ident">__aiter__</span>);
+<span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">anext</span>, <span class="ident">PyAsyncAnextProtocol</span>, <span class="self">Self</span>::<span class="ident">__anext__</span>);
 
+<span class="doccomment">/// Output of `__anext__`.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IterANextOutput</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
     <span class="ident">Yield</span>(<span class="ident">T</span>),
     <span class="ident">Return</span>(<span class="ident">U</span>),
@@ -276,10 +236,10 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PyIterANextOutput</span> <span class="op">=</span> <span class="ident">IterANextOutput</span><span class="op">&lt;</span><span class="ident">PyObject</span>, <span class="ident">PyObject</span><span class="op">&gt;</span>;
 
 <span class="kw">impl</span> <span class="ident">IntoPyCallbackOutput</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PyIterANextOutput</span> {
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">_py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">into_ptr</span>()),
-            <span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">opt</span>) <span class="op">=&gt;</span> {
+            <span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">into_ptr</span>()),
+            <span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">opt</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyStopAsyncIteration</span>::<span class="ident">new_err</span>((<span class="ident">opt</span>,)))
             }
         }
@@ -291,10 +251,10 @@
     <span class="ident">T</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
     <span class="ident">U</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterANextOutput</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterANextOutput</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
-            <span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+            <span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+            <span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">IterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
         }
     }
 }
@@ -303,20 +263,12 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterANextOutput</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">PyIterANextOutput</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">py</span>.<span class="prelude-val">None</span>())),
+            <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterANextOutput</span>::<span class="ident">Yield</span>(<span class="ident">o</span>.<span class="ident">into_py</span>(<span class="ident">py</span>))),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">PyIterANextOutput</span>::<span class="ident">Return</span>(<span class="ident">py</span>.<span class="prelude-val">None</span>())),
         }
     }
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">am_anext</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">unaryfunc</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">PyAsyncAnextProtocol</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>,
-{
-    <span class="macro">py_unarys_func</span><span class="macro">!</span>(<span class="ident">PyAsyncAnextProtocol</span>, <span class="ident">T</span>::<span class="ident">__anext__</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

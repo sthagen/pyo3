@@ -158,6 +158,15 @@
                         <h1><a class="header" href="#migrating-from-older-pyo3-versions" id="migrating-from-older-pyo3-versions">Migrating from older PyO3 versions</a></h1>
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
+<h2><a class="header" href="#from-012-to-013" id="from-012-to-013">from 0.12.* to 0.13</a></h2>
+<h3><a class="header" href="#runtime-changes-to-support-the-cpython-limited-api" id="runtime-changes-to-support-the-cpython-limited-api">Runtime changes to support the CPython limited API</a></h3>
+<p>In PyO3 <code>0.13</code> support was added for compiling against the CPython limited API. This had a number of implications for <em>all</em> PyO3 users, described here.</p>
+<p>The largest of these is that all types created from PyO3 are what CPython calls &quot;heap&quot; types. The specific implications of this are:</p>
+<ul>
+<li>If you wish to subclass one of these types <em>from Rust</em> you must mark it <code>#[pyclass(subclass)]</code>, as you would if you wished to allow subclassing it from Python code.</li>
+<li>Type objects are now mutable - Python code can set attributes on them.</li>
+<li><code>__module__</code> on types without <code>#[pyclass(module=&quot;mymodule&quot;)]</code> no longer returns <code>builtins</code>, it now raises <code>AttributeError</code>.</li>
+</ul>
 <h2><a class="header" href="#from-011-to-012" id="from-011-to-012">from 0.11.* to 0.12</a></h2>
 <h3><a class="header" href="#pyerr-has-been-reworked" id="pyerr-has-been-reworked"><code>PyErr</code> has been reworked</a></h3>
 <p>In PyO3 <code>0.12</code> the <code>PyErr</code> type has been re-implemented to be significantly more compatible with

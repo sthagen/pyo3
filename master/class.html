@@ -292,7 +292,7 @@ assert_eq!(obj_ref.num, 1);
 The performance improvement applies to types that are often created and deleted in a row,
 so that they can benefit from a freelist. <code>XXX</code> is a number of items for the free list.</li>
 <li><code>gc</code> - Classes with the <code>gc</code> parameter participate in Python garbage collection.
-If a custom class contains references to other Python objects that can be collected, the [<code>PyGCProtocol</code>] trait has to be implemented.</li>
+If a custom class contains references to other Python objects that can be collected, the <a href="https://docs.rs/pyo3/latest/pyo3/class/gc/trait.PyGCProtocol.html"><code>PyGCProtocol</code></a> trait has to be implemented.</li>
 <li><code>weakref</code> - Adds support for Python weak references.</li>
 <li><code>extends=BaseType</code> - Use a custom base class. The base <code>BaseType</code> must implement <code>PyTypeInfo</code>.</li>
 <li><code>subclass</code> - Allows Python classes to inherit from this class.</li>
@@ -353,7 +353,7 @@ or by <code>self_.into_super()</code> as <code>PyRef&lt;Self::BaseClass&gt;</cod
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span>
-#[pyclass]
+#[pyclass(subclass)]
 struct BaseClass {
     val1: usize,
 }
@@ -370,7 +370,7 @@ impl BaseClass {
     }
 }
 
-#[pyclass(extends=BaseClass)]
+#[pyclass(extends=BaseClass, subclass)]
 struct SubClass {
     val2: usize,
 }
@@ -414,12 +414,11 @@ impl SubSubClass {
 </span><span class="boring">}
 </span></code></pre></pre>
 <p>You can also inherit native types such as <code>PyDict</code>, if they implement
-<a href="https://docs.rs/pyo3/latest/pyo3/type_object/trait.PySizedLayout.html"><code>PySizedLayout</code></a>.</p>
+<a href="https://docs.rs/pyo3/latest/pyo3/type_object/trait.PySizedLayout.html"><code>PySizedLayout</code></a>. However, this is not supported when building for the Python limited API (aka the <code>abi3</code> feature of PyO3).</p>
 <p>However, because of some technical problems, we don't currently provide safe upcasting methods for types
 that inherit native types. Even in such cases, you can unsafely get a base class by raw pointer conversion.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[cfg(Py_LIMITED_API)] fn main() {}
+</span><span class="boring">#[cfg(not(Py_LIMITED_API))] fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span>use pyo3::types::PyDict;
 use pyo3::{AsPyPointer, PyNativeType};
@@ -839,7 +838,7 @@ pyclass dependent on whether there is an impl block, we'd need to implement the 
 <code>#[pyclass]</code> and override the implementation in <code>#[pymethods]</code>.
 To enable this, we use a static registry type provided by <a href="https://github.com/dtolnay/inventory">inventory</a>,
 which allows us to collect <code>impl</code>s from arbitrary source code by exploiting some binary trick.
-See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_derive_backend::py_class</code> for more details.
+See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_macros_backend::py_class</code> for more details.
 Also for <code>#[pyproto]</code>, we use a similar, but more task-specific registry and
 initialize it using the <a href="https://github.com/mmastrac/rust-ctor">ctor</a> crate.</p>
 <p>Specifically, the following implementation is generated:</p>
@@ -905,11 +904,29 @@ impl pyo3::class::methods::HasMethodsInventory for MyClass {
 }
 pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
 
-impl pyo3::class::proto_methods::HasProtoRegistry for MyClass {
-    fn registry() -&gt; &amp;'static pyo3::class::proto_methods::PyProtoRegistry {
-        static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
-            = pyo3::class::proto_methods::PyProtoRegistry::new();
-        &amp;REGISTRY
+impl pyo3::class::proto_methods::PyProtoMethods for MyClass {
+    fn for_each_proto_slot&lt;Visitor: FnMut(pyo3::ffi::PyType_Slot)&gt;(visitor: Visitor) {
+        // Implementation which uses dtolnay specialization to load all slots.
+        use pyo3::class::proto_methods::*;
+        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
+        protocols.object_protocol_slots()
+            .iter()
+            .chain(protocols.number_protocol_slots())
+            .chain(protocols.iter_protocol_slots())
+            .chain(protocols.gc_protocol_slots())
+            .chain(protocols.descr_protocol_slots())
+            .chain(protocols.mapping_protocol_slots())
+            .chain(protocols.sequence_protocol_slots())
+            .chain(protocols.async_protocol_slots())
+            .chain(protocols.buffer_protocol_slots())
+            .cloned()
+            .for_each(visitor);
+    }
+
+    fn get_buffer() -&gt; Option&lt;&amp;'static pyo3::class::proto_methods::PyBufferProcs&gt; {
+        use pyo3::class::proto_methods::*;
+        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
+        protocols.buffer_procs()
     }
 }
 

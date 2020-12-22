@@ -162,7 +162,7 @@
 <p><a href="https://github.com/PyO3/pyo3/actions"><img src="https://github.com/PyO3/pyo3/workflows/Test/badge.svg" alt="Actions Status" /></a>
 <a href="https://codecov.io/gh/PyO3/pyo3"><img src="https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg" alt="codecov" /></a>
 <a href="https://crates.io/crates/pyo3"><img src="http://meritbadge.herokuapp.com/pyo3" alt="crates.io" /></a>
-<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.39+-blue.svg" alt="minimum rustc 1.39" /></a>
+<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.45+-blue.svg" alt="minimum rustc 1.45" /></a>
 <a href="https://gitter.im/PyO3/Lobby"><img src="https://img.shields.io/gitter/room/nwjs/nw.js.svg" alt="Join the dev chat" /></a></p>
 <p><a href="http://www.rust-lang.org/">Rust</a> bindings for <a href="https://www.python.org/">Python</a>. This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.</p>
 <ul>
@@ -178,7 +178,7 @@
 </ul>
 <p>A comparison with rust-cpython can be found <a href="https://pyo3.rs/master/rust_cpython.html">in the guide</a>.</p>
 <h2><a class="header" href="#usage" id="usage">Usage</a></h2>
-<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.39.0.</p>
+<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.45.0.</p>
 <p>Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
 Please refer to the <a href="https://pyo3.rs/master/pypy.html">pypy section in the guide</a>.</p>
 <p>You can either write a native Python module in Rust, or use Python from a Rust binary.</p>
@@ -198,7 +198,7 @@ name = &quot;string_sum&quot;
 crate-type = [&quot;cdylib&quot;]
 
 [dependencies.pyo3]
-version = &quot;0.12.3&quot;
+version = &quot;0.12.4&quot;
 features = [&quot;extension-module&quot;]
 </code></pre>
 <p><strong><code>src/lib.rs</code></strong></p>
@@ -229,6 +229,12 @@ rustflags = [
   &quot;-C&quot;, &quot;link-arg=-undefined&quot;,
   &quot;-C&quot;, &quot;link-arg=dynamic_lookup&quot;,
 ]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+  &quot;-C&quot;, &quot;link-arg=-undefined&quot;,
+  &quot;-C&quot;, &quot;link-arg=dynamic_lookup&quot;,
+]
 </code></pre>
 <p>While developing, you can symlink (or copy) and rename the shared library from the target folder: On MacOS, rename <code>libstring_sum.dylib</code> to <code>string_sum.so</code>, on Windows <code>libstring_sum.dll</code> to <code>string_sum.pyd</code>, and on Linux <code>libstring_sum.so</code> to <code>string_sum.so</code>. Then open a Python shell in the same folder and you'll be able to <code>import string_sum</code>.</p>
 <p>Adding the <code>cdylib</code> arguments in the <code>Cargo.toml</code> files changes the way your crate is compiled.
@@ -240,7 +246,7 @@ Another possibility is to create a new crate to perform the binding.</p>
 <p>If you want your Rust application to create a Python interpreter internally and
 use it to run Python code, add <code>pyo3</code> to your <code>Cargo.toml</code> like this:</p>
 <pre><code class="language-toml">[dependencies]
-pyo3 = &quot;0.12.3&quot;
+pyo3 = &quot;0.12.4&quot;
 </code></pre>
 <p>Example program displaying the value of <code>sys.version</code> and the current user name:</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
@@ -276,6 +282,7 @@ about this topic.</p>
 <li><a href="https://github.com/PyO3/rust-numpy">rust-numpy</a> <em>Rust binding of NumPy C-API</em></li>
 <li><a href="https://github.com/gperinazzo/dict-derive">dict-derive</a> <em>Derive FromPyObject to automatically transform Python dicts into Rust structs</em></li>
 <li><a href="https://github.com/vorner/pyo3-log">pyo3-log</a> <em>Bridge from Rust to Python logging</em></li>
+<li><a href="https://github.com/davidhewitt/pythonize">pythonize</a> <em>Serde serializer for converting Rust objects to JSON-compatible Python objects</em></li>
 </ul>
 <h2><a class="header" href="#examples" id="examples">Examples</a></h2>
 <ul>
@@ -299,6 +306,8 @@ about this topic.</p>
 <li><a href="https://github.com/cds-astro/mocpy">mocpy</a> <em>Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere</em></li>
 <li><a href="https://github.com/huggingface/tokenizers/tree/master/bindings/python">tokenizers</a> <em>Python bindings to the Hugging Face tokenizers (NLP) written in Rust</em></li>
 <li><a href="https://github.com/Project-Dream-Weaver/Pyre">pyre</a> <em>Fast Python HTTP server written in Rust</em></li>
+<li><a href="https://github.com/Stranger6667/jsonschema-rs/tree/master/python">jsonschema-rs</a> <em>Fast JSON Schema validation library</em></li>
+<li><a href="https://github.com/Stranger6667/css-inline/tree/master/python">css-inline</a> <em>CSS inlining for Python implemented in Rust</em></li>
 </ul>
 <h2><a class="header" href="#license" id="license">License</a></h2>
 <p>PyO3 is licensed under the <a href="http://opensource.org/licenses/APACHE-2.0">Apache-2.0 license</a>.

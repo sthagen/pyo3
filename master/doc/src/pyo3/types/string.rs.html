@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/types/string.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>string.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/types/string.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>string.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -247,6 +249,67 @@
 <span id="246">246</span>
 <span id="247">247</span>
 <span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -271,13 +334,13 @@
     <span class="doccomment">/// Creates a new Python string object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if out of memory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyString</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">ffi</span>::<span class="ident">Py_ssize_t</span>;
         <span class="kw">unsafe</span> { <span class="ident">py</span>.<span class="ident">from_owned_ptr</span>(<span class="ident">ffi</span>::<span class="ident">PyUnicode_FromStringAndSize</span>(<span class="ident">ptr</span>, <span class="ident">len</span>)) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyAny</span>, <span class="ident">encoding</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyString</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyAny</span>, <span class="ident">encoding</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">PyString</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">src</span>.<span class="ident">py</span>()
                 .<span class="ident">from_owned_ptr_or_err</span>::<span class="op">&lt;</span><span class="ident">PyString</span><span class="op">&gt;</span>(<span class="ident">ffi</span>::<span class="ident">PyUnicode_FromEncodedObject</span>(
@@ -293,7 +356,8 @@
     <span class="doccomment">/// Returns a `UnicodeEncodeError` if the input is not valid unicode</span>
     <span class="doccomment">/// (containing unpaired surrogates).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span>: <span class="ident">ffi</span>::<span class="ident">Py_ssize_t</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8AndSize</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">size</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
@@ -304,16 +368,26 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">slice</span>))
             }
         }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_LIMITED_API</span>)]</span>
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8String</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>());
+            <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_null</span>() {
+                <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="self">self</span>.<span class="ident">py</span>()))
+            } <span class="kw">else</span> {
+                <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">py</span>().<span class="ident">from_owned_ptr</span>::<span class="op">&lt;</span><span class="ident">PyBytes</span><span class="op">&gt;</span>(<span class="ident">data</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">bytes</span>.<span class="ident">as_bytes</span>()))
+            }
+        }
     }
 
     <span class="doccomment">/// Converts the `PyString` into a Rust string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Unpaired surrogates invalid UTF-8 sequences are</span>
     <span class="doccomment">/// replaced with `U+FFFD REPLACEMENT CHARACTER`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_str</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">s</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="ident">s</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> {
                     <span class="self">self</span>.<span class="ident">py</span>()
                         .<span class="ident">from_owned_ptr</span>::<span class="op">&lt;</span><span class="ident">PyBytes</span><span class="op">&gt;</span>(<span class="ident">ffi</span>::<span class="ident">PyUnicode_AsEncodedString</span>(
@@ -330,9 +404,9 @@
 
 <span class="doccomment">/// Convenience for calling Python APIs with a temporary string</span>
 <span class="doccomment">/// object created from a given Rust string.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_tmp_string</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_tmp_string</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">py</span>: <span class="ident">Python</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi</span>::<span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
 {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">s_obj</span> <span class="op">=</span>
@@ -350,14 +424,14 @@
 <span class="doccomment">/// See `PyString::new` for details on the conversion.</span>
 <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
@@ -366,7 +440,7 @@
 <span class="doccomment">/// See `PyString::new` for details on the conversion.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
@@ -375,39 +449,66 @@
 <span class="doccomment">/// See `PyString::new` for details on the conversion.</span>
 <span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">String</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 
+<span class="kw">impl</span> <span class="ident">ToPyObject</span> <span class="kw">for</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+        <span class="self">self</span>.<span class="ident">into_py</span>(<span class="ident">py</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
+        <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">bytes</span>)).<span class="ident">into</span>()
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="kw-2">&amp;</span><span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IntoPy</span><span class="op">&lt;</span><span class="ident">PyObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-&gt;</span> <span class="ident">PyObject</span> {
+    <span class="kw">fn</span> <span class="ident">into_py</span>(<span class="self">self</span>, <span class="ident">py</span>: <span class="ident">Python</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span> {
         <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 
 <span class="doccomment">/// Allows extracting strings from Python objects.</span>
 <span class="doccomment">/// Accepts Python `str` and `unicode` objects.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">crate</span>::<span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">ob</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">ob</span>)<span class="question-mark">?</span>.<span class="ident">to_str</span>()
     }
 }
 
 <span class="doccomment">/// Allows extracting strings from Python objects.</span>
 <span class="doccomment">/// Accepts Python `str` and `unicode` objects.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;source</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;source</span> <span class="ident">PyAny</span>) <span class="op">-&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>
             .<span class="ident">to_str</span>()
             .<span class="ident">map</span>(<span class="ident">ToOwned</span>::<span class="ident">to_owned</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FromPyObject</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">char</span> {
+    <span class="kw">fn</span> <span class="ident">extract</span>(<span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">PyAny</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">PyString</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>.<span class="ident">to_str</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">chars</span>();
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">ch</span>), <span class="prelude-val">None</span>) <span class="op">=</span> (<span class="ident">iter</span>.<span class="ident">next</span>(), <span class="ident">iter</span>.<span class="ident">next</span>()) {
+            <span class="prelude-val">Ok</span>(<span class="ident">ch</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyValueError</span>::<span class="ident">new_err</span>(
+                <span class="string">&quot;expected a string of length 1&quot;</span>,
+            ))
+        }
     }
 }
 
@@ -419,81 +520,104 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_non_bmp</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;\u{1F30F}&quot;</span>;
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;\u{1F30F}&quot;</span>;
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">extract</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">py</span>).<span class="ident">unwrap</span>());
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extract_str</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;Hello Python&quot;</span>;
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;Hello Python&quot;</span>;
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
 
-        <span class="kw">let</span> <span class="ident">s2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">py_string</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">s2</span>);
+            <span class="kw">let</span> <span class="ident">s2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">py_string</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">s2</span>);
+        })
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_extract_char</span>() {
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="string">&#39;😃&#39;</span>;
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="kw">let</span> <span class="ident">ch2</span>: <span class="ident">char</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">py_string</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ch</span>, <span class="ident">ch2</span>);
+        })
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_extract_char_err</span>() {
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;Hello Python&quot;</span>;
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="kw">let</span> <span class="ident">err</span>: <span class="kw">crate</span>::<span class="ident">PyResult</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">py_string</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>));
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>
+                .<span class="ident">unwrap_err</span>()
+                .<span class="ident">to_string</span>()
+                .<span class="ident">contains</span>(<span class="string">&quot;expected a string of length 1&quot;</span>));
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_to_str_ascii</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;ascii 🐈&quot;</span>;
-        <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">s</span>).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;ascii 🐈&quot;</span>;
+            <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">s</span>).<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_to_str_surrogate</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">py</span>.<span class="ident">eval</span>(<span class="string">r#&quot;&#39;\ud800&#39;&quot;#</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">is_err</span>());
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">py</span>.<span class="ident">eval</span>(<span class="string">r#&quot;&#39;\ud800&#39;&quot;#</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">is_err</span>());
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_to_str_unicode</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;哈哈🐈&quot;</span>;
-        <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">s</span>).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;哈哈🐈&quot;</span>;
+            <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">PyString</span>::<span class="ident">new</span>(<span class="ident">py</span>, <span class="ident">s</span>).<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">py_string</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_to_string_lossy</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">py</span>
-            .<span class="ident">eval</span>(<span class="string">r#&quot;&#39;🐈 Hello \ud800World&#39;&quot;#</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">py_string</span>.<span class="ident">to_string_lossy</span>(), <span class="string">&quot;🐈 Hello ���World&quot;</span>);
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">obj</span>: <span class="ident">PyObject</span> <span class="op">=</span> <span class="ident">py</span>
+                .<span class="ident">eval</span>(<span class="string">r#&quot;&#39;🐈 Hello \ud800World&#39;&quot;#</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">into</span>();
+            <span class="kw">let</span> <span class="ident">py_string</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">obj</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">py_string</span>.<span class="ident">to_string_lossy</span>(), <span class="string">&quot;🐈 Hello ���World&quot;</span>);
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_debug_string</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="string">&quot;Hello\n&quot;</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">s</span>), <span class="string">&quot;&#39;Hello\\n&#39;&quot;</span>);
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="string">&quot;Hello\n&quot;</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">s</span>), <span class="string">&quot;&#39;Hello\\n&#39;&quot;</span>);
+        })
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_display_string</span>() {
-        <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
-        <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="string">&quot;Hello\n&quot;</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">s</span>), <span class="string">&quot;Hello\n&quot;</span>);
+        <span class="ident">Python</span>::<span class="ident">with_gil</span>(<span class="op">|</span><span class="ident">py</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="string">&quot;Hello\n&quot;</span>.<span class="ident">to_object</span>(<span class="ident">py</span>);
+            <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">PyString</span> <span class="kw">as</span> <span class="ident">PyTryFrom</span><span class="op">&gt;</span>::<span class="ident">try_from</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>(<span class="ident">py</span>)).<span class="ident">unwrap</span>();
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">s</span>), <span class="string">&quot;Hello\n&quot;</span>);
+        })
     }
 }
 </pre></div>

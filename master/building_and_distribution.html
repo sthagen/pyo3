@@ -179,7 +179,41 @@ pyo3 = &quot;0.6&quot;
 </code></pre>
 <p>On Linux/macOS you might have to change <code>LD_LIBRARY_PATH</code> to include libpython, while on windows you might need to set <code>LIB</code> to include <code>pythonxy.lib</code> (where x and y are major and minor version), which is normally either in the <code>libs</code> or <code>Lib</code> folder of a Python installation.</p>
 <h2><a class="header" href="#distribution" id="distribution">Distribution</a></h2>
-<p>There are two ways to distribute your module as a Python package: The old, <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>, and the new, <a href="https://github.com/pyo3/maturin">maturin</a>. setuptools-rust needs several configuration files (<code>setup.py</code>, <code>MANIFEST.in</code>, <code>build-wheels.sh</code>, etc.). maturin doesn't need any configuration files, however it does not support some functionality of setuptools such as package data (<a href="https://github.com/PyO3/maturin/issues/258">pyo3/maturin#258</a>) and requires a rigid project structure, while setuptools-rust allows (and sometimes requires) configuration with python code.</p>
+<p>There are two ways to distribute your module as a Python package: The old, <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>, and the new, <a href="https://github.com/PyO3/maturin">maturin</a>. setuptools-rust needs several configuration files (<code>setup.py</code>, <code>MANIFEST.in</code>, <code>build-wheels.sh</code>, etc.). maturin doesn't need any configuration files, however it does not support some functionality of setuptools such as package data (<a href="https://github.com/PyO3/maturin/issues/258">pyo3/maturin#258</a>) and requires a rigid project structure, while setuptools-rust allows (and sometimes requires) configuration with python code.</p>
+<h2><a class="header" href="#py_limited_apiabi3" id="py_limited_apiabi3"><code>Py_LIMITED_API</code>/<code>abi3</code></a></h2>
+<p>By default, Python extension modules can only be used with the same Python version they were compiled against -- if you build an extension module with Python 3.5, you can't import it using Python 3.8. <a href="https://www.python.org/dev/peps/pep-0384/">PEP 384</a> introduced the idea of the limited Python API, which would have a stable ABI enabling extension modules built with it to be used against multiple Python versions. This is also known as <code>abi3</code>.</p>
+<p>Note that <a href="https://github.com/PyO3/maturin">maturin</a> &gt;= 0.9.0 or <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a> &gt;= 0.12.0 is going to support <code>abi3</code> wheels.
+See the <a href="https://github.com/PyO3/maturin/pull/353">corresponding</a> <a href="https://github.com/PyO3/setuptools-rust/pull/82">PRs</a> for more.</p>
+<p>There are three steps involved in making use of <code>abi3</code> when building Python packages as wheels:</p>
+<ol>
+<li>Enable the <code>abi3</code> feature in <code>pyo3</code>. This ensures <code>pyo3</code> only calls Python C-API functions which are part of the stable API, and on Windows also ensures that the project links against the correct shared object (no special behavior is required on other platforms):</li>
+</ol>
+<pre><code class="language-toml">[dependencies]
+pyo3 = { version = &quot;...&quot;, features = [&quot;abi3&quot;]}
+</code></pre>
+<ol start="2">
+<li>
+<p>Ensure that the built shared objects are correctly marked as <code>abi3</code>. This is accomplished by telling your build system that you're using the limited API.</p>
+</li>
+<li>
+<p>Ensure that the <code>.whl</code> is correctly marked as <code>abi3</code>. For projects using <code>setuptools</code>, this is accomplished by passing <code>--py-limited-api=cp3x</code> (where <code>x</code> is the minimum Python version supported by the wheel, e.g. <code>--py-limited-api=cp35</code> for Python 3.5) to <code>setup.py bdist_wheel</code>.</p>
+</li>
+</ol>
+<h3><a class="header" href="#minimum-python-version-for-abi3" id="minimum-python-version-for-abi3">Minimum Python version for <code>abi3</code></a></h3>
+<p>Because a single <code>abi3</code> wheel can be used with many different Python versions, PyO3 has feature flags <code>abi3-py36</code>, <code>abi3-py37</code>, <code>abi-py38</code> etc. to set the minimum required Python version for your <code>abi3</code> wheel.
+For example, if you set the <code>abi3-py36</code> feature, your extension wheel can be used on all Python 3 versions from Python 3.6 and up. <code>maturin</code> and <code>setuptools-rust</code> will give the wheel a name like <code>my-extension-1.0-cp36-abi3-manylinux2020_x86_64.whl</code>.
+If you set more that one of these api version feature flags the highest version always wins. For example, with both <code>abi3-py36</code> and <code>abi3-py38</code> set, PyO3 would build a wheel which supports Python 3.8 and up.
+PyO3 is only able to link your extension module to api3 version up to and including your host Python version. E.g., if you set <code>abi3-py38</code> and try to compile the crate with a host of Python 3.6, the build will fail.</p>
+<p>As an advanced feature, you can build PyO3 wheel without calling Python interpreter with
+the environment variable <code>PYO3_NO_PYTHON</code> set, but this only works on *NIX.</p>
+<h3><a class="header" href="#missing-features" id="missing-features">Missing features</a></h3>
+<p>Due to limitations in the Python API, there are a few <code>pyo3</code> features that do
+not work when compiling for <code>abi3</code>. These are:</p>
+<ul>
+<li><code>#[text_signature]</code> does not work on classes until Python 3.10 or greater.</li>
+<li>The <code>dict</code> and <code>weakref</code> options on classes are not supported.</li>
+<li>The buffer API is not supported.</li>
+</ul>
 <h2><a class="header" href="#cross-compiling" id="cross-compiling">Cross Compiling</a></h2>
 <p>Cross compiling PyO3 modules is relatively straightforward and requires a few pieces of software:</p>
 <ul>

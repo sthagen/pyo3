@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["pyo3"] = [{"text":"impl&lt;'_&gt; PartialOrd&lt;(u8, u8)&gt; for PythonVersionInfo&lt;'_&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'_&gt; PartialOrd&lt;(u8, u8, u8)&gt; for PythonVersionInfo&lt;'_&gt;","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

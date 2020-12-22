@@ -239,21 +239,21 @@ have Rust types as well.</p>
 <span class="boring">}
 </span></code></pre></pre>
 <h2><a class="header" href="#checking-exception-types" id="checking-exception-types">Checking exception types</a></h2>
-<p>Python has an <a href="https://docs.python.org/3/library/functions.html#isinstance"><code>isinstance</code></a> method to check an object's type,
-in PyO3 there is a <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.is_instance"><code>Python::is_instance</code></a> method which does the same thing.</p>
+<p>Python has an <a href="https://docs.python.org/3/library/functions.html#isinstance"><code>isinstance</code></a> method to check an object's type.
+In PyO3 every native type has access to the <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#method.is_instance"><code>PyAny::is_instance</code></a> method which does the same thing.</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::Python;
 use pyo3::types::{PyBool, PyList};
 
 fn main() {
     let gil = Python::acquire_gil();
     let py = gil.python();
-    assert!(py.is_instance::&lt;PyBool, _&gt;(PyBool::new(py, true)).unwrap());
+    assert!(PyBool::new(py, true).is_instance::&lt;PyBool&gt;().unwrap());
     let list = PyList::new(py, &amp;[1, 2, 3, 4]);
-    assert!(!py.is_instance::&lt;PyBool, _&gt;(list.as_ref()).unwrap());
-    assert!(py.is_instance::&lt;PyList, _&gt;(list.as_ref()).unwrap());
+    assert!(!list.is_instance::&lt;PyBool&gt;().unwrap());
+    assert!(list.is_instance::&lt;PyList&gt;().unwrap());
 }
 </code></pre></pre>
-<p><a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.is_instance"><code>Python::is_instance</code></a> calls the underlying <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyType.html#method.is_instance"><code>PyType::is_instance</code></a>
+<p><a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#method.is_instance"><code>PyAny::is_instance</code></a> calls the underlying <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyType.html#method.is_instance"><code>PyType::is_instance</code></a>
 method to do the actual work.</p>
 <p>To check the type of an exception, you can similarly do:</p>
 <pre><pre class="playground"><code class="language-rust">

@@ -164,7 +164,7 @@
 <p><a href="https://github.com/PyO3/pyo3/actions"><img src="https://github.com/PyO3/pyo3/workflows/Test/badge.svg" alt="Actions Status" /></a>
 <a href="https://codecov.io/gh/PyO3/pyo3"><img src="https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg" alt="codecov" /></a>
 <a href="https://crates.io/crates/pyo3"><img src="http://meritbadge.herokuapp.com/pyo3" alt="crates.io" /></a>
-<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.39+-blue.svg" alt="minimum rustc 1.39" /></a>
+<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.45+-blue.svg" alt="minimum rustc 1.45" /></a>
 <a href="https://gitter.im/PyO3/Lobby"><img src="https://img.shields.io/gitter/room/nwjs/nw.js.svg" alt="Join the dev chat" /></a></p>
 <p><a href="http://www.rust-lang.org/">Rust</a> bindings for <a href="https://www.python.org/">Python</a>. This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.</p>
 <ul>
@@ -180,7 +180,7 @@
 </ul>
 <p>A comparison with rust-cpython can be found <a href="https://pyo3.rs/master/rust_cpython.html">in the guide</a>.</p>
 <h2><a class="header" href="#usage" id="usage">Usage</a></h2>
-<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.39.0.</p>
+<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.45.0.</p>
 <p>Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
 Please refer to the <a href="https://pyo3.rs/master/pypy.html">pypy section in the guide</a>.</p>
 <p>You can either write a native Python module in Rust, or use Python from a Rust binary.</p>
@@ -200,7 +200,7 @@ name = &quot;string_sum&quot;
 crate-type = [&quot;cdylib&quot;]
 
 [dependencies.pyo3]
-version = &quot;0.12.3&quot;
+version = &quot;0.12.4&quot;
 features = [&quot;extension-module&quot;]
 </code></pre>
 <p><strong><code>src/lib.rs</code></strong></p>
@@ -231,6 +231,12 @@ rustflags = [
   &quot;-C&quot;, &quot;link-arg=-undefined&quot;,
   &quot;-C&quot;, &quot;link-arg=dynamic_lookup&quot;,
 ]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+  &quot;-C&quot;, &quot;link-arg=-undefined&quot;,
+  &quot;-C&quot;, &quot;link-arg=dynamic_lookup&quot;,
+]
 </code></pre>
 <p>While developing, you can symlink (or copy) and rename the shared library from the target folder: On MacOS, rename <code>libstring_sum.dylib</code> to <code>string_sum.so</code>, on Windows <code>libstring_sum.dll</code> to <code>string_sum.pyd</code>, and on Linux <code>libstring_sum.so</code> to <code>string_sum.so</code>. Then open a Python shell in the same folder and you'll be able to <code>import string_sum</code>.</p>
 <p>Adding the <code>cdylib</code> arguments in the <code>Cargo.toml</code> files changes the way your crate is compiled.
@@ -242,7 +248,7 @@ Another possibility is to create a new crate to perform the binding.</p>
 <p>If you want your Rust application to create a Python interpreter internally and
 use it to run Python code, add <code>pyo3</code> to your <code>Cargo.toml</code> like this:</p>
 <pre><code class="language-toml">[dependencies]
-pyo3 = &quot;0.12.3&quot;
+pyo3 = &quot;0.12.4&quot;
 </code></pre>
 <p>Example program displaying the value of <code>sys.version</code> and the current user name:</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
@@ -278,6 +284,7 @@ about this topic.</p>
 <li><a href="https://github.com/PyO3/rust-numpy">rust-numpy</a> <em>Rust binding of NumPy C-API</em></li>
 <li><a href="https://github.com/gperinazzo/dict-derive">dict-derive</a> <em>Derive FromPyObject to automatically transform Python dicts into Rust structs</em></li>
 <li><a href="https://github.com/vorner/pyo3-log">pyo3-log</a> <em>Bridge from Rust to Python logging</em></li>
+<li><a href="https://github.com/davidhewitt/pythonize">pythonize</a> <em>Serde serializer for converting Rust objects to JSON-compatible Python objects</em></li>
 </ul>
 <h2><a class="header" href="#examples" id="examples">Examples</a></h2>
 <ul>
@@ -301,6 +308,8 @@ about this topic.</p>
 <li><a href="https://github.com/cds-astro/mocpy">mocpy</a> <em>Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere</em></li>
 <li><a href="https://github.com/huggingface/tokenizers/tree/master/bindings/python">tokenizers</a> <em>Python bindings to the Hugging Face tokenizers (NLP) written in Rust</em></li>
 <li><a href="https://github.com/Project-Dream-Weaver/Pyre">pyre</a> <em>Fast Python HTTP server written in Rust</em></li>
+<li><a href="https://github.com/Stranger6667/jsonschema-rs/tree/master/python">jsonschema-rs</a> <em>Fast JSON Schema validation library</em></li>
+<li><a href="https://github.com/Stranger6667/css-inline/tree/master/python">css-inline</a> <em>CSS inlining for Python implemented in Rust</em></li>
 </ul>
 <h2><a class="header" href="#license" id="license">License</a></h2>
 <p>PyO3 is licensed under the <a href="http://opensource.org/licenses/APACHE-2.0">Apache-2.0 license</a>.
@@ -510,6 +519,8 @@ impl MyClass {
 }
 <span class="boring">}
 </span></code></pre></pre>
+<p>Note that <code>text_signature</code> on classes is not compatible with compilation in
+<code>abi3</code> mode until Python 3.10 or greater.</p>
 <h3><a class="header" href="#making-the-function-signature-available-to-python-old-method" id="making-the-function-signature-available-to-python-old-method">Making the function signature available to Python (old method)</a></h3>
 <p>Alternatively, simply make sure the first line of your docstring is
 formatted like in the following example. Please note that the newline after the
@@ -553,17 +564,17 @@ Type:      builtin_function_or_method
 definitely be possible and very useful, so contributions are welcome. In the meantime, you can do
 the following:</p>
 <h3><a class="header" href="#calling-python-functions-in-rust" id="calling-python-functions-in-rust">Calling Python functions in Rust</a></h3>
-<p>You can pass Python <code>def</code>'d functions and built-in functions to Rust functions <code>[PyFunction]</code>
-corresponds to regular Python functions while <code>[PyCFunction]</code> describes built-ins such as
+<p>You can pass Python <code>def</code>'d functions and built-in functions to Rust functions <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyFunction.html"><code>PyFunction</code></a>
+corresponds to regular Python functions while <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a> describes built-ins such as
 <code>repr()</code>.</p>
-<p>You can also use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will 
-return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method. 
-You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs 
+<p>You can also use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will
+return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method.
+You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call"><code>PyAny::call</code></a> with the args as first parameter and the kwargs
 (or <code>None</code>) as second parameter. There are also <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call0"><code>PyAny::call0</code></a> with no args and <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1"><code>PyAny::call1</code></a>
 with only positional args.</p>
 <h3><a class="header" href="#calling-rust-functions-in-python" id="calling-rust-functions-in-python">Calling Rust functions in Python</a></h3>
 <p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a>
-to get the corresponding [<code>PyCFunction</code>]. For dynamic functions, e.g. lambdas and functions that
+to get the corresponding <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a>. For dynamic functions, e.g. lambdas and functions that
 were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>.
 (A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can
 then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over
@@ -606,7 +617,7 @@ fn module_with_fn(py: Python, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
 <span class="boring">fn main() {}
 </span></code></pre></pre>
 <h2><a class="header" href="#accessing-the-ffi-functions" id="accessing-the-ffi-functions">Accessing the FFI functions</a></h2>
-<p>In order to make Rust functions callable from Python, PyO3 generates a 
+<p>In order to make Rust functions callable from Python, PyO3 generates a
 <code>extern &quot;C&quot; Fn(slf: *mut PyObject, args: *mut PyObject, kwargs: *mut PyObject) -&gt; *mut Pyobject</code>
 function and embeds the call to the Rust function inside this FFI-wrapper function. This
 wrapper handles extraction of the regular arguments and the keyword arguments from the input
@@ -751,7 +762,7 @@ assert_eq!(obj_ref.num, 1);
 The performance improvement applies to types that are often created and deleted in a row,
 so that they can benefit from a freelist. <code>XXX</code> is a number of items for the free list.</li>
 <li><code>gc</code> - Classes with the <code>gc</code> parameter participate in Python garbage collection.
-If a custom class contains references to other Python objects that can be collected, the [<code>PyGCProtocol</code>] trait has to be implemented.</li>
+If a custom class contains references to other Python objects that can be collected, the <a href="https://docs.rs/pyo3/latest/pyo3/class/gc/trait.PyGCProtocol.html"><code>PyGCProtocol</code></a> trait has to be implemented.</li>
 <li><code>weakref</code> - Adds support for Python weak references.</li>
 <li><code>extends=BaseType</code> - Use a custom base class. The base <code>BaseType</code> must implement <code>PyTypeInfo</code>.</li>
 <li><code>subclass</code> - Allows Python classes to inherit from this class.</li>
@@ -812,7 +823,7 @@ or by <code>self_.into_super()</code> as <code>PyRef&lt;Self::BaseClass&gt;</cod
 </span><span class="boring">fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span>
-#[pyclass]
+#[pyclass(subclass)]
 struct BaseClass {
     val1: usize,
 }
@@ -829,7 +840,7 @@ impl BaseClass {
     }
 }
 
-#[pyclass(extends=BaseClass)]
+#[pyclass(extends=BaseClass, subclass)]
 struct SubClass {
     val2: usize,
 }
@@ -873,12 +884,11 @@ impl SubSubClass {
 </span><span class="boring">}
 </span></code></pre></pre>
 <p>You can also inherit native types such as <code>PyDict</code>, if they implement
-<a href="https://docs.rs/pyo3/latest/pyo3/type_object/trait.PySizedLayout.html"><code>PySizedLayout</code></a>.</p>
+<a href="https://docs.rs/pyo3/latest/pyo3/type_object/trait.PySizedLayout.html"><code>PySizedLayout</code></a>. However, this is not supported when building for the Python limited API (aka the <code>abi3</code> feature of PyO3).</p>
 <p>However, because of some technical problems, we don't currently provide safe upcasting methods for types
 that inherit native types. Even in such cases, you can unsafely get a base class by raw pointer conversion.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#[cfg(Py_LIMITED_API)] fn main() {}
+</span><span class="boring">#[cfg(not(Py_LIMITED_API))] fn main() {
 </span><span class="boring">use pyo3::prelude::*;
 </span>use pyo3::types::PyDict;
 use pyo3::{AsPyPointer, PyNativeType};
@@ -1298,7 +1308,7 @@ pyclass dependent on whether there is an impl block, we'd need to implement the 
 <code>#[pyclass]</code> and override the implementation in <code>#[pymethods]</code>.
 To enable this, we use a static registry type provided by <a href="https://github.com/dtolnay/inventory">inventory</a>,
 which allows us to collect <code>impl</code>s from arbitrary source code by exploiting some binary trick.
-See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_derive_backend::py_class</code> for more details.
+See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_macros_backend::py_class</code> for more details.
 Also for <code>#[pyproto]</code>, we use a similar, but more task-specific registry and
 initialize it using the <a href="https://github.com/mmastrac/rust-ctor">ctor</a> crate.</p>
 <p>Specifically, the following implementation is generated:</p>
@@ -1364,11 +1374,29 @@ impl pyo3::class::methods::HasMethodsInventory for MyClass {
 }
 pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
 
-impl pyo3::class::proto_methods::HasProtoRegistry for MyClass {
-    fn registry() -&gt; &amp;'static pyo3::class::proto_methods::PyProtoRegistry {
-        static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
-            = pyo3::class::proto_methods::PyProtoRegistry::new();
-        &amp;REGISTRY
+impl pyo3::class::proto_methods::PyProtoMethods for MyClass {
+    fn for_each_proto_slot&lt;Visitor: FnMut(pyo3::ffi::PyType_Slot)&gt;(visitor: Visitor) {
+        // Implementation which uses dtolnay specialization to load all slots.
+        use pyo3::class::proto_methods::*;
+        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
+        protocols.object_protocol_slots()
+            .iter()
+            .chain(protocols.number_protocol_slots())
+            .chain(protocols.iter_protocol_slots())
+            .chain(protocols.gc_protocol_slots())
+            .chain(protocols.descr_protocol_slots())
+            .chain(protocols.mapping_protocol_slots())
+            .chain(protocols.sequence_protocol_slots())
+            .chain(protocols.async_protocol_slots())
+            .chain(protocols.buffer_protocol_slots())
+            .cloned()
+            .for_each(visitor);
+    }
+
+    fn get_buffer() -&gt; Option&lt;&amp;'static pyo3::class::proto_methods::PyBufferProcs&gt; {
+        use pyo3::class::proto_methods::*;
+        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
+        protocols.buffer_procs()
     }
 }
 
@@ -1550,7 +1578,7 @@ struct ClassWithGCSupport {
 #[pyproto]
 impl PyGCProtocol for ClassWithGCSupport {
     fn __traverse__(&amp;self, visit: PyVisit) -&gt; Result&lt;(), PyTraverseError&gt; {
-        if let Some(ref obj) = self.obj {
+        if let Some(obj) = &amp;self.obj {
             visit.call(obj)?
         }
         Ok(())
@@ -2025,21 +2053,21 @@ have Rust types as well.</p>
 <span class="boring">}
 </span></code></pre></pre>
 <h2><a class="header" href="#checking-exception-types" id="checking-exception-types">Checking exception types</a></h2>
-<p>Python has an <a href="https://docs.python.org/3/library/functions.html#isinstance"><code>isinstance</code></a> method to check an object's type,
-in PyO3 there is a <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.is_instance"><code>Python::is_instance</code></a> method which does the same thing.</p>
+<p>Python has an <a href="https://docs.python.org/3/library/functions.html#isinstance"><code>isinstance</code></a> method to check an object's type.
+In PyO3 every native type has access to the <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#method.is_instance"><code>PyAny::is_instance</code></a> method which does the same thing.</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::Python;
 use pyo3::types::{PyBool, PyList};
 
 fn main() {
     let gil = Python::acquire_gil();
     let py = gil.python();
-    assert!(py.is_instance::&lt;PyBool, _&gt;(PyBool::new(py, true)).unwrap());
+    assert!(PyBool::new(py, true).is_instance::&lt;PyBool&gt;().unwrap());
     let list = PyList::new(py, &amp;[1, 2, 3, 4]);
-    assert!(!py.is_instance::&lt;PyBool, _&gt;(list.as_ref()).unwrap());
-    assert!(py.is_instance::&lt;PyList, _&gt;(list.as_ref()).unwrap());
+    assert!(!list.is_instance::&lt;PyBool&gt;().unwrap());
+    assert!(list.is_instance::&lt;PyList&gt;().unwrap());
 }
 </code></pre></pre>
-<p><a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.is_instance"><code>Python::is_instance</code></a> calls the underlying <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyType.html#method.is_instance"><code>PyType::is_instance</code></a>
+<p><a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#method.is_instance"><code>PyAny::is_instance</code></a> calls the underlying <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyType.html#method.is_instance"><code>PyType::is_instance</code></a>
 method to do the actual work.</p>
 <p>To check the type of an exception, you can similarly do:</p>
 <pre><pre class="playground"><code class="language-rust">
@@ -2725,7 +2753,41 @@ pyo3 = &quot;0.6&quot;
 </code></pre>
 <p>On Linux/macOS you might have to change <code>LD_LIBRARY_PATH</code> to include libpython, while on windows you might need to set <code>LIB</code> to include <code>pythonxy.lib</code> (where x and y are major and minor version), which is normally either in the <code>libs</code> or <code>Lib</code> folder of a Python installation.</p>
 <h2><a class="header" href="#distribution" id="distribution">Distribution</a></h2>
-<p>There are two ways to distribute your module as a Python package: The old, <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>, and the new, <a href="https://github.com/pyo3/maturin">maturin</a>. setuptools-rust needs several configuration files (<code>setup.py</code>, <code>MANIFEST.in</code>, <code>build-wheels.sh</code>, etc.). maturin doesn't need any configuration files, however it does not support some functionality of setuptools such as package data (<a href="https://github.com/PyO3/maturin/issues/258">pyo3/maturin#258</a>) and requires a rigid project structure, while setuptools-rust allows (and sometimes requires) configuration with python code.</p>
+<p>There are two ways to distribute your module as a Python package: The old, <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>, and the new, <a href="https://github.com/PyO3/maturin">maturin</a>. setuptools-rust needs several configuration files (<code>setup.py</code>, <code>MANIFEST.in</code>, <code>build-wheels.sh</code>, etc.). maturin doesn't need any configuration files, however it does not support some functionality of setuptools such as package data (<a href="https://github.com/PyO3/maturin/issues/258">pyo3/maturin#258</a>) and requires a rigid project structure, while setuptools-rust allows (and sometimes requires) configuration with python code.</p>
+<h2><a class="header" href="#py_limited_apiabi3" id="py_limited_apiabi3"><code>Py_LIMITED_API</code>/<code>abi3</code></a></h2>
+<p>By default, Python extension modules can only be used with the same Python version they were compiled against -- if you build an extension module with Python 3.5, you can't import it using Python 3.8. <a href="https://www.python.org/dev/peps/pep-0384/">PEP 384</a> introduced the idea of the limited Python API, which would have a stable ABI enabling extension modules built with it to be used against multiple Python versions. This is also known as <code>abi3</code>.</p>
+<p>Note that <a href="https://github.com/PyO3/maturin">maturin</a> &gt;= 0.9.0 or <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a> &gt;= 0.12.0 is going to support <code>abi3</code> wheels.
+See the <a href="https://github.com/PyO3/maturin/pull/353">corresponding</a> <a href="https://github.com/PyO3/setuptools-rust/pull/82">PRs</a> for more.</p>
+<p>There are three steps involved in making use of <code>abi3</code> when building Python packages as wheels:</p>
+<ol>
+<li>Enable the <code>abi3</code> feature in <code>pyo3</code>. This ensures <code>pyo3</code> only calls Python C-API functions which are part of the stable API, and on Windows also ensures that the project links against the correct shared object (no special behavior is required on other platforms):</li>
+</ol>
+<pre><code class="language-toml">[dependencies]
+pyo3 = { version = &quot;...&quot;, features = [&quot;abi3&quot;]}
+</code></pre>
+<ol start="2">
+<li>
+<p>Ensure that the built shared objects are correctly marked as <code>abi3</code>. This is accomplished by telling your build system that you're using the limited API.</p>
+</li>
+<li>
+<p>Ensure that the <code>.whl</code> is correctly marked as <code>abi3</code>. For projects using <code>setuptools</code>, this is accomplished by passing <code>--py-limited-api=cp3x</code> (where <code>x</code> is the minimum Python version supported by the wheel, e.g. <code>--py-limited-api=cp35</code> for Python 3.5) to <code>setup.py bdist_wheel</code>.</p>
+</li>
+</ol>
+<h3><a class="header" href="#minimum-python-version-for-abi3" id="minimum-python-version-for-abi3">Minimum Python version for <code>abi3</code></a></h3>
+<p>Because a single <code>abi3</code> wheel can be used with many different Python versions, PyO3 has feature flags <code>abi3-py36</code>, <code>abi3-py37</code>, <code>abi-py38</code> etc. to set the minimum required Python version for your <code>abi3</code> wheel.
+For example, if you set the <code>abi3-py36</code> feature, your extension wheel can be used on all Python 3 versions from Python 3.6 and up. <code>maturin</code> and <code>setuptools-rust</code> will give the wheel a name like <code>my-extension-1.0-cp36-abi3-manylinux2020_x86_64.whl</code>.
+If you set more that one of these api version feature flags the highest version always wins. For example, with both <code>abi3-py36</code> and <code>abi3-py38</code> set, PyO3 would build a wheel which supports Python 3.8 and up.
+PyO3 is only able to link your extension module to api3 version up to and including your host Python version. E.g., if you set <code>abi3-py38</code> and try to compile the crate with a host of Python 3.6, the build will fail.</p>
+<p>As an advanced feature, you can build PyO3 wheel without calling Python interpreter with
+the environment variable <code>PYO3_NO_PYTHON</code> set, but this only works on *NIX.</p>
+<h3><a class="header" href="#missing-features" id="missing-features">Missing features</a></h3>
+<p>Due to limitations in the Python API, there are a few <code>pyo3</code> features that do
+not work when compiling for <code>abi3</code>. These are:</p>
+<ul>
+<li><code>#[text_signature]</code> does not work on classes until Python 3.10 or greater.</li>
+<li>The <code>dict</code> and <code>weakref</code> options on classes are not supported.</li>
+<li>The buffer API is not supported.</li>
+</ul>
 <h2><a class="header" href="#cross-compiling" id="cross-compiling">Cross Compiling</a></h2>
 <p>Cross compiling PyO3 modules is relatively straightforward and requires a few pieces of software:</p>
 <ul>
@@ -2796,9 +2858,21 @@ version = &quot;*&quot;
 extension-module = [&quot;pyo3/extension-module&quot;]
 default = [&quot;extension-module&quot;]
 </code></pre>
+<h2><a class="header" href="#ctrl-c-doesnt-do-anything-while-my-rust-code-is-executing" id="ctrl-c-doesnt-do-anything-while-my-rust-code-is-executing">Ctrl-C doesn't do anything while my Rust code is executing!</a></h2>
+<p>This is because Ctrl-C raises a SIGINT signal, which is handled by the calling Python process by simply setting a flag to action upon later. This flag isn't checked while Rust code called from Python is executing, only once control returns to the Python interpreter.</p>
+<p>You can give the Python interpreter a chance to process the signal properly by calling <code>Python::check_signals</code>. It's good practice to call this function regularly if you have a long-running Rust function so that your users can cancel it.</p>
 <h1><a class="header" href="#migrating-from-older-pyo3-versions" id="migrating-from-older-pyo3-versions">Migrating from older PyO3 versions</a></h1>
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
+<h2><a class="header" href="#from-012-to-013" id="from-012-to-013">from 0.12.* to 0.13</a></h2>
+<h3><a class="header" href="#runtime-changes-to-support-the-cpython-limited-api" id="runtime-changes-to-support-the-cpython-limited-api">Runtime changes to support the CPython limited API</a></h3>
+<p>In PyO3 <code>0.13</code> support was added for compiling against the CPython limited API. This had a number of implications for <em>all</em> PyO3 users, described here.</p>
+<p>The largest of these is that all types created from PyO3 are what CPython calls &quot;heap&quot; types. The specific implications of this are:</p>
+<ul>
+<li>If you wish to subclass one of these types <em>from Rust</em> you must mark it <code>#[pyclass(subclass)]</code>, as you would if you wished to allow subclassing it from Python code.</li>
+<li>Type objects are now mutable - Python code can set attributes on them.</li>
+<li><code>__module__</code> on types without <code>#[pyclass(module=&quot;mymodule&quot;)]</code> no longer returns <code>builtins</code>, it now raises <code>AttributeError</code>.</li>
+</ul>
 <h2><a class="header" href="#from-011-to-012" id="from-011-to-012">from 0.11.* to 0.12</a></h2>
 <h3><a class="header" href="#pyerr-has-been-reworked" id="pyerr-has-been-reworked"><code>PyErr</code> has been reworked</a></h3>
 <p>In PyO3 <code>0.12</code> the <code>PyErr</code> type has been re-implemented to be significantly more compatible with
@@ -3702,8 +3776,8 @@ impl Model for UserModel {
                 .call_method(&quot;get_results&quot;, (), None)
                 .unwrap();
 
-            if py_result.get_type().name() != &quot;list&quot; {
-                panic!(&quot;Expected a list for the get_results() method signature, got {}&quot;, py_result.get_type().name());
+            if py_result.get_type().name().unwrap() != &quot;list&quot; {
+                panic!(&quot;Expected a list for the get_results() method signature, got {}&quot;, py_result.get_type().name().unwrap());
             }
             py_result.extract()
         })
@@ -3824,8 +3898,8 @@ impl Model for UserModel {
                 .call_method(&quot;get_results&quot;, (), None)
                 .unwrap();
 
-            if py_result.get_type().name() != &quot;list&quot; {
-                panic!(&quot;Expected a list for the get_results() method signature, got {}&quot;, py_result.get_type().name());
+            if py_result.get_type().name().unwrap() != &quot;list&quot; {
+                panic!(&quot;Expected a list for the get_results() method signature, got {}&quot;, py_result.get_type().name().unwrap());
             }
             py_result.extract()
         })
@@ -3903,29 +3977,67 @@ provide guidance.</p>
 PyO3 versions, please see the <a href="https://pyo3.rs/master/migration.html">migration guide</a>.</p>
 <p>The format is based on <a href="http://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>
 and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0123headunreleaseda" id="a-hrefhttpsgithubcompyo3pyo3comparev0123headunreleaseda"><a href="https://github.com/pyo3/pyo3/compare/v0.12.3...HEAD">Unreleased</a></a></h2>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0124headunreleaseda" id="a-hrefhttpsgithubcompyo3pyo3comparev0124headunreleaseda"><a href="https://github.com/pyo3/pyo3/compare/v0.12.4...HEAD">Unreleased</a></a></h2>
 <h3><a class="header" href="#packaging" id="packaging">Packaging</a></h3>
 <ul>
 <li>Drop support for Python 3.5 (as it is now end-of-life). <a href="https://github.com/PyO3/pyo3/pull/1250">#1250</a></li>
+<li>Bump minimum supported Rust version to 1.45. <a href="https://github.com/PyO3/pyo3/pull/1272">#1272</a></li>
+<li>Bump indoc dependency to 1.0. <a href="https://github.com/PyO3/pyo3/pull/1272">#1272</a></li>
+<li>Bump paste dependency to 1.0. <a href="https://github.com/PyO3/pyo3/pull/1272">#1272</a></li>
+<li>Rename internal crates <code>pyo3cls</code> and <code>pyo3-derive-backend</code> to <code>pyo3-macros</code> and <code>pyo3-macros-backend</code> respectively. <a href="https://github.com/PyO3/pyo3/pull/1317">#1317</a></li>
 </ul>
 <h3><a class="header" href="#added" id="added">Added</a></h3>
 <ul>
+<li>Add support for building for CPython limited API. This required a few minor changes to runtime behaviour of of pyo3 <code>#[pyclass]</code> types. See the migration guide for full details. <a href="https://github.com/PyO3/pyo3/pull/1152">#1152</a>
+<ul>
+<li>Add feature flags <code>abi3-py*</code>  to set the minimum Python version when using the limited API. <a href="(https://github.com/PyO3/pyo3/pull/1263)">#1263</a></li>
+</ul>
+</li>
 <li>Add argument names to <code>TypeError</code> messages generated by pymethod wrappers. <a href="https://github.com/PyO3/pyo3/pull/1212">#1212</a></li>
+<li>Add FFI definitions for PEP 587 &quot;Python Initialization Configuration&quot;. <a href="https://github.com/PyO3/pyo3/pull/1247">#1247</a></li>
 <li>Add <code>PyEval_SetProfile</code> and <code>PyEval_SetTrace</code> to FFI. <a href="https://github.com/PyO3/pyo3/pull/1255">#1255</a></li>
 <li>Add context.h functions (<code>PyContext_New</code>, etc) to FFI. <a href="https://github.com/PyO3/pyo3/pull/1259">#1259</a></li>
+<li>Add <code>PyAny::is_instance()</code> method. <a href="https://github.com/PyO3/pyo3/pull/1276">#1276</a></li>
+<li>Add support for conversion between <code>char</code> and <code>PyString</code>. <a href="https://github.com/PyO3/pyo3/pull/1282">#1282</a></li>
+<li>Add FFI definitions for <code>PyBuffer_SizeFromFormat</code>, <code>PyObject_LengthHint</code>, <code>PyObject_CallNoArgs</code>, <code>PyObject_CallOneArg</code>, <code>PyObject_CallMethodNoArgs</code>, <code>PyObject_CallMethodOneArg</code>, <code>PyObject_VectorcallDict</code>, and <code>PyObject_VectorcallMethod</code>. <a href="https://github.com/PyO3/pyo3/pull/1287">#1287</a></li>
+<li>Add conversions between u128/i128 and PyLong for PyPy. <a href="https://github.com/PyO3/pyo3/pull/1310">#1310</a></li>
+<li>Add <code>Python::version()</code> and <code>Python::version_info()</code> to get the running interpreter version. <a href="https://github.com/PyO3/pyo3/pull/1322">#1322</a></li>
 </ul>
 <h3><a class="header" href="#changed" id="changed">Changed</a></h3>
 <ul>
+<li>Change return type <code>PyType::name()</code> from <code>Cow&lt;str&gt;</code> to <code>PyResult&lt;&amp;str&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/1152">#1152</a></li>
+<li><code>#[pyclass(subclass)]</code> is now required for subclassing from Rust (was previously just required for subclassing from Python). <a href="https://github.com/PyO3/pyo3/pull/1152">#1152</a></li>
 <li>Change <code>PyIterator</code> to be consistent with other native types: it is now used as <code>&amp;PyIterator</code> instead of <code>PyIterator&lt;'a&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/1176">#1176</a></li>
 <li>Change formatting of <code>PyDowncastError</code> messages to be closer to Python's builtin error messages. <a href="https://github.com/PyO3/pyo3/pull/1212">#1212</a></li>
+<li>Change <code>Debug</code> and <code>Display</code> impls for <code>PyException</code> to be consistent with <code>PyAny</code>. <a href="https://github.com/PyO3/pyo3/pull/1275">#1275</a></li>
+<li>Change <code>Debug</code> impl of <code>PyErr</code> to output more helpful information (acquiring the GIL if necessary). <a href="https://github.com/PyO3/pyo3/pull/1275">#1275</a></li>
+<li>Rename <code>PyTypeInfo::is_instance</code> and <code>PyTypeInfo::is_exact_instance</code> to <code>PyTypeInfo::is_type_of</code> and <code>PyTypeInfo::is_exact_type_of</code>. <a href="https://github.com/PyO3/pyo3/pull/1278">#1278</a></li>
+<li>Optimize <code>PyAny::call0</code>, <code>Py::call0</code> and <code>PyAny::call_method0</code> and <code>Py::call_method0</code> on Python 3.9 and up. <a href="https://github.com/PyO3/pyo3/pull/1285">#1287</a></li>
+<li>Deprecate <code>Python::is_instance</code>, <code>Python::is_subclass</code>, <code>Python::release</code>, and <code>Python::xdecref</code>. <a href="https://github.com/PyO3/pyo3/pull/1292">#1292</a></li>
+<li>Require double-quotes for pyclass name argument e.g <code>#[pyclass(name = &quot;MyClass&quot;)]</code>. <a href="https://github.com/PyO3/pyo3/pull/1303">#1303</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
 <li>Remove deprecated ffi definitions <code>PyUnicode_AsUnicodeCopy</code>, <code>PyUnicode_GetMax</code>, <code>_Py_CheckRecursionLimit</code>, <code>PyObject_AsCharBuffer</code>, <code>PyObject_AsReadBuffer</code>, <code>PyObject_CheckReadBuffer</code> and <code>PyObject_AsWriteBuffer</code>, which will be removed in Python 3.10. <a href="https://github.com/PyO3/pyo3/pull/1217">#1217</a></li>
 <li>Remove unused <code>python3</code> feature. <a href="https://github.com/PyO3/pyo3/pull/1235">#1235</a></li>
 </ul>
-<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0122v01230123a---2020-10-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0122v01230123a---2020-10-12"><a href="https://github.com/pyo3/pyo3/compare/v0.12.2...v0.12.3">0.12.3</a> - 2020-10-12</a></h2>
 <h3><a class="header" href="#fixed" id="fixed">Fixed</a></h3>
+<ul>
+<li>Fix missing field in <code>PyCodeObject</code> struct (<code>co_posonlyargcount</code>) - caused invalid access to other fields in Python &gt;3.7. <a href="https://github.com/PyO3/pyo3/pull/1260">#1260</a></li>
+<li>Fix building for <code>x86_64-unknown-linux-musl</code> target from <code>x86_65-unknown-linux-gnu</code> host. <a href="https://github.com/PyO3/pyo3/pull/1267">#1267</a></li>
+<li>Fix <code>#[text_signature]</code> interacting badly with rust <code>r#raw_identifiers</code>. <a href="https://github.com/PyO3/pyo3/pull/1286">#1286</a></li>
+<li>Fix FFI definitions for <code>PyObject_Vectorcall</code> and <code>PyVectorcall_Call</code>. <a href="https://github.com/PyO3/pyo3/pull/1285">#1287</a></li>
+<li>Fix building with Anaconda python inside a virtualenv. <a href="https://github.com/PyO3/pyo3/pull/1290">#1290</a></li>
+<li>Fix definition of opaque FFI types. <a href="https://github.com/PyO3/pyo3/pull/1312">#1312</a></li>
+<li>Fix using custom error type in pyclass <code>#[new]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/1319">#1319</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0123v01240124a---2020-11-28" id="a-hrefhttpsgithubcompyo3pyo3comparev0123v01240124a---2020-11-28"><a href="https://github.com/pyo3/pyo3/compare/v0.12.3...v0.12.4">0.12.4</a> - 2020-11-28</a></h2>
+<h3><a class="header" href="#fixed-1" id="fixed-1">Fixed</a></h3>
+<ul>
+<li>Fix reference count bug in implementation of <code>From&lt;Py&lt;T&gt;&gt;</code> for <code>PyObject</code>, a regression introduced in PyO3 0.12. <a href="https://github.com/PyO3/pyo3/pull/1297">#1297</a></li>
+</ul>
+<h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0122v01230123a---2020-10-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0122v01230123a---2020-10-12"><a href="https://github.com/pyo3/pyo3/compare/v0.12.2...v0.12.3">0.12.3</a> - 2020-10-12</a></h2>
+<h3><a class="header" href="#fixed-2" id="fixed-2">Fixed</a></h3>
 <ul>
 <li>Fix support for Rust versions 1.39 to 1.44, broken by an incorrect internal update to paste 1.0 which was done in PyO3 0.12.2. <a href="https://github.com/PyO3/pyo3/pull/1234">#1234</a></li>
 </ul>
@@ -3935,14 +4047,14 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Add support for keyword-only arguments without default values in <code>#[pyfunction]</code>. <a href="https://github.com/PyO3/pyo3/pull/1209">#1209</a></li>
 <li>Add <code>Python::check_signals()</code> as a safe a wrapper for <code>PyErr_CheckSignals()</code>. <a href="https://github.com/PyO3/pyo3/pull/1214">#1214</a></li>
 </ul>
-<h3><a class="header" href="#fixed-1" id="fixed-1">Fixed</a></h3>
+<h3><a class="header" href="#fixed-3" id="fixed-3">Fixed</a></h3>
 <ul>
 <li>Fix invalid document for protocol methods. <a href="https://github.com/PyO3/pyo3/pull/1169">#1169</a></li>
 <li>Hide docs of PyO3 private implementation details in <code>pyo3::class::methods</code>. <a href="https://github.com/PyO3/pyo3/pull/1169">#1169</a></li>
 <li>Fix unnecessary rebuild on PATH changes when the python interpreter is provided by PYO3_PYTHON. <a href="https://github.com/PyO3/pyo3/pull/1231">#1231</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0120v01210121a---2020-09-16" id="a-hrefhttpsgithubcompyo3pyo3comparev0120v01210121a---2020-09-16"><a href="https://github.com/pyo3/pyo3/compare/v0.12.0...v0.12.1">0.12.1</a> - 2020-09-16</a></h2>
-<h3><a class="header" href="#fixed-2" id="fixed-2">Fixed</a></h3>
+<h3><a class="header" href="#fixed-4" id="fixed-4">Fixed</a></h3>
 <ul>
 <li>Fix building for a 32-bit Python on 64-bit Windows with a 64-bit Rust toolchain. <a href="https://github.com/PyO3/pyo3/pull/1179">#1179</a></li>
 <li>Fix building on platforms where <code>c_char</code> is <code>u8</code>. <a href="https://github.com/PyO3/pyo3/pull/1182">#1182</a></li>
@@ -4005,7 +4117,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Remove the <code>FromPy</code> trait. <a href="https://github.com/PyO3/pyo3/pull/1063">#1063</a></li>
 <li>Remove the <code>AsPyRef</code> trait. <a href="https://github.com/PyO3/pyo3/pull/1098">#1098</a></li>
 </ul>
-<h3><a class="header" href="#fixed-3" id="fixed-3">Fixed</a></h3>
+<h3><a class="header" href="#fixed-5" id="fixed-5">Fixed</a></h3>
 <ul>
 <li>Correct FFI definitions <code>Py_SetProgramName</code> and <code>Py_SetPythonHome</code> to take <code>*const</code> arguments (was <code>*mut</code>). <a href="https://github.com/PyO3/pyo3/pull/1021">#1021</a></li>
 <li>Fix <code>FromPyObject</code> for <code>num_bigint::BigInt</code> for Python objects with an <code>__index__</code> method. <a href="https://github.com/PyO3/pyo3/pull/1027">#1027</a></li>
@@ -4060,7 +4172,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <ul>
 <li>Remove <code>ManagedPyRef</code> (unused, and needs specialization) <a href="https://github.com/PyO3/pyo3/pull/930">#930</a></li>
 </ul>
-<h3><a class="header" href="#fixed-4" id="fixed-4">Fixed</a></h3>
+<h3><a class="header" href="#fixed-6" id="fixed-6">Fixed</a></h3>
 <ul>
 <li>Fix passing explicit <code>None</code> to <code>Option&lt;T&gt;</code> argument <code>#[pyfunction]</code> with a default value. <a href="https://github.com/PyO3/pyo3/pull/936">#936</a></li>
 <li>Fix <code>PyClass.__new__</code>'s not respecting subclasses when inherited by a Python class. <a href="https://github.com/PyO3/pyo3/pull/990">#990</a></li>
@@ -4068,7 +4180,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Fix accepting <code>PyRef&lt;Self&gt;</code> and <code>PyRefMut&lt;Self&gt;</code> to <code>#[getter]</code> and <code>#[setter]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/999">#999</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0100v01010101a---2020-05-14" id="a-hrefhttpsgithubcompyo3pyo3comparev0100v01010101a---2020-05-14"><a href="https://github.com/pyo3/pyo3/compare/v0.10.0...v0.10.1">0.10.1</a> - 2020-05-14</a></h2>
-<h3><a class="header" href="#fixed-5" id="fixed-5">Fixed</a></h3>
+<h3><a class="header" href="#fixed-7" id="fixed-7">Fixed</a></h3>
 <ul>
 <li>Fix deadlock in <code>Python::acquire_gil()</code> after dropping a <code>PyObject</code> or <code>Py&lt;T&gt;</code>. <a href="https://github.com/PyO3/pyo3/pull/924">#924</a></li>
 </ul>
@@ -4102,7 +4214,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Remove <code>PyAny::None</code>. Users should use <code>Python::None</code> instead. <a href="https://github.com/PyO3/pyo3/pull/911">#911</a></li>
 <li>Remove all <code>*ProtocolImpl</code> traits. <a href="https://github.com/PyO3/pyo3/pull/917">#917</a></li>
 </ul>
-<h3><a class="header" href="#fixed-6" id="fixed-6">Fixed</a></h3>
+<h3><a class="header" href="#fixed-8" id="fixed-8">Fixed</a></h3>
 <ul>
 <li>Fix support for <code>__radd__</code> and other <code>__r*__</code> methods as implementations for Python mathematical operators. <a href="https://github.com/PyO3/pyo3/pull/839">#839</a></li>
 <li>Fix panics during garbage collection when traversing objects that were already mutably borrowed. <a href="https://github.com/PyO3/pyo3/pull/855">#855</a></li>
@@ -4118,12 +4230,12 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <ul>
 <li><code>FromPyObject</code> implementations for <code>HashSet</code> and <code>BTreeSet</code>. <a href="https://github.com/PyO3/pyo3/pull/842">#842</a></li>
 </ul>
-<h3><a class="header" href="#fixed-7" id="fixed-7">Fixed</a></h3>
+<h3><a class="header" href="#fixed-9" id="fixed-9">Fixed</a></h3>
 <ul>
 <li>Correctly detect 32bit architecture. <a href="https://github.com/PyO3/pyo3/pull/830">#830</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev090v091091a---2020-03-23" id="a-hrefhttpsgithubcompyo3pyo3comparev090v091091a---2020-03-23"><a href="https://github.com/pyo3/pyo3/compare/v0.9.0...v0.9.1">0.9.1</a> - 2020-03-23</a></h2>
-<h3><a class="header" href="#fixed-8" id="fixed-8">Fixed</a></h3>
+<h3><a class="header" href="#fixed-10" id="fixed-10">Fixed</a></h3>
 <ul>
 <li>Error messages for <code>#[pyclass]</code>. <a href="https://github.com/PyO3/pyo3/pull/826">#826</a></li>
 <li><code>FromPyObject</code> implementation for <code>PySequence</code>. <a href="https://github.com/PyO3/pyo3/pull/827">#827</a></li>
@@ -4164,7 +4276,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li><code>Python::mut_from_owned_ptr/mut_from_borrowed_ptr</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
 <li><code>ObjectProtocol::get_base/get_mut_base</code>. <a href="https://github.com/PyO3/pyo3/pull/770">#770</a></li>
 </ul>
-<h3><a class="header" href="#fixed-9" id="fixed-9">Fixed</a></h3>
+<h3><a class="header" href="#fixed-11" id="fixed-11">Fixed</a></h3>
 <ul>
 <li>Fixed unsoundness of subclassing. <a href="https://github.com/PyO3/pyo3/pull/683">#683</a>.</li>
 <li>Clear error indicator when the exception is handled on the Rust side. <a href="https://github.com/PyO3/pyo3/pull/719">#719</a></li>
@@ -4191,7 +4303,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <ul>
 <li><code>#[init]</code> is removed. <a href="https://github.com/PyO3/pyo3/pull/658">#658</a></li>
 </ul>
-<h3><a class="header" href="#fixed-10" id="fixed-10">Fixed</a></h3>
+<h3><a class="header" href="#fixed-12" id="fixed-12">Fixed</a></h3>
 <ul>
 <li>Now all <code>&amp;Py~</code> types have <code>!Send</code> bound. <a href="https://github.com/PyO3/pyo3/pull/655">#655</a></li>
 <li>Fix a compile error raised by the stabilization of <code>!</code> type. <a href="https://github.com/PyO3/pyo3/issues/672">#672</a>.</li>
@@ -4201,7 +4313,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <ul>
 <li>FFI compatibility for PEP 590 Vectorcall. <a href="https://github.com/PyO3/pyo3/pull/641">#641</a></li>
 </ul>
-<h3><a class="header" href="#fixed-11" id="fixed-11">Fixed</a></h3>
+<h3><a class="header" href="#fixed-13" id="fixed-13">Fixed</a></h3>
 <ul>
 <li>Fix PySequenceProtocol::set_item. <a href="https://github.com/PyO3/pyo3/pull/624">#624</a></li>
 <li>Fix a corner case of BigInt::FromPyObject. <a href="https://github.com/PyO3/pyo3/pull/630">#630</a></li>
@@ -4216,7 +4328,7 @@ and <code>PyString::to_string_lossy</code> <a href="https://github.com/PyO3/pyo3
 <ul>
 <li>Conversion between <a href="https://github.com/rust-num/num-bigint">num-bigint</a> and Python int. <a href="https://github.com/PyO3/pyo3/pull/608">#608</a></li>
 </ul>
-<h3><a class="header" href="#fixed-12" id="fixed-12">Fixed</a></h3>
+<h3><a class="header" href="#fixed-14" id="fixed-14">Fixed</a></h3>
 <ul>
 <li>Make sure the right Python interpreter is used in OSX builds. <a href="https://github.com/PyO3/pyo3/pull/604">#604</a></li>
 <li>Patch specialization being broken by Rust 1.40. <a href="https://github.com/PyO3/pyo3/issues/614">#614</a></li>
@@ -4243,7 +4355,7 @@ and <code>PyString::to_string_lossy</code> <a href="https://github.com/PyO3/pyo3
 <li><code>IntoPyObject</code> was replaced with <code>IntoPy&lt;PyObject&gt;</code></li>
 <li><code>#[pyclass(subclass)]</code> is hidden a <code>unsound-subclass</code> feature because it's causing segmentation faults.</li>
 </ul>
-<h3><a class="header" href="#fixed-13" id="fixed-13">Fixed</a></h3>
+<h3><a class="header" href="#fixed-15" id="fixed-15">Fixed</a></h3>
 <ul>
 <li>More readable error message for generics in pyclass <a href="https://github.com/PyO3/pyo3/pull/503">#503</a></li>
 </ul>
@@ -4262,7 +4374,7 @@ and <code>PyString::to_string_lossy</code> <a href="https://github.com/PyO3/pyo3
 <li>Methods decorated with <code>#[getter]</code> and <code>#[setter]</code> can now omit wrapping the
 result type in <code>PyResult</code> if they don't raise exceptions.</li>
 </ul>
-<h3><a class="header" href="#fixed-14" id="fixed-14">Fixed</a></h3>
+<h3><a class="header" href="#fixed-16" id="fixed-16">Fixed</a></h3>
 <ul>
 <li><code>type_object::PyTypeObject</code> has been marked unsafe because breaking the contract <code>type_object::PyTypeObject::init_type</code> can lead to UB.</li>
 <li>Fixed automatic derive of <code>PySequenceProtocol</code> implementation in <a href="https://github.com/PyO3/pyo3/pull/423">#423</a>.</li>
@@ -4326,19 +4438,19 @@ default = [&quot;extension-module&quot;]
 <li><code>NoArgs</code>. Just use an empty tuple</li>
 <li><code>PyObjectWithGIL</code>. <code>PyNativeType</code> is sufficient now that PyToken is removed.</li>
 </ul>
-<h3><a class="header" href="#fixed-15" id="fixed-15">Fixed</a></h3>
+<h3><a class="header" href="#fixed-17" id="fixed-17">Fixed</a></h3>
 <ul>
 <li>A soudness hole where every instances of a <code>#[pyclass]</code> struct was considered to be part of a python object, even though you can create instances that are not part of the python heap. This was fixed through <code>PyRef</code> and <code>PyRefMut</code>.</li>
 <li>Fix kwargs support in <a href="https://github.com/PyO3/pyo3/pull/328">#328</a>.</li>
 <li>Add full support for <code>__dict__</code> in <a href="https://github.com/PyO3/pyo3/pull/403">#403</a>.</li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev052v053053a---2019-01-04" id="a-hrefhttpsgithubcompyo3pyo3comparev052v053053a---2019-01-04"><a href="https://github.com/pyo3/pyo3/compare/v0.5.2...v0.5.3">0.5.3</a> - 2019-01-04</a></h2>
-<h3><a class="header" href="#fixed-16" id="fixed-16">Fixed</a></h3>
+<h3><a class="header" href="#fixed-18" id="fixed-18">Fixed</a></h3>
 <ul>
 <li>Fix memory leak in ArrayList by kngwyu <a href="https://github.com/PyO3/pyo3/pull/316">#316</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev050v052052a---2018-11-25" id="a-hrefhttpsgithubcompyo3pyo3comparev050v052052a---2018-11-25"><a href="https://github.com/pyo3/pyo3/compare/v0.5.0...v0.5.2">0.5.2</a> - 2018-11-25</a></h2>
-<h3><a class="header" href="#fixed-17" id="fixed-17">Fixed</a></h3>
+<h3><a class="header" href="#fixed-19" id="fixed-19">Fixed</a></h3>
 <ul>
 <li>Fix undeterministic segfaults when creating many objects by kngwyu in <a href="https://github.com/PyO3/pyo3/pull/281">#281</a></li>
 </ul>
@@ -4376,7 +4488,7 @@ default = [&quot;extension-module&quot;]
 (replaced by <code>as_bytes()</code>) and <code>PyStringData</code> has been removed.</li>
 <li>The pyobject_extract macro</li>
 </ul>
-<h3><a class="header" href="#fixed-18" id="fixed-18">Fixed</a></h3>
+<h3><a class="header" href="#fixed-20" id="fixed-20">Fixed</a></h3>
 <ul>
 <li>Added an explanation that the GIL can temporarily be released even while holding a GILGuard.</li>
 <li>Lots of clippy errors</li>
@@ -4389,7 +4501,7 @@ default = [&quot;extension-module&quot;]
 <ul>
 <li>PyTryFrom's error is always to <code>PyDowncastError</code></li>
 </ul>
-<h3><a class="header" href="#fixed-19" id="fixed-19">Fixed</a></h3>
+<h3><a class="header" href="#fixed-21" id="fixed-21">Fixed</a></h3>
 <ul>
 <li>Fixed compilation on nightly since <code>use_extern_macros</code> was stabilized</li>
 </ul>
@@ -4414,7 +4526,7 @@ default = [&quot;extension-module&quot;]
 <li>Replaced <code>concat_idents</code> with mashup</li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev030v031031a---2018-07-18" id="a-hrefhttpsgithubcompyo3pyo3comparev030v031031a---2018-07-18"><a href="https://github.com/pyo3/pyo3/compare/v0.3.0...v0.3.1">0.3.1</a> - 2018-07-18</a></h2>
-<h3><a class="header" href="#fixed-20" id="fixed-20">Fixed</a></h3>
+<h3><a class="header" href="#fixed-22" id="fixed-22">Fixed</a></h3>
 <ul>
 <li>Fixed scoping bug in pyobject_native_type that would break rust-numpy</li>
 </ul>
@@ -4435,12 +4547,12 @@ default = [&quot;extension-module&quot;]
 <li>The guide is now properly versioned.</li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev026v027027a---2018-05-18" id="a-hrefhttpsgithubcompyo3pyo3comparev026v027027a---2018-05-18"><a href="https://github.com/pyo3/pyo3/compare/v0.2.6...v0.2.7">0.2.7</a> - 2018-05-18</a></h2>
-<h3><a class="header" href="#fixed-21" id="fixed-21">Fixed</a></h3>
+<h3><a class="header" href="#fixed-23" id="fixed-23">Fixed</a></h3>
 <ul>
 <li>Fix nightly breakage with proc_macro_path</li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev025v026026a---2018-04-03" id="a-hrefhttpsgithubcompyo3pyo3comparev025v026026a---2018-04-03"><a href="https://github.com/pyo3/pyo3/compare/v0.2.5...v0.2.6">0.2.6</a> - 2018-04-03</a></h2>
-<h3><a class="header" href="#fixed-22" id="fixed-22">Fixed</a></h3>
+<h3><a class="header" href="#fixed-24" id="fixed-24">Fixed</a></h3>
 <ul>
 <li>Fix compatibility with TryFrom trait #137</li>
 </ul>
@@ -4449,7 +4561,7 @@ default = [&quot;extension-module&quot;]
 <ul>
 <li>CPython 3.7 support</li>
 </ul>
-<h3><a class="header" href="#fixed-23" id="fixed-23">Fixed</a></h3>
+<h3><a class="header" href="#fixed-25" id="fixed-25">Fixed</a></h3>
 <ul>
 <li>Embedded CPython 3.7b1 crashes on initialization #110</li>
 <li>Generated extension functions are weakly typed #108</li>
@@ -4463,7 +4575,7 @@ default = [&quot;extension-module&quot;]
 <li>Drop <code>RefFromPyObject</code> trait</li>
 <li>Add Python::register_any() method</li>
 </ul>
-<h3><a class="header" href="#fixed-24" id="fixed-24">Fixed</a></h3>
+<h3><a class="header" href="#fixed-26" id="fixed-26">Fixed</a></h3>
 <ul>
 <li>Fix impl <code>FromPyObject</code> for <code>Py&lt;T&gt;</code></li>
 <li>Mark method that work with raw pointers as unsafe #95</li>
@@ -4473,7 +4585,7 @@ default = [&quot;extension-module&quot;]
 <ul>
 <li>Rustup to 1.23.0-nightly 2017-11-07</li>
 </ul>
-<h3><a class="header" href="#fixed-25" id="fixed-25">Fixed</a></h3>
+<h3><a class="header" href="#fixed-27" id="fixed-27">Fixed</a></h3>
 <ul>
 <li>Proper <code>c_char</code> usage #93</li>
 </ul>
@@ -4487,7 +4599,7 @@ default = [&quot;extension-module&quot;]
 <li>Rustup to 1.22.0-nightly 2017-09-30</li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev020v021021a---09-26-2017" id="a-hrefhttpsgithubcompyo3pyo3comparev020v021021a---09-26-2017"><a href="https://github.com/pyo3/pyo3/compare/v0.2.0...v0.2.1">0.2.1</a> - 09-26-2017</a></h2>
-<h3><a class="header" href="#fixed-26" id="fixed-26">Fixed</a></h3>
+<h3><a class="header" href="#fixed-28" id="fixed-28">Fixed</a></h3>
 <ul>
 <li>Fix rustc const_fn nightly breakage</li>
 </ul>

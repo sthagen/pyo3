@@ -324,7 +324,7 @@ struct ClassWithGCSupport {
 #[pyproto]
 impl PyGCProtocol for ClassWithGCSupport {
     fn __traverse__(&amp;self, visit: PyVisit) -&gt; Result&lt;(), PyTraverseError&gt; {
-        if let Some(ref obj) = self.obj {
+        if let Some(obj) = &amp;self.obj {
             visit.call(obj)?
         }
         Ok(())

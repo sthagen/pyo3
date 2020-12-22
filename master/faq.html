@@ -176,6 +176,9 @@ version = &quot;*&quot;
 extension-module = [&quot;pyo3/extension-module&quot;]
 default = [&quot;extension-module&quot;]
 </code></pre>
+<h2><a class="header" href="#ctrl-c-doesnt-do-anything-while-my-rust-code-is-executing" id="ctrl-c-doesnt-do-anything-while-my-rust-code-is-executing">Ctrl-C doesn't do anything while my Rust code is executing!</a></h2>
+<p>This is because Ctrl-C raises a SIGINT signal, which is handled by the calling Python process by simply setting a flag to action upon later. This flag isn't checked while Rust code called from Python is executing, only once control returns to the Python interpreter.</p>
+<p>You can give the Python interpreter a chance to process the signal properly by calling <code>Python::check_signals</code>. It's good practice to call this function regularly if you have a long-running Rust function so that your users can cancel it.</p>
 
                     </main>
 
