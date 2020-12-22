@@ -72,7 +72,7 @@ impl<'a> Enum<'a> {
         };
         quote!(
             #(#var_extracts)*
-            let type_name = obj.get_type().name();
+            let type_name = obj.get_type().name()?;
             let err_msg = format!("'{}' object cannot be converted to '{}'", type_name, #error_names);
             Err(::pyo3::exceptions::PyTypeError::new_err(err_msg))
         )
@@ -137,13 +137,10 @@ impl<'a> Container<'a> {
         }
         let style = match (fields, transparent) {
             (Fields::Unnamed(_), true) => ContainerType::TupleNewtype,
-            (Fields::Unnamed(unnamed), false) => {
-                if unnamed.unnamed.len() == 1 {
-                    ContainerType::TupleNewtype
-                } else {
-                    ContainerType::Tuple(unnamed.unnamed.len())
-                }
-            }
+            (Fields::Unnamed(unnamed), false) => match unnamed.unnamed.len() {
+                1 => ContainerType::TupleNewtype,
+                len => ContainerType::Tuple(len),
+            },
             (Fields::Named(named), true) => {
                 let field = named
                     .named
@@ -164,7 +161,7 @@ impl<'a> Container<'a> {
                         .as_ref()
                         .expect("Named fields should have identifiers");
                     let attr = FieldAttribute::parse_attrs(&field.attrs)?
-                        .unwrap_or_else(|| FieldAttribute::GetAttr(None));
+                        .unwrap_or(FieldAttribute::GetAttr(None));
                     fields.push((ident, attr))
                 }
                 ContainerType::Struct(fields)
@@ -246,7 +243,7 @@ impl<'a> Container<'a> {
         let self_ty = &self.path;
         let mut fields: Punctuated<TokenStream, syn::Token![,]> = Punctuated::new();
         for i in 0..len {
-            fields.push(quote!(slice[#i].extract()?));
+            fields.push(quote!(s.get_item(#i).extract()?));
         }
         let msg = if self.is_enum_variant {
             quote!(format!(
@@ -262,7 +259,6 @@ impl<'a> Container<'a> {
             if s.len() != #len {
                 return Err(::pyo3::exceptions::PyValueError::new_err(#msg))
             }
-            let slice = s.as_slice();
             Ok(#self_ty(#fields))
         )
     }
@@ -458,14 +454,15 @@ fn get_pyo3_meta_list(attrs: &[Attribute]) -> Result<MetaList> {
 }
 
 fn verify_and_get_lifetime(generics: &syn::Generics) -> Result<Option<&syn::LifetimeDef>> {
-    let lifetimes = generics.lifetimes().collect::<Vec<_>>();
-    if lifetimes.len() > 1 {
+    let mut lifetimes = generics.lifetimes();
+    let lifetime = lifetimes.next();
+    if lifetimes.next().is_some() {
         return Err(spanned_err(
             &generics,
             "FromPyObject can be derived with at most one lifetime parameter.",
         ));
     }
-    Ok(lifetimes.into_iter().next())
+    Ok(lifetime)
 }
 
 /// Derive FromPyObject for enums and structs.

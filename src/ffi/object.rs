@@ -1,6 +1,4 @@
 use crate::ffi::pyport::{Py_hash_t, Py_ssize_t};
-#[cfg(PyPy)]
-use std::ffi::CStr;
 use std::mem;
 use std::os::raw::{c_char, c_int, c_uint, c_ulong, c_void};
 use std::ptr;
@@ -73,17 +71,6 @@ pub unsafe fn Py_REFCNT(ob: *mut PyObject) -> Py_ssize_t {
         panic!();
     }
     (*ob).ob_refcnt
-}
-
-#[cfg(PyPy)]
-pub unsafe fn _PyObject_NextNotImplemented(arg1: *mut PyObject) -> *mut PyObject {
-    return crate::ffi::pyerrors::PyErr_Format(
-        crate::ffi::pyerrors::PyExc_TypeError,
-        CStr::from_bytes_with_nul(b"'%.200s' object is not iterable\0")
-            .unwrap()
-            .as_ptr(),
-        Py_TYPE((*(arg1 as *mut PyTypeObject)).tp_name as *mut PyObject),
-    );
 }
 
 #[inline]
@@ -262,7 +249,7 @@ pub type vectorcallfunc = unsafe extern "C" fn(
 
 #[cfg(Py_LIMITED_API)]
 mod typeobject {
-    pub enum PyTypeObject {}
+    opaque_struct!(PyTypeObject);
 }
 
 #[cfg(not(Py_LIMITED_API))]
@@ -314,69 +301,14 @@ mod typeobject {
         pub nb_inplace_matrix_multiply: Option<object::binaryfunc>,
     }
 
-    impl Default for PyNumberMethods {
-        #[inline]
-        fn default() -> Self {
-            PyNumberMethods_INIT
-        }
-    }
     macro_rules! as_expr {
         ($e:expr) => {
             $e
         };
     }
 
-    macro_rules! py_number_methods_init {
-        ($($tail:tt)*) => {
-            as_expr! {
-                PyNumberMethods {
-                    nb_add: None,
-                    nb_subtract: None,
-                    nb_multiply: None,
-                    nb_remainder: None,
-                    nb_divmod: None,
-                    nb_power: None,
-                    nb_negative: None,
-                    nb_positive: None,
-                    nb_absolute: None,
-                    nb_bool: None,
-                    nb_invert: None,
-                    nb_lshift: None,
-                    nb_rshift: None,
-                    nb_and: None,
-                    nb_xor: None,
-                    nb_or: None,
-                    nb_int: None,
-                    nb_reserved: ::std::ptr::null_mut(),
-                    nb_float: None,
-                    nb_inplace_add: None,
-                    nb_inplace_subtract: None,
-                    nb_inplace_multiply: None,
-                    nb_inplace_remainder: None,
-                    nb_inplace_power: None,
-                    nb_inplace_lshift: None,
-                    nb_inplace_rshift: None,
-                    nb_inplace_and: None,
-                    nb_inplace_xor: None,
-                    nb_inplace_or: None,
-                    nb_floor_divide: None,
-                    nb_true_divide: None,
-                    nb_inplace_floor_divide: None,
-                    nb_inplace_true_divide: None,
-                    nb_index: None,
-                    $($tail)*
-                }
-            }
-        }
-    }
-
-    pub const PyNumberMethods_INIT: PyNumberMethods = py_number_methods_init! {
-        nb_matrix_multiply: None,
-        nb_inplace_matrix_multiply: None,
-    };
-
     #[repr(C)]
-    #[derive(Copy, Clone)]
+    #[derive(Clone)]
     pub struct PySequenceMethods {
         pub sq_length: Option<object::lenfunc>,
         pub sq_concat: Option<object::binaryfunc>,
@@ -390,82 +322,28 @@ mod typeobject {
         pub sq_inplace_repeat: Option<object::ssizeargfunc>,
     }
 
-    impl Default for PySequenceMethods {
-        #[inline]
-        fn default() -> Self {
-            unsafe { mem::zeroed() }
-        }
-    }
-    pub const PySequenceMethods_INIT: PySequenceMethods = PySequenceMethods {
-        sq_length: None,
-        sq_concat: None,
-        sq_repeat: None,
-        sq_item: None,
-        was_sq_slice: ptr::null_mut(),
-        sq_ass_item: None,
-        was_sq_ass_slice: ptr::null_mut(),
-        sq_contains: None,
-        sq_inplace_concat: None,
-        sq_inplace_repeat: None,
-    };
     #[repr(C)]
-    #[derive(Copy, Clone)]
+    #[derive(Clone, Default)]
     pub struct PyMappingMethods {
         pub mp_length: Option<object::lenfunc>,
         pub mp_subscript: Option<object::binaryfunc>,
         pub mp_ass_subscript: Option<object::objobjargproc>,
     }
 
-    impl Default for PyMappingMethods {
-        #[inline]
-        fn default() -> Self {
-            unsafe { mem::zeroed() }
-        }
-    }
-    pub const PyMappingMethods_INIT: PyMappingMethods = PyMappingMethods {
-        mp_length: None,
-        mp_subscript: None,
-        mp_ass_subscript: None,
-    };
     #[repr(C)]
-    #[derive(Copy, Clone)]
+    #[derive(Clone, Default)]
     pub struct PyAsyncMethods {
         pub am_await: Option<object::unaryfunc>,
         pub am_aiter: Option<object::unaryfunc>,
         pub am_anext: Option<object::unaryfunc>,
     }
 
-    impl Default for PyAsyncMethods {
-        #[inline]
-        fn default() -> Self {
-            PyAsyncMethods_INIT
-        }
-    }
-
-    pub const PyAsyncMethods_INIT: PyAsyncMethods = PyAsyncMethods {
-        am_await: None,
-        am_aiter: None,
-        am_anext: None,
-    };
-
     #[repr(C)]
-    #[derive(Copy, Clone, Debug)]
+    #[derive(Clone, Default)]
     pub struct PyBufferProcs {
         pub bf_getbuffer: Option<object::getbufferproc>,
         pub bf_releasebuffer: Option<object::releasebufferproc>,
     }
-
-    impl Default for PyBufferProcs {
-        #[inline]
-        fn default() -> Self {
-            PyBufferProcs_INIT
-        }
-    }
-
-    pub const PyBufferProcs_INIT: PyBufferProcs = PyBufferProcs {
-        bf_getbuffer: None,
-        bf_releasebuffer: None,
-    };
 
     #[repr(C)]
     #[derive(Debug, Copy, Clone)]
@@ -650,7 +528,7 @@ mod typeobject {
     pub const PyTypeObject_INIT: PyTypeObject = type_object_init!();
 
     #[repr(C)]
-    #[derive(Copy, Clone)]
+    #[derive(Clone)]
     pub struct PyHeapTypeObject {
         pub ht_type: PyTypeObject,
         pub as_async: PyAsyncMethods,
@@ -720,6 +598,7 @@ extern "C" {
     #[cfg_attr(PyPy, link_name = "PyPyType_FromSpecWithBases")]
     pub fn PyType_FromSpecWithBases(arg1: *mut PyType_Spec, arg2: *mut PyObject) -> *mut PyObject;
 
+    #[cfg_attr(PyPy, link_name = "PyPyType_GetSlot")]
     pub fn PyType_GetSlot(arg1: *mut PyTypeObject, arg2: c_int) -> *mut c_void;
 }
 
@@ -825,6 +704,7 @@ extern "C" {
         arg2: *mut PyObject,
         arg3: *mut PyObject,
     ) -> c_int;
+    #[cfg(not(Py_LIMITED_API))]
     pub fn PyObject_GenericGetDict(arg1: *mut PyObject, arg2: *mut c_void) -> *mut PyObject;
     pub fn PyObject_GenericSetDict(
         arg1: *mut PyObject,
@@ -866,7 +746,7 @@ pub const Py_TPFLAGS_BASETYPE: c_ulong = 1 << 10;
 
 /// Set if the type implements the vectorcall protocol (PEP 590)
 #[cfg(all(Py_3_8, not(Py_LIMITED_API)))]
-pub const _Py_TPFLAGS_HAVE_VECTORCALL: c_ulong = 1 << 11;
+pub const Py_TPFLAGS_HAVE_VECTORCALL: c_ulong = 1 << 11;
 
 /// Set if the type is 'ready' -- fully initialized
 pub const Py_TPFLAGS_READY: c_ulong = 1 << 12;

@@ -1,12 +1,17 @@
 use crate::ffi::object::*;
 use crate::ffi::pyport::Py_ssize_t;
-use std::os::raw::{c_char, c_int, c_void};
+use std::os::raw::{c_char, c_int};
 use std::ptr;
 
+extern "C" {
+    #[cfg(PyPy)]
+    #[link_name = "PyPyObject_DelAttrString"]
+    pub fn PyObject_DelAttrString(o: *mut PyObject, attr_name: *const c_char) -> c_int;
+}
+
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPyObject_DelAttrString")]
+#[cfg(not(PyPy))]
 pub unsafe fn PyObject_DelAttrString(o: *mut PyObject, attr_name: *const c_char) -> c_int {
-    #[cfg_attr(PyPy, link_name = "PyPyObject_SetAttr")]
     PyObject_SetAttrString(o, attr_name, ptr::null_mut())
 }
 
@@ -16,6 +21,11 @@ pub unsafe fn PyObject_DelAttr(o: *mut PyObject, attr_name: *mut PyObject) -> c_
 }
 
 extern "C" {
+    #[cfg(all(
+        not(PyPy),
+        any(not(Py_LIMITED_API), Py_3_9) // Added to limited API in 3.9
+    ))]
+    pub fn PyObject_CallNoArgs(func: *mut PyObject) -> *mut PyObject;
     #[cfg_attr(PyPy, link_name = "PyPyObject_Call")]
     pub fn PyObject_Call(
         callable_object: *mut PyObject,
@@ -61,10 +71,6 @@ pub unsafe fn PyObject_Length(o: *mut PyObject) -> Py_ssize_t {
 }
 
 extern "C" {
-    #[cfg(not(Py_LIMITED_API))]
-    #[cfg_attr(PyPy, link_name = "PyPyObject_LengthHint")]
-    pub fn PyObject_LengthHint(o: *mut PyObject, arg1: Py_ssize_t) -> Py_ssize_t;
-
     #[cfg_attr(PyPy, link_name = "PyPyObject_GetItem")]
     pub fn PyObject_GetItem(o: *mut PyObject, key: *mut PyObject) -> *mut PyObject;
     #[cfg_attr(PyPy, link_name = "PyPyObject_SetItem")]
@@ -73,74 +79,16 @@ extern "C" {
     pub fn PyObject_DelItem(o: *mut PyObject, key: *mut PyObject) -> c_int;
 }
 
-#[cfg(not(Py_LIMITED_API))]
-#[inline]
-pub unsafe fn PyObject_CheckBuffer(o: *mut PyObject) -> c_int {
-    let tp_as_buffer = (*Py_TYPE(o)).tp_as_buffer;
-    (!tp_as_buffer.is_null() && (*tp_as_buffer).bf_getbuffer.is_some()) as c_int
-}
-
-#[cfg(not(Py_LIMITED_API))]
-extern "C" {
-    #[cfg_attr(PyPy, link_name = "PyPyObject_GetBuffer")]
-    pub fn PyObject_GetBuffer(obj: *mut PyObject, view: *mut Py_buffer, flags: c_int) -> c_int;
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_GetPointer")]
-    pub fn PyBuffer_GetPointer(view: *mut Py_buffer, indices: *mut Py_ssize_t) -> *mut c_void;
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_ToContiguous")]
-    pub fn PyBuffer_ToContiguous(
-        buf: *mut c_void,
-        view: *mut Py_buffer,
-        len: Py_ssize_t,
-        order: c_char,
-    ) -> c_int;
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_FromContiguous")]
-    pub fn PyBuffer_FromContiguous(
-        view: *mut Py_buffer,
-        buf: *mut c_void,
-        len: Py_ssize_t,
-        order: c_char,
-    ) -> c_int;
-    pub fn PyObject_CopyData(dest: *mut PyObject, src: *mut PyObject) -> c_int;
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_IsContiguous")]
-    pub fn PyBuffer_IsContiguous(view: *const Py_buffer, fort: c_char) -> c_int;
-    pub fn PyBuffer_FillContiguousStrides(
-        ndims: c_int,
-        shape: *mut Py_ssize_t,
-        strides: *mut Py_ssize_t,
-        itemsize: c_int,
-        fort: c_char,
-    );
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_FillInfo")]
-    pub fn PyBuffer_FillInfo(
-        view: *mut Py_buffer,
-        o: *mut PyObject,
-        buf: *mut c_void,
-        len: Py_ssize_t,
-        readonly: c_int,
-        flags: c_int,
-    ) -> c_int;
-    #[cfg_attr(PyPy, link_name = "PyPyBuffer_Release")]
-    pub fn PyBuffer_Release(view: *mut Py_buffer);
-}
-
 extern "C" {
     #[cfg_attr(PyPy, link_name = "PyPyObject_Format")]
     pub fn PyObject_Format(obj: *mut PyObject, format_spec: *mut PyObject) -> *mut PyObject;
     #[cfg_attr(PyPy, link_name = "PyPyObject_GetIter")]
     pub fn PyObject_GetIter(arg1: *mut PyObject) -> *mut PyObject;
-}
 
-#[cfg(not(Py_LIMITED_API))]
-#[inline]
-#[cfg_attr(PyPy, link_name = "PyPyIter_Check")]
-pub unsafe fn PyIter_Check(o: *mut PyObject) -> c_int {
-    (match (*Py_TYPE(o)).tp_iternext {
-        Some(tp_iternext) => {
-            tp_iternext as *const c_void
-                != crate::ffi::object::_PyObject_NextNotImplemented as *const c_void
-        }
-        None => false,
-    }) as c_int
+    // PyIter_Check for unlimited API is in cpython/abstract_.rs
+    #[cfg(any(all(Py_LIMITED_API, Py_3_8), PyPy))]
+    #[cfg_attr(PyPy, link_name = "PyPyIter_Check")]
+    pub fn PyIter_Check(obj: *mut PyObject) -> c_int;
 }
 
 extern "C" {
@@ -186,11 +134,14 @@ extern "C" {
     pub fn PyNumber_Xor(o1: *mut PyObject, o2: *mut PyObject) -> *mut PyObject;
     #[cfg_attr(PyPy, link_name = "PyPyNumber_Or")]
     pub fn PyNumber_Or(o1: *mut PyObject, o2: *mut PyObject) -> *mut PyObject;
+
+    #[cfg(PyPy)]
+    #[link_name = "PyPyIndex_Check"]
+    pub fn PyIndex_Check(o: *mut PyObject) -> c_int;
 }
 
-#[cfg(not(Py_LIMITED_API))]
+#[cfg(not(any(Py_LIMITED_API, PyPy)))]
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPyIndex_Check")]
 pub unsafe fn PyIndex_Check(o: *mut PyObject) -> c_int {
     let tp_as_number = (*Py_TYPE(o)).tp_as_number;
     (!tp_as_number.is_null() && (*tp_as_number).nb_index.is_some()) as c_int
@@ -241,10 +192,14 @@ extern "C" {
     pub fn PySequence_Check(o: *mut PyObject) -> c_int;
     #[cfg_attr(PyPy, link_name = "PyPySequence_Size")]
     pub fn PySequence_Size(o: *mut PyObject) -> Py_ssize_t;
+
+    #[cfg(PyPy)]
+    #[link_name = "PyPySequence_Length"]
+    pub fn PySequence_Length(o: *mut PyObject) -> Py_ssize_t;
 }
 
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPySequence_Length")]
+#[cfg(not(PyPy))]
 pub unsafe fn PySequence_Length(o: *mut PyObject) -> Py_ssize_t {
     PySequence_Size(o)
 }
@@ -299,10 +254,14 @@ extern "C" {
     pub fn PyMapping_Check(o: *mut PyObject) -> c_int;
     #[cfg_attr(PyPy, link_name = "PyPyMapping_Size")]
     pub fn PyMapping_Size(o: *mut PyObject) -> Py_ssize_t;
+
+    #[cfg(PyPy)]
+    #[link_name = "PyPyMapping_Length"]
+    pub fn PyMapping_Length(o: *mut PyObject) -> Py_ssize_t;
 }
 
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPyMapping_Length")]
+#[cfg(not(PyPy))]
 pub unsafe fn PyMapping_Length(o: *mut PyObject) -> Py_ssize_t {
     PyMapping_Size(o)
 }

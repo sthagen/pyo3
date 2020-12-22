@@ -2,6 +2,16 @@
 #![cfg_attr(Py_LIMITED_API, allow(unused_imports))]
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::inline_always))]
 
+// Until `extern type` is stabilized, use the recommended approach to
+// model opaque types:
+// https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs
+macro_rules! opaque_struct {
+    ($name:ident) => {
+        #[repr(C)]
+        pub struct $name([u8; 0]);
+    };
+}
+
 pub use self::bltinmodule::*;
 pub use self::boolobject::*;
 pub use self::bytearrayobject::*;
@@ -12,6 +22,7 @@ pub use self::codecs::*;
 pub use self::compile::*;
 pub use self::complexobject::*;
 pub use self::context::*;
+#[cfg(not(Py_LIMITED_API))]
 pub use self::datetime::*;
 pub use self::descrobject::*;
 pub use self::dictobject::*;
@@ -23,6 +34,8 @@ pub use self::frameobject::PyFrameObject;
 pub use self::funcobject::*;
 pub use self::genobject::*;
 pub use self::import::*;
+#[cfg(all(Py_3_8, not(any(PY_LIMITED_API, PyPy))))]
+pub use self::initconfig::*;
 pub use self::intrcheck::*;
 pub use self::iterobject::*;
 pub use self::listobject::*;
@@ -59,6 +72,9 @@ pub use self::unicodeobject::*;
 pub use self::warnings::*;
 pub use self::weakrefobject::*;
 
+#[cfg(not(Py_LIMITED_API))]
+pub use self::cpython::*;
+
 mod pyport;
 // mod pymacro; contains nothing of interest for Rust
 // mod pyatomic; contains nothing of interest for Rust
@@ -67,12 +83,13 @@ mod pyport;
 // [cfg(not(Py_LIMITED_API))]
 // mod pytime; contains nothing of interest
 
-mod pymem;
-
+#[cfg(all(Py_3_8, not(any(PY_LIMITED_API, PyPy))))]
+mod initconfig;
 mod object;
 mod objimpl;
 mod pydebug;
 mod pyhash;
+mod pymem;
 mod typeslots;
 
 mod bytearrayobject;
@@ -159,10 +176,14 @@ pub mod structmember; // TODO supports PEP-384 only; needs adjustment for Python
 pub mod frameobject;
 #[cfg(Py_LIMITED_API)]
 pub mod frameobject {
-    pub enum PyFrameObject {}
+    opaque_struct!(PyFrameObject);
 }
 
+#[cfg(not(Py_LIMITED_API))]
 pub(crate) mod datetime;
 pub(crate) mod marshal;
 
 pub(crate) mod funcobject;
+
+#[cfg(not(Py_LIMITED_API))]
+mod cpython;

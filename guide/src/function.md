@@ -129,6 +129,9 @@ impl MyClass {
 }
 ```
 
+Note that `text_signature` on classes is not compatible with compilation in
+`abi3` mode until Python 3.10 or greater.
+
 ### Making the function signature available to Python (old method)
 
 Alternatively, simply make sure the first line of your docstring is
@@ -179,13 +182,13 @@ the following:
 
 ### Calling Python functions in Rust
 
-You can pass Python `def`'d functions and built-in functions to Rust functions `[PyFunction]`
-corresponds to regular Python functions while `[PyCFunction]` describes built-ins such as
+You can pass Python `def`'d functions and built-in functions to Rust functions [`PyFunction`]
+corresponds to regular Python functions while [`PyCFunction`] describes built-ins such as
 `repr()`.
 
-You can also use [`PyAny::is_callable`] to check if you have a callable object. `is_callable` will 
-return `true` for functions (including lambdas), methods and objects with a `__call__` method. 
-You can call the object with [`PyAny::call`] with the args as first parameter and the kwargs 
+You can also use [`PyAny::is_callable`] to check if you have a callable object. `is_callable` will
+return `true` for functions (including lambdas), methods and objects with a `__call__` method.
+You can call the object with [`PyAny::call`] with the args as first parameter and the kwargs
 (or `None`) as second parameter. There are also [`PyAny::call0`] with no args and [`PyAny::call1`]
 with only positional args.
 
@@ -205,6 +208,8 @@ in Python code.
 [`PyAny::call1`]: https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.call1
 [`PyObject`]: https://docs.rs/pyo3/latest/pyo3/type.PyObject.html
 [`wrap_pyfunction!`]: https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html
+[`PyFunction`]: https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyFunction.html
+[`PyCFunction`]: https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyCFunction.html
 
 ### Accessing the module of a function
 
@@ -252,7 +257,7 @@ fn module_with_fn(py: Python, m: &PyModule) -> PyResult<()> {
 
 ## Accessing the FFI functions
 
-In order to make Rust functions callable from Python, PyO3 generates a 
+In order to make Rust functions callable from Python, PyO3 generates a
 `extern "C" Fn(slf: *mut PyObject, args: *mut PyObject, kwargs: *mut PyObject) -> *mut Pyobject`
 function and embeds the call to the Rust function inside this FFI-wrapper function. This
 wrapper handles extraction of the regular arguments and the keyword arguments from the input

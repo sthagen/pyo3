@@ -15,7 +15,7 @@ use syn::{parse_quote, Expr, Token};
 /// The parsed arguments of the pyclass macro
 pub struct PyClassArgs {
     pub freelist: Option<syn::Expr>,
-    pub name: Option<syn::Expr>,
+    pub name: Option<syn::Ident>,
     pub flags: Vec<syn::Expr>,
     pub base: syn::TypePath,
     pub has_extends: bool,
@@ -56,8 +56,8 @@ impl PyClassArgs {
     /// either a single word or an assignment expression
     fn add_expr(&mut self, expr: &Expr) -> syn::parse::Result<()> {
         match expr {
-            syn::Expr::Path(ref exp) if exp.path.segments.len() == 1 => self.add_path(exp),
-            syn::Expr::Assign(ref assign) => self.add_assign(assign),
+            syn::Expr::Path(exp) if exp.path.segments.len() == 1 => self.add_path(exp),
+            syn::Expr::Assign(assign) => self.add_assign(assign),
             _ => Err(syn::Error::new_spanned(expr, "Failed to parse arguments")),
         }
     }
@@ -92,10 +92,30 @@ impl PyClassArgs {
                 self.freelist = Some(syn::Expr::clone(right));
             }
             "name" => match &**right {
-                syn::Expr::Path(exp) if exp.path.segments.len() == 1 => {
-                    self.name = Some(exp.clone().into());
+                syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Str(lit),
+                    ..
+                }) => {
+                    self.name = Some(lit.parse().map_err(|_| {
+                        syn::Error::new_spanned(
+                            lit,
+                            "expected a single identifier in double-quotes",
+                        )
+                    })?);
                 }
-                _ => expected!("type name (e.g., Name)"),
+                syn::Expr::Path(exp) if exp.path.segments.len() == 1 => {
+                    return Err(syn::Error::new_spanned(
+                        exp,
+                        format!(
+                            concat!(
+                                "since PyO3 0.13 a pyclass name should be in double-quotes, ",
+                                "e.g. \"{}\""
+                            ),
+                            exp.path.get_ident().expect("path has 1 segment")
+                        ),
+                    ));
+                }
+                _ => expected!("type name (e.g. \"Name\")"),
             },
             "extends" => match &**right {
                 syn::Expr::Path(exp) => {
@@ -156,7 +176,7 @@ pub fn build_py_class(class: &mut syn::ItemStruct, attr: &PyClassArgs) -> syn::R
     let mut descriptors = Vec::new();
 
     check_generics(class)?;
-    if let syn::Fields::Named(ref mut fields) = class.fields {
+    if let syn::Fields::Named(fields) = &mut class.fields {
         for field in fields.named.iter_mut() {
             let field_descs = parse_descriptors(field)?;
             if !field_descs.is_empty() {
@@ -178,10 +198,10 @@ fn parse_descriptors(item: &mut syn::Field) -> syn::Result<Vec<FnType>> {
     let mut descs = Vec::new();
     let mut new_attrs = Vec::new();
     for attr in item.attrs.iter() {
-        if let Ok(syn::Meta::List(ref list)) = attr.parse_meta() {
+        if let Ok(syn::Meta::List(list)) = attr.parse_meta() {
             if list.path.is_ident("pyo3") {
                 for meta in list.nested.iter() {
-                    if let syn::NestedMeta::Meta(ref metaitem) = meta {
+                    if let syn::NestedMeta::Meta(metaitem) = meta {
                         if metaitem.path().is_ident("get") {
                             descs.push(FnType::Getter(SelfType::Receiver { mutable: false }));
                         } else if metaitem.path().is_ident("set") {
@@ -234,24 +254,8 @@ fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
     }
 }
 
-/// Implement `HasProtoRegistry` for the class for lazy protocol initialization.
-fn impl_proto_registry(cls: &syn::Ident) -> TokenStream {
-    quote! {
-        impl pyo3::class::proto_methods::HasProtoRegistry for #cls {
-            fn registry() -> &'static pyo3::class::proto_methods::PyProtoRegistry {
-                static REGISTRY: pyo3::class::proto_methods::PyProtoRegistry
-                    = pyo3::class::proto_methods::PyProtoRegistry::new();
-                &REGISTRY
-            }
-        }
-    }
-}
-
-fn get_class_python_name(cls: &syn::Ident, attr: &PyClassArgs) -> TokenStream {
-    match &attr.name {
-        Some(name) => quote! { #name },
-        None => quote! { #cls },
-    }
+fn get_class_python_name<'a>(cls: &'a syn::Ident, attr: &'a PyClassArgs) -> &'a syn::Ident {
+    attr.name.as_ref().unwrap_or(cls)
 }
 
 fn impl_class(
@@ -303,7 +307,7 @@ fn impl_class(
     let mut has_dict = false;
     let mut has_gc = false;
     for f in attr.flags.iter() {
-        if let syn::Expr::Path(ref epath) = f {
+        if let syn::Expr::Path(epath) = f {
             if epath.path == parse_quote! { pyo3::type_flags::WEAKREF } {
                 has_weakref = true;
             } else if epath.path == parse_quote! { pyo3::type_flags::DICT } {
@@ -351,7 +355,6 @@ fn impl_class(
     };
 
     let impl_inventory = impl_methods_inventory(&cls);
-    let impl_proto_registry = impl_proto_registry(&cls);
 
     let base = &attr.base;
     let flags = &attr.flags;
@@ -440,7 +443,32 @@ fn impl_class(
 
         #impl_inventory
 
-        #impl_proto_registry
+        impl pyo3::class::proto_methods::PyProtoMethods for #cls {
+            fn for_each_proto_slot<Visitor: FnMut(pyo3::ffi::PyType_Slot)>(visitor: Visitor) {
+                // Implementation which uses dtolnay specialization to load all slots.
+                use pyo3::class::proto_methods::*;
+                let protocols = PyClassProtocols::<#cls>::new();
+                protocols.object_protocol_slots()
+                    .iter()
+                    .chain(protocols.number_protocol_slots())
+                    .chain(protocols.iter_protocol_slots())
+                    .chain(protocols.gc_protocol_slots())
+                    .chain(protocols.descr_protocol_slots())
+                    .chain(protocols.mapping_protocol_slots())
+                    .chain(protocols.sequence_protocol_slots())
+                    .chain(protocols.async_protocol_slots())
+                    .chain(protocols.buffer_protocol_slots())
+                    .cloned()
+                    .for_each(visitor);
+            }
+
+            fn get_buffer() -> Option<&'static pyo3::class::proto_methods::PyBufferProcs> {
+                use pyo3::class::proto_methods::*;
+                let protocols = PyClassProtocols::<#cls>::new();
+                protocols.buffer_procs()
+            }
+        }
+
 
         #extra
 
@@ -454,7 +482,7 @@ fn impl_descriptors(
 ) -> syn::Result<TokenStream> {
     let py_methods: Vec<TokenStream> = descriptors
         .iter()
-        .flat_map(|&(ref field, ref fns)| {
+        .flat_map(|(field, fns)| {
             fns.iter()
                 .map(|desc| {
                     let name = field.ident.as_ref().unwrap().unraw();

@@ -4,6 +4,7 @@ use crate::conversion::{
 };
 use crate::err::{PyDowncastError, PyErr, PyResult};
 use crate::exceptions::PyTypeError;
+use crate::type_object::PyTypeObject;
 use crate::types::{PyDict, PyIterator, PyList, PyString, PyTuple, PyType};
 use crate::{err, ffi, Py, PyNativeType, PyObject};
 use libc::c_int;
@@ -29,8 +30,8 @@ use std::cmp::Ordering;
 /// use pyo3::types::{PyAny, PyDict, PyList};
 /// let gil = Python::acquire_gil();
 /// let dict = PyDict::new(gil.python());
-/// assert!(gil.python().is_instance::<PyAny, _>(dict).unwrap());
-/// let any = dict.as_ref();
+/// assert!(dict.is_instance::<PyAny>().unwrap());
+/// let any: &PyAny = dict.as_ref();
 /// assert!(any.downcast::<PyDict>().is_ok());
 /// assert!(any.downcast::<PyList>().is_err());
 /// ```
@@ -44,18 +45,10 @@ impl crate::AsPyPointer for PyAny {
     }
 }
 
-impl PartialEq for PyAny {
-    #[inline]
-    fn eq(&self, o: &PyAny) -> bool {
-        self.as_ptr() == o.as_ptr()
-    }
-}
-
-unsafe impl crate::PyNativeType for PyAny {}
 unsafe impl crate::type_object::PyLayout<PyAny> for ffi::PyObject {}
 impl crate::type_object::PySizedLayout<PyAny> for ffi::PyObject {}
 
-pyobject_native_type_convert!(
+pyobject_native_type_info!(
     PyAny,
     ffi::PyObject,
     ffi::PyBaseObject_Type,
@@ -65,7 +58,7 @@ pyobject_native_type_convert!(
 
 pyobject_native_type_extract!(PyAny);
 
-pyobject_native_type_fmt!(PyAny);
+pyobject_native_type_base!(PyAny);
 
 impl PyAny {
     /// Convert this PyAny to a concrete Python type.
@@ -225,7 +218,18 @@ impl PyAny {
     ///
     /// This is equivalent to the Python expression `self()`.
     pub fn call0(&self) -> PyResult<&PyAny> {
-        self.call((), None)
+        cfg_if::cfg_if! {
+            // TODO: Use PyObject_CallNoArgs instead after https://bugs.python.org/issue42415.
+            // Once the issue is resolved, we can enable this optimization for limited API.
+            if #[cfg(all(Py_3_9, not(Py_LIMITED_API)))] {
+                // Optimized path on python 3.9+
+                unsafe {
+                    self.py().from_owned_ptr_or_err(ffi::_PyObject_CallNoArg(self.as_ptr()))
+                }
+            } else {
+                self.call((), None)
+            }
+        }
     }
 
     /// Calls the object with only positional arguments.
@@ -282,7 +286,17 @@ impl PyAny {
     ///
     /// This is equivalent to the Python expression `self.name()`.
     pub fn call_method0(&self, name: &str) -> PyResult<&PyAny> {
-        self.call_method(name, (), None)
+        cfg_if::cfg_if! {
+            if #[cfg(all(Py_3_9, not(Py_LIMITED_API)))] {
+                // Optimized path on python 3.9+
+                unsafe {
+                    let name = name.into_py(self.py());
+            self.py().from_owned_ptr_or_err(ffi::PyObject_CallMethodNoArgs(self.as_ptr(), name.as_ptr()))
+                }
+            } else {
+                self.call_method(name, (), None)
+            }
+        }
     }
 
     /// Calls a method on the object with only positional arguments.
@@ -424,7 +438,7 @@ impl PyAny {
 
     /// Retrieves the hash code of self.
     ///
-    /// This is equivalent to the Python expression `hash(obi)`.
+    /// This is equivalent to the Python expression `hash(self)`.
     pub fn hash(&self) -> PyResult<isize> {
         let v = unsafe { ffi::PyObject_Hash(self.as_ptr()) };
         if v == -1 {
@@ -452,13 +466,28 @@ impl PyAny {
     pub fn dir(&self) -> &PyList {
         unsafe { self.py().from_owned_ptr(ffi::PyObject_Dir(self.as_ptr())) }
     }
+
+    /// Checks whether this object is an instance of type `T`.
+    ///
+    /// This is equivalent to the Python expression `isinstance(self, T)`.
+    pub fn is_instance<T: PyTypeObject>(&self) -> PyResult<bool> {
+        T::type_object(self.py()).is_instance(self)
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::types::{IntoPyDict, PyList};
-    use crate::Python;
-    use crate::ToPyObject;
+    use crate::{
+        types::{IntoPyDict, PyList, PyLong, PyModule},
+        Python, ToPyObject,
+    };
+
+    macro_rules! test_module {
+        ($py:ident, $code:literal) => {
+            PyModule::from_code($py, indoc::indoc!($code), file!(), "test_module")
+                .expect("module creation failed")
+        };
+    }
 
     #[test]
     fn test_call_for_non_existing_method() {
@@ -479,6 +508,30 @@ mod test {
         let dict = vec![("reverse", true)].into_py_dict(py);
         list.call_method(py, "sort", (), Some(dict)).unwrap();
         assert_eq!(list.extract::<Vec<i32>>(py).unwrap(), vec![7, 6, 5, 4, 3]);
+    }
+
+    #[test]
+    fn test_call_method0() {
+        Python::with_gil(|py| {
+            let module = test_module!(
+                py,
+                r#"
+                class SimpleClass:
+                    def foo(self):
+                        return 42
+            "#
+            );
+
+            let simple_class = module.getattr("SimpleClass").unwrap().call0().unwrap();
+            assert_eq!(
+                simple_class
+                    .call_method0("foo")
+                    .unwrap()
+                    .extract::<u32>()
+                    .unwrap(),
+                42
+            );
+        })
     }
 
     #[test]
@@ -513,5 +566,17 @@ mod test {
         let py = gil.python();
         let nan = py.eval("float('nan')", None, None).unwrap();
         assert!(nan.compare(nan).is_err());
+    }
+
+    #[test]
+    fn test_any_isinstance() {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+
+        let x = 5.to_object(py).into_ref(py);
+        assert!(x.is_instance::<PyLong>().unwrap());
+
+        let l = vec![x, x].to_object(py).into_ref(py);
+        assert!(l.is_instance::<PyList>().unwrap());
     }
 }

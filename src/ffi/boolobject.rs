@@ -15,7 +15,6 @@ extern "C" {
 }
 
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPyBool_Check")]
 pub unsafe fn PyBool_Check(op: *mut PyObject) -> c_int {
     (Py_TYPE(op) == &mut PyBool_Type) as c_int
 }

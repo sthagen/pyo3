@@ -3,7 +3,7 @@
 [![Actions Status](https://github.com/PyO3/pyo3/workflows/Test/badge.svg)](https://github.com/PyO3/pyo3/actions)
 [![codecov](https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg)](https://codecov.io/gh/PyO3/pyo3)
 [![crates.io](http://meritbadge.herokuapp.com/pyo3)](https://crates.io/crates/pyo3)
-[![minimum rustc 1.39](https://img.shields.io/badge/rustc-1.39+-blue.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
+[![minimum rustc 1.45](https://img.shields.io/badge/rustc-1.45+-blue.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
 [![Join the dev chat](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/PyO3/Lobby)
 
 [Rust](http://www.rust-lang.org/) bindings for [Python](https://www.python.org/). This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.
@@ -18,7 +18,7 @@ A comparison with rust-cpython can be found [in the guide](https://pyo3.rs/maste
 
 ## Usage
 
-PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.39.0.
+PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.45.0.
 
 Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
 Please refer to the [pypy section in the guide](https://pyo3.rs/master/pypy.html).
@@ -48,7 +48,7 @@ name = "string_sum"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.12.3"
+version = "0.12.4"
 features = ["extension-module"]
 ```
 
@@ -81,6 +81,12 @@ rustflags = [
   "-C", "link-arg=-undefined",
   "-C", "link-arg=dynamic_lookup",
 ]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
 ```
 
 While developing, you can symlink (or copy) and rename the shared library from the target folder: On MacOS, rename `libstring_sum.dylib` to `string_sum.so`, on Windows `libstring_sum.dll` to `string_sum.pyd`, and on Linux `libstring_sum.so` to `string_sum.so`. Then open a Python shell in the same folder and you'll be able to `import string_sum`.
@@ -99,7 +105,7 @@ use it to run Python code, add `pyo3` to your `Cargo.toml` like this:
 
 ```toml
 [dependencies]
-pyo3 = "0.12.3"
+pyo3 = "0.12.4"
 ```
 
 Example program displaying the value of `sys.version` and the current user name:
@@ -139,6 +145,7 @@ about this topic.
  * [rust-numpy](https://github.com/PyO3/rust-numpy) _Rust binding of NumPy C-API_
  * [dict-derive](https://github.com/gperinazzo/dict-derive) _Derive FromPyObject to automatically transform Python dicts into Rust structs_
  * [pyo3-log](https://github.com/vorner/pyo3-log) _Bridge from Rust to Python logging_
+ * [pythonize](https://github.com/davidhewitt/pythonize) _Serde serializer for converting Rust objects to JSON-compatible Python objects_
 
 ## Examples
 
@@ -156,6 +163,8 @@ about this topic.
  * [mocpy](https://github.com/cds-astro/mocpy) _Astronomical Python library offering data structures for describing any arbitrary coverage regions on the unit sphere_
  * [tokenizers](https://github.com/huggingface/tokenizers/tree/master/bindings/python) _Python bindings to the Hugging Face tokenizers (NLP) written in Rust_
  * [pyre](https://github.com/Project-Dream-Weaver/Pyre) _Fast Python HTTP server written in Rust_
+ * [jsonschema-rs](https://github.com/Stranger6667/jsonschema-rs/tree/master/python) _Fast JSON Schema validation library_
+ * [css-inline](https://github.com/Stranger6667/css-inline/tree/master/python) _CSS inlining for Python implemented in Rust_
 
 ## License
 

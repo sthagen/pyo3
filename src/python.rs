@@ -7,11 +7,95 @@ use crate::gil::{self, GILGuard, GILPool};
 use crate::type_object::{PyTypeInfo, PyTypeObject};
 use crate::types::{PyAny, PyDict, PyModule, PyType};
 use crate::{ffi, AsPyPointer, FromPyPointer, IntoPyPointer, PyNativeType, PyObject, PyTryFrom};
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::marker::PhantomData;
-use std::os::raw::c_int;
+use std::os::raw::{c_char, c_int};
 
 pub use gil::prepare_freethreaded_python;
+
+/// Represents the major, minor, and patch (if any) versions of this interpreter.
+///
+/// See [Python::version].
+#[derive(Debug)]
+pub struct PythonVersionInfo<'p> {
+    pub major: u8,
+    pub minor: u8,
+    pub patch: u8,
+    pub suffix: Option<&'p str>,
+}
+
+impl<'p> PythonVersionInfo<'p> {
+    /// Parses a hard-coded Python interpreter version string (e.g. 3.9.0a4+).
+    ///
+    /// Panics if the string is ill-formatted.
+    fn from_str(version_number_str: &'p str) -> Self {
+        fn split_and_parse_number(version_part: &str) -> (u8, Option<&str>) {
+            match version_part.find(|c: char| !c.is_ascii_digit()) {
+                None => (version_part.parse().unwrap(), None),
+                Some(version_part_suffix_start) => {
+                    let (version_part, version_part_suffix) =
+                        version_part.split_at(version_part_suffix_start);
+                    (version_part.parse().unwrap(), Some(version_part_suffix))
+                }
+            }
+        }
+
+        let mut parts = version_number_str.split('.');
+        let major_str = parts.next().expect("Python major version missing");
+        let minor_str = parts.next().expect("Python minor version missing");
+        let patch_str = parts.next();
+        assert!(
+            parts.next().is_none(),
+            "Python version string has too many parts"
+        );
+
+        let major = major_str
+            .parse()
+            .expect("Python major version not an integer");
+        let (minor, suffix) = split_and_parse_number(minor_str);
+        if suffix.is_some() {
+            assert!(patch_str.is_none());
+            return PythonVersionInfo {
+                major,
+                minor,
+                patch: 0,
+                suffix,
+            };
+        }
+
+        let (patch, suffix) = patch_str.map(split_and_parse_number).unwrap_or_default();
+        PythonVersionInfo {
+            major,
+            minor,
+            patch,
+            suffix,
+        }
+    }
+}
+
+impl PartialEq<(u8, u8)> for PythonVersionInfo<'_> {
+    fn eq(&self, other: &(u8, u8)) -> bool {
+        self.major == other.0 && self.minor == other.1
+    }
+}
+
+impl PartialEq<(u8, u8, u8)> for PythonVersionInfo<'_> {
+    fn eq(&self, other: &(u8, u8, u8)) -> bool {
+        self.major == other.0 && self.minor == other.1 && self.patch == other.2
+    }
+}
+
+impl PartialOrd<(u8, u8)> for PythonVersionInfo<'_> {
+    fn partial_cmp(&self, other: &(u8, u8)) -> Option<std::cmp::Ordering> {
+        (self.major, self.minor).partial_cmp(other)
+    }
+}
+
+impl PartialOrd<(u8, u8, u8)> for PythonVersionInfo<'_> {
+    fn partial_cmp(&self, other: &(u8, u8, u8)) -> Option<std::cmp::Ordering> {
+        (self.major, self.minor, self.patch).partial_cmp(other)
+    }
+}
 
 /// Marker type that indicates that the GIL is currently held.
 ///
@@ -72,21 +156,6 @@ impl Python<'_> {
 }
 
 impl<'p> Python<'p> {
-    /// Retrieves a Python instance under the assumption that the GIL is already
-    /// acquired at this point, and stays acquired for the lifetime `'p`.
-    ///
-    /// Because the output lifetime `'p` is not connected to any input parameter,
-    /// care must be taken that the compiler infers an appropriate lifetime for `'p`
-    /// when calling this function.
-    ///
-    /// # Safety
-    /// The lifetime `'p` must be shorter than the period you *assume* that you have GIL.
-    /// I.e., `Python<'static>` is always *really* unsafe.
-    #[inline]
-    pub unsafe fn assume_gil_acquired() -> Python<'p> {
-        Python(PhantomData)
-    }
-
     /// Acquires the global interpreter lock, which allows access to the Python runtime.
     ///
     /// If the Python runtime is not already initialized, this function will initialize it.
@@ -303,24 +372,6 @@ impl<'p> Python<'p> {
         PyModule::import(self, name)
     }
 
-    /// Checks whether `obj` is an instance of type `T`.
-    ///
-    /// This is equivalent to the Python `isinstance` function.
-    pub fn is_instance<T: PyTypeObject, V: AsPyPointer>(self, obj: &V) -> PyResult<bool> {
-        T::type_object(self).is_instance(obj)
-    }
-
-    /// Checks whether type `T` is subclass of type `U`.
-    ///
-    /// This is equivalent to the Python `issubclass` function.
-    pub fn is_subclass<T, U>(self) -> PyResult<bool>
-    where
-        T: PyTypeObject,
-        U: PyTypeObject,
-    {
-        T::type_object(self).is_subclass::<U>()
-    }
-
     /// Gets the Python builtin value `None`.
     #[allow(non_snake_case)] // the Python keyword starts with uppercase
     #[inline]
@@ -335,64 +386,49 @@ impl<'p> Python<'p> {
         unsafe { PyObject::from_borrowed_ptr(self, ffi::Py_NotImplemented()) }
     }
 
-    /// Create a new pool for managing PyO3's owned references.
+    /// Gets the running Python interpreter version as a string.
     ///
-    /// When this `GILPool` is dropped, all PyO3 owned references created after this `GILPool` will
-    /// all have their Python reference counts decremented, potentially allowing Python to drop
-    /// the corresponding Python objects.
-    ///
-    /// Typical usage of PyO3 will not need this API, as `Python::acquire_gil` automatically
-    /// creates a `GILPool` where appropriate.
-    ///
-    /// Advanced uses of PyO3 which perform long-running tasks which never free the GIL may need
-    /// to use this API to clear memory, as PyO3 usually does not clear memory until the GIL is
-    /// released.
+    /// This is a wrapper around the ffi call Py_GetVersion.
     ///
     /// # Example
     /// ```rust
-    /// # use pyo3::prelude::*;
-    /// let gil = Python::acquire_gil();
-    /// let py = gil.python();
-    ///
-    /// // Some long-running process like a webserver, which never releases the GIL.
-    /// loop {
-    ///     // Create a new pool, so that PyO3 can clear memory at the end of the loop.
-    ///     let pool = unsafe { py.new_pool() };
-    ///
-    ///     // It is recommended to *always* immediately set py to the pool's Python, to help
-    ///     // avoid creating references with invalid lifetimes.
-    ///     let py = unsafe { pool.python() };
-    ///
-    ///     // do stuff...
-    /// # break;  // Exit the loop so that doctest terminates!
-    /// }
+    /// # use pyo3::Python;
+    /// Python::with_gil(|py| {
+    ///     // The full string could be, for example:
+    ///     // "3.0a5+ (py3k:63103M, May 12 2008, 00:53:55) \n[GCC 4.2.3]"
+    ///     assert!(py.version().starts_with("3."));
+    /// });
     /// ```
-    ///
-    /// # Safety
-    /// Extreme care must be taken when using this API, as misuse can lead to accessing invalid
-    /// memory. In addition, the caller is responsible for guaranteeing that the GIL remains held
-    /// for the entire lifetime of the returned `GILPool`.
-    ///
-    /// Two best practices are required when using this API:
-    /// - From the moment `new_pool()` is called, only the `Python` token from the returned
-    ///   `GILPool` (accessible using `.python()`) should be used in PyO3 APIs. All other older
-    ///   `Python` tokens with longer lifetimes are unsafe to use until the `GILPool` is dropped,
-    ///   because they can be used to create PyO3 owned references which have lifetimes which
-    ///   outlive the `GILPool`.
-    /// - Similarly, methods on existing owned references will implicitly refer back to the
-    ///   `Python` token which that reference was originally created with. If the returned values
-    ///   from these methods are owned references they will inherit the same lifetime. As a result,
-    ///   Rust's lifetime rules may allow them to outlive the `GILPool`, even though this is not
-    ///   safe for reasons discussed above. Care must be taken to never access these return values
-    ///   after the `GILPool` is dropped, unless they are converted to `Py<T>` *before* the pool
-    ///   is dropped.
-    #[inline]
-    pub unsafe fn new_pool(self) -> GILPool {
-        GILPool::new()
+    pub fn version(self) -> &'p str {
+        unsafe {
+            CStr::from_ptr(ffi::Py_GetVersion() as *const c_char)
+                .to_str()
+                .expect("Python version string not UTF-8")
+        }
     }
-}
 
-impl<'p> Python<'p> {
+    /// Gets the running Python interpreter version as a struct similar to
+    /// `sys.version_info`.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use pyo3::Python;
+    /// Python::with_gil(|py| {
+    ///     // PyO3 supports Python 3.6 and up.
+    ///     assert!(py.version_info() >= (3, 6));
+    ///     assert!(py.version_info() >= (3, 6, 0));
+    /// });
+    /// ```
+    pub fn version_info(self) -> PythonVersionInfo<'p> {
+        let version_str = self.version();
+
+        // Portion of the version string returned by Py_GetVersion up to the first space is the
+        // version number.
+        let version_number_str = version_str.split(' ').next().unwrap_or(version_str);
+
+        PythonVersionInfo::from_str(version_number_str)
+    }
+
     /// Registers the object in the release pool, and tries to downcast to specific type.
     pub fn checked_cast_as<T>(self, obj: PyObject) -> Result<&'p T, PyDowncastError<'p>>
     where
@@ -479,8 +515,32 @@ impl<'p> Python<'p> {
         FromPyPointer::from_borrowed_ptr_or_opt(self, ptr)
     }
 
+    /// Checks whether `obj` is an instance of type `T`.
+    ///
+    /// This is equivalent to the Python `isinstance` function.
+    #[deprecated(since = "0.13.0", note = "Please use obj.is_instance::<T>() instead")]
+    pub fn is_instance<T: PyTypeObject, V: AsPyPointer>(self, obj: &V) -> PyResult<bool> {
+        T::type_object(self).is_instance(obj)
+    }
+
+    /// Checks whether type `T` is subclass of type `U`.
+    ///
+    /// This is equivalent to the Python `issubclass` function.
+    #[deprecated(
+        since = "0.13.0",
+        note = "Please use T::type_object(py).is_subclass::<U>() instead"
+    )]
+    pub fn is_subclass<T, U>(self) -> PyResult<bool>
+    where
+        T: PyTypeObject,
+        U: PyTypeObject,
+    {
+        T::type_object(self).is_subclass::<U>()
+    }
+
     /// Releases a PyObject reference.
     #[inline]
+    #[deprecated(since = "0.13.0", note = "Please just drop ob instead")]
     pub fn release<T>(self, ob: T)
     where
         T: IntoPyPointer,
@@ -495,6 +555,7 @@ impl<'p> Python<'p> {
 
     /// Releases a `ffi::PyObject` pointer.
     #[inline]
+    #[deprecated(since = "0.13.0", note = "Please just drop obj instead")]
     pub fn xdecref<T: IntoPyPointer>(self, ptr: T) {
         unsafe { ffi::Py_XDECREF(ptr.into_ptr()) };
     }
@@ -518,12 +579,83 @@ impl<'p> Python<'p> {
             Ok(())
         }
     }
+
+    /// Retrieves a Python instance under the assumption that the GIL is already
+    /// acquired at this point, and stays acquired for the lifetime `'p`.
+    ///
+    /// Because the output lifetime `'p` is not connected to any input parameter,
+    /// care must be taken that the compiler infers an appropriate lifetime for `'p`
+    /// when calling this function.
+    ///
+    /// # Safety
+    /// The lifetime `'p` must be shorter than the period you *assume* that you have GIL.
+    /// I.e., `Python<'static>` is always *really* unsafe.
+    #[inline]
+    pub unsafe fn assume_gil_acquired() -> Python<'p> {
+        Python(PhantomData)
+    }
+
+    /// Create a new pool for managing PyO3's owned references.
+    ///
+    /// When this `GILPool` is dropped, all PyO3 owned references created after this `GILPool` will
+    /// all have their Python reference counts decremented, potentially allowing Python to drop
+    /// the corresponding Python objects.
+    ///
+    /// Typical usage of PyO3 will not need this API, as `Python::acquire_gil` automatically
+    /// creates a `GILPool` where appropriate.
+    ///
+    /// Advanced uses of PyO3 which perform long-running tasks which never free the GIL may need
+    /// to use this API to clear memory, as PyO3 usually does not clear memory until the GIL is
+    /// released.
+    ///
+    /// # Example
+    /// ```rust
+    /// # use pyo3::prelude::*;
+    /// let gil = Python::acquire_gil();
+    /// let py = gil.python();
+    ///
+    /// // Some long-running process like a webserver, which never releases the GIL.
+    /// loop {
+    ///     // Create a new pool, so that PyO3 can clear memory at the end of the loop.
+    ///     let pool = unsafe { py.new_pool() };
+    ///
+    ///     // It is recommended to *always* immediately set py to the pool's Python, to help
+    ///     // avoid creating references with invalid lifetimes.
+    ///     let py = unsafe { pool.python() };
+    ///
+    ///     // do stuff...
+    /// # break;  // Exit the loop so that doctest terminates!
+    /// }
+    /// ```
+    ///
+    /// # Safety
+    /// Extreme care must be taken when using this API, as misuse can lead to accessing invalid
+    /// memory. In addition, the caller is responsible for guaranteeing that the GIL remains held
+    /// for the entire lifetime of the returned `GILPool`.
+    ///
+    /// Two best practices are required when using this API:
+    /// - From the moment `new_pool()` is called, only the `Python` token from the returned
+    ///   `GILPool` (accessible using `.python()`) should be used in PyO3 APIs. All other older
+    ///   `Python` tokens with longer lifetimes are unsafe to use until the `GILPool` is dropped,
+    ///   because they can be used to create PyO3 owned references which have lifetimes which
+    ///   outlive the `GILPool`.
+    /// - Similarly, methods on existing owned references will implicitly refer back to the
+    ///   `Python` token which that reference was originally created with. If the returned values
+    ///   from these methods are owned references they will inherit the same lifetime. As a result,
+    ///   Rust's lifetime rules may allow them to outlive the `GILPool`, even though this is not
+    ///   safe for reasons discussed above. Care must be taken to never access these return values
+    ///   after the `GILPool` is dropped, unless they are converted to `Py<T>` *before* the pool
+    ///   is dropped.
+    #[inline]
+    pub unsafe fn new_pool(self) -> GILPool {
+        GILPool::new()
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::types::{IntoPyDict, PyAny, PyBool, PyInt, PyList};
-    use crate::Python;
 
     #[test]
     fn test_eval() {
@@ -567,6 +699,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_is_instance() {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -579,6 +712,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_is_subclass() {
         let gil = Python::acquire_gil();
         let py = gil.python();
@@ -588,11 +722,8 @@ mod test {
 
     #[test]
     fn test_allow_threads_panics_safely() {
-        // If -Cpanic=abort is specified, we can't catch panic.
-        if option_env!("RUSTFLAGS")
-            .map(|s| s.contains("-Cpanic=abort"))
-            .unwrap_or(false)
-        {
+        // TODO replace with #[cfg(panic = "unwind")] once stable
+        if !crate::cfg_panic_unwind() {
             return;
         }
 
@@ -613,5 +744,42 @@ mod test {
         // so the following Python calls should not cause crashes.
         let list = PyList::new(py, &[1, 2, 3, 4]);
         assert_eq!(list.extract::<Vec<i32>>().unwrap(), vec![1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_python_version_info() {
+        Python::with_gil(|py| {
+            let version = py.version_info();
+            #[cfg(Py_3_6)]
+            assert!(version >= (3, 6));
+            #[cfg(Py_3_6)]
+            assert!(version >= (3, 6, 0));
+            #[cfg(Py_3_7)]
+            assert!(version >= (3, 7));
+            #[cfg(Py_3_7)]
+            assert!(version >= (3, 7, 0));
+            #[cfg(Py_3_8)]
+            assert!(version >= (3, 8));
+            #[cfg(Py_3_8)]
+            assert!(version >= (3, 8, 0));
+            #[cfg(Py_3_9)]
+            assert!(version >= (3, 9));
+            #[cfg(Py_3_9)]
+            assert!(version >= (3, 9, 0));
+        });
+    }
+
+    #[test]
+    fn test_python_version_info_parse() {
+        assert!(PythonVersionInfo::from_str("3.5.0a1") >= (3, 5, 0));
+        assert!(PythonVersionInfo::from_str("3.5+") >= (3, 5, 0));
+        assert!(PythonVersionInfo::from_str("3.5+") == (3, 5, 0));
+        assert!(PythonVersionInfo::from_str("3.5+") != (3, 5, 1));
+        assert!(PythonVersionInfo::from_str("3.5.2a1+") < (3, 5, 3));
+        assert!(PythonVersionInfo::from_str("3.5.2a1+") == (3, 5, 2));
+        assert!(PythonVersionInfo::from_str("3.5.2a1+") == (3, 5));
+        assert!(PythonVersionInfo::from_str("3.5+") == (3, 5));
+        assert!(PythonVersionInfo::from_str("3.5.2a1+") < (3, 6));
+        assert!(PythonVersionInfo::from_str("3.5.2a1+") > (3, 4));
     }
 }

@@ -11,7 +11,6 @@
 //! Support for `PyDateTime_CAPI` is limited as of PyPy 7.0.0.
 //! `DateTime_FromTimestamp` and `Date_FromTimestamp` are currently not supported.
 
-use crate::ffi::Py_hash_t;
 use crate::ffi::{PyObject, PyTypeObject};
 use crate::ffi::{PyObject_TypeCheck, Py_TYPE};
 use crate::once_cell::GILOnceCell;
@@ -19,7 +18,10 @@ use crate::Python;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_uchar};
 #[cfg(not(PyPy))]
-use {crate::ffi::PyCapsule_Import, std::ffi::CString};
+use {
+    crate::ffi::{PyCapsule_Import, Py_hash_t},
+    std::ffi::CString,
+};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -322,7 +324,7 @@ pub unsafe fn PyTZInfo_CheckExact(op: *mut PyObject) -> c_int {
 /// Accessor functions
 #[cfg(not(PyPy))]
 macro_rules! _access_field {
-    ($obj:expr, $type: ident, $field:tt) => {
+    ($obj:expr, $type: ident, $field:ident) => {
         (*($obj as *mut $type)).$field
     };
 }
@@ -504,7 +506,7 @@ pub unsafe fn PyDateTime_TIME_GET_TZINFO(o: *mut PyObject) -> *mut PyObject {
 // Accessor functions for PyDateTime_Delta
 #[cfg(not(PyPy))]
 macro_rules! _access_delta_field {
-    ($obj:expr, $field:tt) => {
+    ($obj:expr, $field:ident) => {
         _access_field!($obj, PyDateTime_Delta, $field)
     };
 }

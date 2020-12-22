@@ -100,7 +100,7 @@ pub struct FnSpec<'a> {
 pub fn get_return_info(output: &syn::ReturnType) -> syn::Type {
     match output {
         syn::ReturnType::Default => syn::Type::Infer(syn::parse_quote! {_}),
-        syn::ReturnType::Type(_, ref ty) => *ty.clone(),
+        syn::ReturnType::Type(_, ty) => *ty.clone(),
     }
 }
 
@@ -109,7 +109,7 @@ pub fn parse_method_receiver(arg: &syn::FnArg) -> syn::Result<SelfType> {
         syn::FnArg::Receiver(recv) => Ok(SelfType::Receiver {
             mutable: recv.mutability.is_some(),
         }),
-        syn::FnArg::Typed(syn::PatType { ref ty, .. }) => Ok(SelfType::TryFromPyCell(ty.span())),
+        syn::FnArg::Typed(syn::PatType { ty, .. }) => Ok(SelfType::TryFromPyCell(ty.span())),
     }
 }
 
@@ -139,12 +139,10 @@ impl<'a> FnSpec<'a> {
 
         // strip get_ or set_
         let strip_fn_name = |prefix: &'static str| {
-            let ident = sig.ident.unraw().to_string();
-            if ident.starts_with(prefix) {
-                Some(syn::Ident::new(&ident[prefix.len()..], ident.span()))
-            } else {
-                None
-            }
+            name.unraw()
+                .to_string()
+                .strip_prefix(prefix)
+                .map(|rest| syn::Ident::new(rest, name.span()))
         };
 
         // Parse receiver & function type for various method types
@@ -198,14 +196,12 @@ impl<'a> FnSpec<'a> {
                         "Unexpected receiver for method",
                     ));
                 }
-                syn::FnArg::Typed(syn::PatType {
-                    ref pat, ref ty, ..
-                }) => {
-                    let (ident, by_ref, mutability) = match **pat {
+                syn::FnArg::Typed(syn::PatType { pat, ty, .. }) => {
+                    let (ident, by_ref, mutability) = match &**pat {
                         syn::Pat::Ident(syn::PatIdent {
-                            ref ident,
-                            ref by_ref,
-                            ref mutability,
+                            ident,
+                            by_ref,
+                            mutability,
                             ..
                         }) => (ident, by_ref, mutability),
                         _ => {
@@ -241,7 +237,7 @@ impl<'a> FnSpec<'a> {
 
         let text_signature = match &fn_type {
             FnType::Fn(_) | FnType::FnClass | FnType::FnStatic => {
-                utils::parse_text_signature_attrs(&mut *meth_attrs, name)?
+                utils::parse_text_signature_attrs(&mut *meth_attrs, &python_name)?
             }
             FnType::FnNew => parse_erroneous_text_signature(
                 "text_signature not allowed on __new__; if you want to add a signature on \
@@ -267,7 +263,7 @@ impl<'a> FnSpec<'a> {
 
     pub fn is_args(&self, name: &syn::Ident) -> bool {
         for s in self.attrs.iter() {
-            if let Argument::VarArgs(ref path) = s {
+            if let Argument::VarArgs(path) = s {
                 return path.is_ident(name);
             }
         }
@@ -276,7 +272,7 @@ impl<'a> FnSpec<'a> {
 
     pub fn is_kwargs(&self, name: &syn::Ident) -> bool {
         for s in self.attrs.iter() {
-            if let Argument::KeywordArgs(ref path) = s {
+            if let Argument::KeywordArgs(path) = s {
                 return path.is_ident(name);
             }
         }
@@ -285,10 +281,10 @@ impl<'a> FnSpec<'a> {
 
     pub fn default_value(&self, name: &syn::Ident) -> Option<TokenStream> {
         for s in self.attrs.iter() {
-            match *s {
-                Argument::Arg(ref path, ref opt) | Argument::Kwarg(ref path, ref opt) => {
+            match s {
+                Argument::Arg(path, opt) | Argument::Kwarg(path, opt) => {
                     if path.is_ident(name) {
-                        if let Some(ref val) = opt {
+                        if let Some(val) = opt {
                             let i: syn::Expr = syn::parse_str(&val).unwrap();
                             return Some(i.into_token_stream());
                         }
@@ -302,7 +298,7 @@ impl<'a> FnSpec<'a> {
 
     pub fn is_kw_only(&self, name: &syn::Ident) -> bool {
         for s in self.attrs.iter() {
-            if let Argument::Kwarg(ref path, _) = s {
+            if let Argument::Kwarg(path, _) = s {
                 if path.is_ident(name) {
                     return true;
                 }
@@ -341,7 +337,7 @@ fn parse_method_attributes(
 
     for attr in attrs.iter() {
         match attr.parse_meta()? {
-            syn::Meta::Path(ref name) => {
+            syn::Meta::Path(name) => {
                 if name.is_ident("new") || name.is_ident("__new__") {
                     set_ty!(MethodTypeAttribute::New, name);
                 } else if name.is_ident("init") || name.is_ident("__init__") {
@@ -373,11 +369,7 @@ fn parse_method_attributes(
                     new_attrs.push(attr.clone())
                 }
             }
-            syn::Meta::List(syn::MetaList {
-                ref path,
-                ref nested,
-                ..
-            }) => {
+            syn::Meta::List(syn::MetaList { path, nested, .. }) => {
                 if path.is_ident("new") {
                     set_ty!(MethodTypeAttribute::New, path);
                 } else if path.is_ident("init") {
@@ -408,11 +400,11 @@ fn parse_method_attributes(
                     };
 
                     property_name = match nested.first().unwrap() {
-                        syn::NestedMeta::Meta(syn::Meta::Path(ref w)) if w.segments.len() == 1 => {
+                        syn::NestedMeta::Meta(syn::Meta::Path(w)) if w.segments.len() == 1 => {
                             Some(w.segments[0].ident.clone())
                         }
-                        syn::NestedMeta::Lit(ref lit) => match *lit {
-                            syn::Lit::Str(ref s) => Some(s.parse()?),
+                        syn::NestedMeta::Lit(lit) => match lit {
+                            syn::Lit::Str(s) => Some(s.parse()?),
                             _ => {
                                 return Err(syn::Error::new_spanned(
                                     lit,
@@ -428,7 +420,7 @@ fn parse_method_attributes(
                         }
                     };
                 } else if path.is_ident("args") {
-                    let attrs = PyFunctionAttr::from_meta(nested)?;
+                    let attrs = PyFunctionAttr::from_meta(&nested)?;
                     args.extend(attrs.arguments)
                 } else {
                     new_attrs.push(attr.clone())

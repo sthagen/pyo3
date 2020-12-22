@@ -174,10 +174,7 @@ pub trait FromPyObject<'source>: Sized {
 
 /// Identity conversion: allows using existing `PyObject` instances where
 /// `T: ToPyObject` is expected.
-impl<'a, T: ?Sized> ToPyObject for &'a T
-where
-    T: ToPyObject,
-{
+impl<T: ?Sized + ToPyObject> ToPyObject for &'_ T {
     #[inline]
     fn to_object(&self, py: Python) -> PyObject {
         <T as ToPyObject>::to_object(*self, py)
@@ -326,7 +323,7 @@ where
     fn try_from<V: Into<&'v PyAny>>(value: V) -> Result<&'v Self, PyDowncastError<'v>> {
         let value = value.into();
         unsafe {
-            if T::is_instance(value) {
+            if T::is_type_of(value) {
                 Ok(Self::try_from_unchecked(value))
             } else {
                 Err(PyDowncastError::new(value, T::NAME))
@@ -337,7 +334,7 @@ where
     fn try_from_exact<V: Into<&'v PyAny>>(value: V) -> Result<&'v Self, PyDowncastError<'v>> {
         let value = value.into();
         unsafe {
-            if T::is_exact_instance(value) {
+            if T::is_exact_type_of(value) {
                 Ok(Self::try_from_unchecked(value))
             } else {
                 Err(PyDowncastError::new(value, T::NAME))
@@ -358,7 +355,7 @@ where
     fn try_from<V: Into<&'v PyAny>>(value: V) -> Result<&'v Self, PyDowncastError<'v>> {
         let value = value.into();
         unsafe {
-            if T::is_instance(value) {
+            if T::is_type_of(value) {
                 Ok(Self::try_from_unchecked(value))
             } else {
                 Err(PyDowncastError::new(value, T::NAME))
@@ -368,7 +365,7 @@ where
     fn try_from_exact<V: Into<&'v PyAny>>(value: V) -> Result<&'v Self, PyDowncastError<'v>> {
         let value = value.into();
         unsafe {
-            if T::is_exact_instance(value) {
+            if T::is_exact_type_of(value) {
                 Ok(Self::try_from_unchecked(value))
             } else {
                 Err(PyDowncastError::new(value, T::NAME))
@@ -434,10 +431,38 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::types::PyList;
-    use crate::Python;
+    use crate::types::{IntoPyDict, PyAny, PyDict, PyList};
+    use crate::{Python, ToPyObject};
 
     use super::PyTryFrom;
+
+    #[test]
+    fn test_try_from() {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let list: &PyAny = vec![3, 6, 5, 4, 7].to_object(py).into_ref(py);
+        let dict: &PyAny = vec![("reverse", true)].into_py_dict(py).as_ref();
+
+        assert!(PyList::try_from(list).is_ok());
+        assert!(PyDict::try_from(dict).is_ok());
+
+        assert!(PyAny::try_from(list).is_ok());
+        assert!(PyAny::try_from(dict).is_ok());
+    }
+
+    #[test]
+    fn test_try_from_exact() {
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let list: &PyAny = vec![3, 6, 5, 4, 7].to_object(py).into_ref(py);
+        let dict: &PyAny = vec![("reverse", true)].into_py_dict(py).as_ref();
+
+        assert!(PyList::try_from_exact(list).is_ok());
+        assert!(PyDict::try_from_exact(dict).is_ok());
+
+        assert!(PyAny::try_from_exact(list).is_err());
+        assert!(PyAny::try_from_exact(dict).is_err());
+    }
 
     #[test]
     fn test_try_from_unchecked() {

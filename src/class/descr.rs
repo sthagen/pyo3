@@ -7,7 +7,7 @@
 
 use crate::callback::IntoPyCallbackOutput;
 use crate::types::PyAny;
-use crate::{ffi, FromPyObject, PyClass, PyObject};
+use crate::{FromPyObject, PyClass, PyObject};
 use std::os::raw::c_int;
 
 /// Descriptor interface
@@ -70,29 +70,5 @@ pub trait PyDescrSetNameProtocol<'p>: PyDescrProtocol<'p> {
     type Result: IntoPyCallbackOutput<()>;
 }
 
-/// All FFI functions for description protocols.
-#[derive(Default)]
-pub struct PyDescrMethods {
-    pub tp_descr_get: Option<ffi::descrgetfunc>,
-    pub tp_descr_set: Option<ffi::descrsetfunc>,
-}
-
-#[doc(hidden)]
-impl PyDescrMethods {
-    pub(crate) fn update_typeobj(&self, type_object: &mut ffi::PyTypeObject) {
-        type_object.tp_descr_get = self.tp_descr_get;
-        type_object.tp_descr_set = self.tp_descr_set;
-    }
-    pub fn set_descr_get<T>(&mut self)
-    where
-        T: for<'p> PyDescrGetProtocol<'p>,
-    {
-        self.tp_descr_get = py_ternarys_func!(PyDescrGetProtocol, T::__get__);
-    }
-    pub fn set_descr_set<T>(&mut self)
-    where
-        T: for<'p> PyDescrSetProtocol<'p>,
-    {
-        self.tp_descr_set = py_ternarys_func!(PyDescrSetProtocol, T::__set__, c_int);
-    }
-}
+py_ternarys_func!(descr_get, PyDescrGetProtocol, Self::__get__);
+py_ternarys_func!(descr_set, PyDescrSetProtocol, Self::__set__, c_int);

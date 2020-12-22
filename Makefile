@@ -4,7 +4,7 @@ test: lint test_py
 	cargo test
 
 test_py:
-	for example in examples/*; do tox -e py -c $$example/tox.ini || exit 1; done
+	for example in examples/*; do tox -e py -c $$example || exit 1; done
 
 fmt:
 	cargo fmt --all -- --check
@@ -19,8 +19,8 @@ lint: fmt clippy
 	@true
 
 publish: test
-	cargo publish --manifest-path pyo3-derive-backend/Cargo.toml
+	cargo publish --manifest-path pyo3-macros-backend/Cargo.toml
 	sleep 10  # wait for crates.io to update
-	cargo publish --manifest-path pyo3cls/Cargo.toml
+	cargo publish --manifest-path pyo3-macros/Cargo.toml
 	sleep 10  # wait for crates.io to update
 	cargo publish

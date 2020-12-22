@@ -32,6 +32,7 @@ fn class_with_docs() {
 }
 
 #[test]
+#[cfg_attr(all(Py_LIMITED_API, not(Py_3_10)), ignore)]
 fn class_with_docs_and_signature() {
     /// docs line1
     #[pyclass]
@@ -67,6 +68,7 @@ fn class_with_docs_and_signature() {
 }
 
 #[test]
+#[cfg_attr(all(Py_LIMITED_API, not(Py_3_10)), ignore)]
 fn class_with_signature() {
     #[pyclass]
     #[text_signature = "(a, b=None, *, c=42)"]
@@ -86,7 +88,11 @@ fn class_with_signature() {
     let py = gil.python();
     let typeobj = py.get_type::<MyClass>();
 
-    py_assert!(py, typeobj, "typeobj.__doc__ is None");
+    py_assert!(
+        py,
+        typeobj,
+        "typeobj.__doc__ is None or typeobj.__doc__ == ''"
+    );
     py_assert!(
         py,
         typeobj,
@@ -182,5 +188,35 @@ fn test_methods() {
         py,
         typeobj,
         "typeobj.static_method.__text_signature__ == '(d)'"
+    );
+}
+
+#[test]
+#[cfg_attr(all(Py_LIMITED_API, not(Py_3_10)), ignore)]
+fn test_raw_identifiers() {
+    #[pyclass]
+    #[text_signature = "($self)"]
+    struct r#MyClass {}
+
+    #[pymethods]
+    impl MyClass {
+        #[new]
+        fn new() -> MyClass {
+            MyClass {}
+        }
+        #[text_signature = "($self)"]
+        fn r#method(&self) {}
+    }
+
+    let gil = Python::acquire_gil();
+    let py = gil.python();
+    let typeobj = py.get_type::<MyClass>();
+
+    py_assert!(py, typeobj, "typeobj.__text_signature__ == '($self)'");
+
+    py_assert!(
+        py,
+        typeobj,
+        "typeobj.method.__text_signature__ == '($self)'"
     );
 }

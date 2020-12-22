@@ -9,7 +9,10 @@ use std::{
     str::FromStr,
 };
 
-const PY3_MIN_MINOR: u8 = 5;
+/// Minimum required Python version.
+const PY3_MIN_MINOR: u8 = 6;
+/// Maximum Python version that can be used as minimum required Python version with abi3.
+const ABI3_MAX_MINOR: u8 = 9;
 const CFG_KEY: &str = "py_sys_config";
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -150,15 +153,34 @@ impl CrossCompileConfig {
 fn cross_compiling() -> Result<Option<CrossCompileConfig>> {
     let target = env::var("TARGET")?;
     let host = env::var("HOST")?;
-    if target == host || (target == "i686-pc-windows-msvc" && host == "x86_64-pc-windows-msvc") {
+    if target == host {
+        // Not cross-compiling
+        return Ok(None);
+    }
+
+    if target == "i686-pc-windows-msvc" && host == "x86_64-pc-windows-msvc" {
+        // Not cross-compiling to compile for 32-bit Python from windows 64-bit
+        return Ok(None);
+    }
+
+    if host.starts_with(&format!(
+        "{}-{}-{}",
+        env::var("CARGO_CFG_TARGET_ARCH")?,
+        env::var("CARGO_CFG_TARGET_VENDOR")?,
+        env::var("CARGO_CFG_TARGET_OS")?
+    )) {
+        // Not cross-compiling if arch-vendor-os is all the same
+        // e.g. x86_64-unknown-linux-musl on x86_64-unknown-linux-gnu host
         return Ok(None);
     }
 
     if env::var("CARGO_CFG_TARGET_FAMILY")? == "windows" {
-        Ok(Some(CrossCompileConfig::both()?))
-    } else {
-        Ok(Some(CrossCompileConfig::lib_only()?))
+        // Windows cross-compile uses both header includes and sysconfig
+        return Ok(Some(CrossCompileConfig::both()?));
     }
+
+    // Cross-compiling on any other platform
+    Ok(Some(CrossCompileConfig::lib_only()?))
 }
 
 /// A list of python interpreter compile-time preprocessor defines that
@@ -322,16 +344,16 @@ fn find_sysconfigdata(cross: &CrossCompileConfig) -> Result<PathBuf> {
 /// recursive search for _sysconfigdata, returns all possibilities of sysconfigdata paths
 fn search_lib_dir(path: impl AsRef<Path>, cross: &CrossCompileConfig) -> Vec<PathBuf> {
     let mut sysconfig_paths = vec![];
-    let version_pat = if let Some(ref v) = cross.version {
+    let version_pat = if let Some(v) = &cross.version {
         format!("python{}", v)
     } else {
         "python3.".into()
     };
     for f in fs::read_dir(path).expect("Path does not exist") {
-        let sysc = match f {
-            Ok(ref f) if starts_with(f, "_sysconfigdata") && ends_with(f, "py") => vec![f.path()],
-            Ok(ref f) if starts_with(f, "build") => search_lib_dir(f.path(), cross),
-            Ok(ref f) if starts_with(f, "lib.") => {
+        let sysc = match &f {
+            Ok(f) if starts_with(f, "_sysconfigdata") && ends_with(f, "py") => vec![f.path()],
+            Ok(f) if starts_with(f, "build") => search_lib_dir(f.path(), cross),
+            Ok(f) if starts_with(f, "lib.") => {
                 let name = f.file_name();
                 // check if right target os
                 if !name.to_string_lossy().contains(if cross.os == "android" {
@@ -347,7 +369,7 @@ fn search_lib_dir(path: impl AsRef<Path>, cross: &CrossCompileConfig) -> Vec<Pat
                 }
                 search_lib_dir(f.path(), cross)
             }
-            Ok(ref f) if starts_with(f, &version_pat) => search_lib_dir(f.path(), cross),
+            Ok(f) if starts_with(f, &version_pat) => search_lib_dir(f.path(), cross),
             _ => continue,
         };
         sysconfig_paths.extend(sysc);
@@ -550,13 +572,18 @@ fn run_python_script(interpreter: &Path, script: &str) -> Result<String> {
                 );
             }
         }
-        Ok(ref ok) if !ok.status.success() => bail!("Python script failed: {}"),
+        Ok(ok) if !ok.status.success() => bail!("Python script failed: {}"),
         Ok(ok) => Ok(String::from_utf8(ok.stdout)?),
     }
 }
 
 fn get_library_link_name(version: &PythonVersion, ld_version: &str) -> String {
     if cfg!(target_os = "windows") {
+        // Mirrors the behavior in CPython's `PC/pyconfig.h`.
+        if env::var_os("CARGO_FEATURE_ABI3").is_some() {
+            return "python3".to_string();
+        }
+
         let minor_or_empty_string = match version.minor {
             Some(minor) => format!("{}", minor),
             None => String::new(),
@@ -689,12 +716,7 @@ PYPY = platform.python_implementation() == "PyPy"
 # Anaconda based python distributions have a static python executable, but include
 # the shared library. Use the shared library for embedding to avoid rust trying to
 # LTO the static library (and failing with newer gcc's, because it is old).
-ANACONDA = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
-
-try:
-    base_prefix = sys.base_prefix
-except AttributeError:
-    base_prefix = sys.exec_prefix
+ANACONDA = os.path.exists(os.path.join(sys.base_prefix, 'conda-meta'))
 
 libdir = sysconfig.get_config_var('LIBDIR')
 
@@ -704,7 +726,7 @@ print("implementation", platform.python_implementation())
 if libdir is not None:
     print("libdir", libdir)
 print("ld_version", sysconfig.get_config_var('LDVERSION') or sysconfig.get_config_var('py_version_short'))
-print("base_prefix", base_prefix)
+print("base_prefix", sys.base_prefix)
 print("shared", PYPY or ANACONDA or bool(sysconfig.get_config_var('Py_ENABLE_SHARED')))
 print("executable", sys.executable)
 print("calcsize_pointer", struct.calcsize("P"))
@@ -765,12 +787,25 @@ fn configure(interpreter_config: &InterpreterConfig) -> Result<String> {
         bail!("Python 2 is not supported");
     }
 
-    if env::var_os("CARGO_FEATURE_ABI3").is_some() {
+    let minor = if env::var_os("CARGO_FEATURE_ABI3").is_some() {
         println!("cargo:rustc-cfg=Py_LIMITED_API");
-    }
+        // Check any `abi3-py3*` feature is set. If not, use the interpreter version.
+        let abi3_minor = (PY3_MIN_MINOR..=ABI3_MAX_MINOR)
+            .find(|i| env::var_os(format!("CARGO_FEATURE_ABI3_PY3{}", i)).is_some());
+        match (abi3_minor, interpreter_config.version.minor) {
+            (Some(abi3_minor), Some(interpreter_minor)) if abi3_minor > interpreter_minor => bail!(
+                "You cannot set a mininimum Python version {} higher than the interpreter version {}",
+                abi3_minor,
+                interpreter_minor
+            ),
+            _ => abi3_minor.or(interpreter_config.version.minor),
+        }
+    } else {
+        interpreter_config.version.minor
+    };
 
-    if let Some(minor) = interpreter_config.version.minor {
-        for i in 6..=minor {
+    if let Some(minor) = minor {
+        for i in PY3_MIN_MINOR..=minor {
             println!("cargo:rustc-cfg=Py_3_{}", i);
             flags += format!("CFG_Py_3_{},", i).as_ref();
         }
@@ -815,7 +850,26 @@ fn check_target_architecture(interpreter_config: &InterpreterConfig) -> Result<(
     Ok(())
 }
 
+fn abi3_without_interpreter() -> Result<()> {
+    println!("cargo:rustc-cfg=Py_LIMITED_API");
+    let mut flags = "FLAG_WITH_THREAD=1".to_string();
+    for minor in PY3_MIN_MINOR..=ABI3_MAX_MINOR {
+        println!("cargo:rustc-cfg=Py_3_{}", minor);
+        flags += &format!(",CFG_Py_3_{}", minor);
+    }
+    println!("cargo:rustc-cfg=py_sys_config=\"WITH_THREAD\"");
+    println!("cargo:python_flags={}", flags);
+    Ok(())
+}
+
 fn main() -> Result<()> {
+    // If PYO3_NO_PYTHON is set with abi3, we can build PyO3 without calling Python (UNIX only).
+    // We only check for the abi3-py3{ABI3_MAX_MINOR} because lower versions depend on it.
+    if env::var_os("PYO3_NO_PYTHON").is_some()
+        && env::var_os(format!("CARGO_FEATURE_ABI3_PY3{}", ABI3_MAX_MINOR)).is_some()
+    {
+        return abi3_without_interpreter();
+    }
     // 1. Setup cfg variables so we can do conditional compilation in this library based on the
     // python interpeter's compilation flags. This is necessary for e.g. matching the right unicode
     // and threading interfaces.  First check if we're cross compiling, if so, we cannot run the

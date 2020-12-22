@@ -20,7 +20,6 @@ extern "C" {
 }
 
 #[inline]
-#[cfg_attr(PyPy, link_name = "PyPySlice_Check")]
 pub unsafe fn PySlice_Check(op: *mut PyObject) -> c_int {
     (Py_TYPE(op) == &mut PySlice_Type) as c_int
 }

@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "nightly", feature(specialization))]
 #![allow(clippy::missing_safety_doc)] // FIXME (#698)
+#![deny(warnings)]
 
 //! Rust bindings to the Python interpreter.
 //!
@@ -52,7 +53,7 @@
 //! crate-type = ["cdylib"]
 //!
 //! [dependencies.pyo3]
-//! version = "0.12.3"
+//! version = "0.12.4"
 //! features = ["extension-module"]
 //! ```
 //!
@@ -89,6 +90,12 @@
 //!   "-C", "link-arg=-undefined",
 //!   "-C", "link-arg=dynamic_lookup",
 //! ]
+//!
+//! [target.aarch64-apple-darwin]
+//! rustflags = [
+//!   "-C", "link-arg=-undefined",
+//!   "-C", "link-arg=dynamic_lookup",
+//! ]
 //! ```
 //!
 //! While developing, you symlink (or copy) and rename the shared library from
@@ -109,7 +116,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! pyo3 = "0.12.3"
+//! pyo3 = "0.12.4"
 //! ```
 //!
 //! Example program displaying the value of `sys.version`:
@@ -144,7 +151,7 @@ pub use crate::instance::{Py, PyNativeType, PyObject};
 pub use crate::pycell::{PyCell, PyRef, PyRefMut};
 pub use crate::pyclass::PyClass;
 pub use crate::pyclass_init::PyClassInitializer;
-pub use crate::python::{prepare_freethreaded_python, Python};
+pub use crate::python::{prepare_freethreaded_python, Python, PythonVersionInfo};
 pub use crate::type_object::{type_flags, PyTypeInfo};
 // Since PyAny is as important as PyObject, we expose it to the top level.
 pub use crate::types::PyAny;
@@ -184,6 +191,7 @@ mod gil;
 mod instance;
 #[macro_use]
 mod internal_tricks;
+#[cfg(not(Py_LIMITED_API))]
 pub mod marshal;
 pub mod once_cell;
 pub mod panic;
@@ -199,9 +207,9 @@ pub mod types;
 /// The proc macros, which are also part of the prelude.
 #[cfg(feature = "macros")]
 pub mod proc_macro {
-    pub use pyo3cls::pymodule;
+    pub use pyo3_macros::pymodule;
     /// The proc macro attributes
-    pub use pyo3cls::{pyclass, pyfunction, pymethods, pyproto};
+    pub use pyo3_macros::{pyclass, pyfunction, pymethods, pyproto};
 }
 
 /// Returns a function that takes a [Python] instance and returns a Python function.
@@ -210,7 +218,7 @@ pub mod proc_macro {
 #[macro_export]
 macro_rules! wrap_pyfunction {
     ($function_name: ident) => {{
-        &pyo3::paste::expr! { [<__pyo3_get_function_ $function_name>] }
+        &pyo3::paste::paste! { [<__pyo3_get_function_ $function_name>] }
     }};
 
     ($function_name: ident, $arg: expr) => {
@@ -243,7 +251,7 @@ macro_rules! wrap_pyfunction {
 #[macro_export]
 macro_rules! raw_pycfunction {
     ($function_name: ident) => {{
-        pyo3::paste::expr! { [<__pyo3_raw_ $function_name>] }
+        pyo3::paste::paste! { [<__pyo3_raw_ $function_name>] }
     }};
 }
 
@@ -253,7 +261,7 @@ macro_rules! raw_pycfunction {
 #[macro_export]
 macro_rules! wrap_pymodule {
     ($module_name:ident) => {{
-        pyo3::paste::expr! {
+        pyo3::paste::paste! {
             &|py| unsafe { pyo3::PyObject::from_owned_ptr(py, [<PyInit_ $module_name>]()) }
         }
     }};
@@ -315,10 +323,10 @@ macro_rules! wrap_pymodule {
 #[cfg(feature = "macros")]
 macro_rules! py_run {
     ($py:expr, $($val:ident)+, $code:literal) => {{
-        pyo3::py_run_impl!($py, $($val)+, pyo3::indoc::indoc!($code))
+        $crate::py_run_impl!($py, $($val)+, $crate::indoc::indoc!($code))
     }};
     ($py:expr, $($val:ident)+, $code:expr) => {{
-        pyo3::py_run_impl!($py, $($val)+, &pyo3::unindent::unindent($code))
+        $crate::py_run_impl!($py, $($val)+, &$crate::unindent::unindent($code))
     }};
 }
 
@@ -327,20 +335,19 @@ macro_rules! py_run {
 #[cfg(feature = "macros")]
 macro_rules! py_run_impl {
     ($py:expr, $($val:ident)+, $code:expr) => {{
-        use pyo3::types::IntoPyDict;
-        use pyo3::ToPyObject;
+        use $crate::types::IntoPyDict;
+        use $crate::ToPyObject;
         let d = [$((stringify!($val), $val.to_object($py)),)+].into_py_dict($py);
 
-        $py.run($code, None, Some(d))
-            .map_err(|e| {
-                e.print($py);
-                // So when this c api function the last line called printed the error to stderr,
-                // the output is only written into a buffer which is never flushed because we
-                // panic before flushing. This is where this hack comes into place
-                $py.run("import sys; sys.stderr.flush()", None, None)
-                    .unwrap();
-            })
-            .expect($code)
+        if let Err(e) = $py.run($code, None, Some(d)) {
+            e.print($py);
+            // So when this c api function the last line called printed the error to stderr,
+            // the output is only written into a buffer which is never flushed because we
+            // panic before flushing. This is where this hack comes into place
+            $py.run("import sys; sys.stderr.flush()", None, None)
+                .unwrap();
+            panic!($code.to_string())
+        }
     }};
 }
 
@@ -348,9 +355,9 @@ macro_rules! py_run_impl {
 #[doc(hidden)]
 pub mod doc_test {
     macro_rules! doc_comment {
-        ($x:expr, $($tt:tt)*) => {
+        ($x:expr, $module:item) => {
             #[doc = $x]
-            $($tt)*
+            $module
         };
     }
 
@@ -382,4 +389,10 @@ pub mod doc_test {
     doctest!("../guide/src/rust_cpython.md", guide_rust_cpython_md);
     doctest!("../guide/src/types.md", guide_types_md);
     doctest!("../guide/src/trait_bounds.md", guide_trait_bounds_md);
+}
+
+// interim helper until #[cfg(panic = ...)] is stable
+#[cfg(test)]
+fn cfg_panic_unwind() -> bool {
+    option_env!("RUSTFLAGS").map_or(true, |var| !var.contains("-Cpanic=abort"))
 }

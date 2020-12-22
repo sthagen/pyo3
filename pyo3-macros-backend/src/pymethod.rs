@@ -176,6 +176,7 @@ pub fn impl_wrap_new(cls: &syn::Type, spec: &FnSpec<'_>) -> TokenStream {
             _kwargs: *mut pyo3::ffi::PyObject) -> *mut pyo3::ffi::PyObject
         {
             use pyo3::type_object::PyTypeInfo;
+            use pyo3::callback::IntoPyCallbackOutput;
             use std::convert::TryFrom;
 
             const _LOCATION: &'static str = concat!(stringify!(#cls),".",stringify!(#python_name),"()");
@@ -183,7 +184,7 @@ pub fn impl_wrap_new(cls: &syn::Type, spec: &FnSpec<'_>) -> TokenStream {
                 let _args = _py.from_borrowed_ptr::<pyo3::types::PyTuple>(_args);
                 let _kwargs: Option<&pyo3::types::PyDict> = _py.from_borrowed_ptr_or_opt(_kwargs);
 
-                let initializer = pyo3::PyClassInitializer::try_from(#body)?;
+                let initializer: pyo3::PyClassInitializer::<#cls> = #body.convert(_py)?;
                 let cell = initializer.create_cell_from_subtype(_py, subtype)?;
                 Ok(cell as *mut pyo3::ffi::PyObject)
             })
@@ -505,11 +506,10 @@ fn impl_arg_param(
             // Get Option<&T> from Option<PyRef<T>>
             (
                 quote! { Option<<#tref as pyo3::derive_utils::ExtractExt>::Target> },
-                // To support Rustc 1.39.0, we don't use as_deref here...
                 if mut_.is_some() {
-                    quote! { _tmp.as_mut().map(std::ops::DerefMut::deref_mut) }
+                    quote! { _tmp.as_deref_mut() }
                 } else {
-                    quote! { _tmp.as_ref().map(std::ops::Deref::deref) }
+                    quote! { _tmp.as_deref() }
                 },
             )
         } else {
@@ -554,7 +554,7 @@ fn impl_arg_param(
     fn replace_self(tref: &mut syn::TypeReference, self_path: &syn::Path) {
         match &mut *tref.elem {
             syn::Type::Reference(tref_inner) => replace_self(tref_inner, self_path),
-            syn::Type::Path(ref mut tpath) => {
+            syn::Type::Path(tpath) => {
                 if let Some(ident) = tpath.path.get_ident() {
                     if ident == "Self" {
                         tpath.path = self_path.to_owned();
@@ -712,13 +712,8 @@ pub(crate) fn impl_py_getter_def(
 
 /// Split an argument of pyo3::Python from the front of the arg list, if present
 fn split_off_python_arg<'a>(args: &'a [FnArg<'a>]) -> (Option<&FnArg>, &[FnArg]) {
-    if args
-        .get(0)
-        .map(|py| utils::is_python(&py.ty))
-        .unwrap_or(false)
-    {
-        (Some(&args[0]), &args[1..])
-    } else {
-        (None, args)
+    match args {
+        [py, args @ ..] if utils::is_python(&py.ty) => (Some(py), args),
+        args => (None, args),
     }
 }

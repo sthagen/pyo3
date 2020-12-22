@@ -272,7 +272,18 @@ impl<T> Py<T> {
     ///
     /// This is equivalent to the Python expression `self()`.
     pub fn call0(&self, py: Python) -> PyResult<PyObject> {
-        self.call(py, (), None)
+        cfg_if::cfg_if! {
+            // TODO: Use PyObject_CallNoArgs instead after https://bugs.python.org/issue42415.
+            // Once the issue is resolved, we can enable this optimization for limited API.
+            if #[cfg(all(Py_3_9, not(Py_LIMITED_API)))] {
+                // Optimized path on python 3.9+
+                unsafe {
+                    PyObject::from_owned_ptr_or_err(py, ffi::_PyObject_CallNoArg(self.as_ptr()))
+                }
+            } else {
+                self.call(py, (), None)
+            }
+        }
     }
 
     /// Calls a method on the object.
@@ -316,7 +327,17 @@ impl<T> Py<T> {
     ///
     /// This is equivalent to the Python expression `self.name()`.
     pub fn call_method0(&self, py: Python, name: &str) -> PyResult<PyObject> {
-        self.call_method(py, name, (), None)
+        cfg_if::cfg_if! {
+            if #[cfg(all(Py_3_9, not(Py_LIMITED_API)))] {
+                // Optimized path on python 3.9+
+                unsafe {
+                    let name = name.into_py(py);
+                    PyObject::from_owned_ptr_or_err(py, ffi::PyObject_CallMethodNoArgs(self.as_ptr(), name.as_ptr()))
+                }
+            } else {
+                self.call_method(py, name, (), None)
+            }
+        }
     }
 
     /// Create a `Py<T>` instance by taking ownership of the given FFI pointer.
@@ -473,9 +494,9 @@ impl<T> std::convert::From<Py<T>> for PyObject
 where
     T: AsRef<PyAny>,
 {
+    #[inline]
     fn from(other: Py<T>) -> Self {
-        let Py(ptr, _) = other;
-        Py(ptr, PhantomData)
+        unsafe { Self::from_non_null(other.into_non_null()) }
     }
 }
 
@@ -625,5 +646,15 @@ mod test {
             Py::from(native)
         };
         assert_eq!(unsafe { ffi::Py_REFCNT(dict.as_ptr()) }, 1);
+    }
+
+    #[test]
+    fn pyobject_from_py() {
+        Python::with_gil(|py| {
+            let dict: Py<PyDict> = PyDict::new(py).into();
+            let cnt = dict.get_refcnt(py);
+            let p: PyObject = dict.into();
+            assert_eq!(p.get_refcnt(py), cnt);
+        });
     }
 }

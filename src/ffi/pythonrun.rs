@@ -14,8 +14,11 @@ pub struct PyCompilerFlags {
     pub cf_flags: c_int,
 }
 
+#[cfg(Py_LIMITED_API)]
+opaque_struct!(PyCompilerFlags);
+
 #[cfg(not(Py_LIMITED_API))]
-pub enum _mod {}
+opaque_struct!(_mod);
 
 #[cfg(not(Py_LIMITED_API))]
 extern "C" {
@@ -90,8 +93,8 @@ extern "C" {
     ) -> *mut _mod;
 }
 
-pub enum symtable {}
-pub enum _node {}
+opaque_struct!(symtable);
+opaque_struct!(_node);
 
 #[inline]
 pub unsafe fn PyParser_SimpleParseString(s: *const c_char, b: c_int) -> *mut _node {
@@ -145,8 +148,7 @@ extern "C" {
     #[cfg(Py_LIMITED_API)]
     #[cfg(not(PyPy))]
     pub fn Py_CompileString(string: *const c_char, p: *const c_char, s: c_int) -> *mut PyObject;
-    #[cfg(PyPy)]
-    #[cfg(not(Py_LIMITED_API))]
+    #[cfg(any(PyPy, not(Py_LIMITED_API)))]
     #[cfg_attr(PyPy, link_name = "PyPy_CompileStringFlags")]
     pub fn Py_CompileStringFlags(
         string: *const c_char,
@@ -155,16 +157,14 @@ extern "C" {
         f: *mut PyCompilerFlags,
     ) -> *mut PyObject;
 }
-#[cfg(not(Py_LIMITED_API))]
-#[inline]
-#[cfg(not(PyPy))]
-pub unsafe fn Py_CompileString(string: *const c_char, p: *const c_char, s: c_int) -> *mut PyObject {
-    Py_CompileStringExFlags(string, p, s, ptr::null_mut(), -1)
-}
 
 #[inline]
-#[cfg(PyPy)]
+#[cfg(any(not(Py_LIMITED_API), PyPy))]
 pub unsafe fn Py_CompileString(string: *const c_char, p: *const c_char, s: c_int) -> *mut PyObject {
+    #[cfg(not(PyPy))]
+    return Py_CompileStringExFlags(string, p, s, ptr::null_mut(), -1);
+
+    #[cfg(PyPy)]
     Py_CompileStringFlags(string, p, s, ptr::null_mut())
 }
 

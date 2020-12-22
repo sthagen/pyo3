@@ -27,27 +27,6 @@ macro_rules! impl_exception_boilerplate {
             }
         }
 
-        impl std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                let type_name = self.get_type().name();
-                f.debug_struct(&*type_name)
-                    // TODO: print out actual fields!
-                    .finish()
-            }
-        }
-
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                let type_name = self.get_type().name();
-                write!(f, "{}", type_name)?;
-                if let Ok(s) = self.str() {
-                    write!(f, ": {}", &s.to_string_lossy())
-                } else {
-                    write!(f, ": <exception str() failed>")
-                }
-            }
-        }
-
         impl std::error::Error for $name {
             fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
                 unsafe {
@@ -107,22 +86,10 @@ macro_rules! import_exception {
             $name,
             $crate::ffi::PyBaseExceptionObject,
             *$name::type_object_raw($crate::Python::assume_gil_acquired()),
-            Some(stringify!($module)),
-            $name::check
+            Some(stringify!($module))
         );
 
         impl $name {
-            /// Check if a python object is an instance of this exception.
-            ///
-            /// # Safety
-            /// `ptr` must be a valid pointer to a Python object
-            unsafe fn check(ptr: *mut $crate::ffi::PyObject) -> $crate::libc::c_int {
-                $crate::ffi::PyObject_TypeCheck(
-                    ptr,
-                    Self::type_object_raw($crate::Python::assume_gil_acquired()) as *mut _,
-                )
-            }
-
             fn type_object_raw(py: $crate::Python) -> *mut $crate::ffi::PyTypeObject {
                 use $crate::once_cell::GILOnceCell;
                 use $crate::AsPyPointer;
@@ -210,22 +177,10 @@ macro_rules! create_exception_type_object {
             $name,
             $crate::ffi::PyBaseExceptionObject,
             *$name::type_object_raw($crate::Python::assume_gil_acquired()),
-            Some(stringify!($module)),
-            $name::check
+            Some(stringify!($module))
         );
 
         impl $name {
-            /// Check if a python object is an instance of this exception.
-            ///
-            /// # Safety
-            /// `ptr` must be a valid pointer to a Python object
-            unsafe fn check(ptr: *mut $crate::ffi::PyObject) -> $crate::libc::c_int {
-                $crate::ffi::PyObject_TypeCheck(
-                    ptr,
-                    Self::type_object_raw($crate::Python::assume_gil_acquired()) as *mut _,
-                )
-            }
-
             fn type_object_raw(py: $crate::Python) -> *mut $crate::ffi::PyTypeObject {
                 use $crate::once_cell::GILOnceCell;
                 use $crate::AsPyPointer;
@@ -259,18 +214,7 @@ macro_rules! impl_native_exception (
         pub type $legacy_name = $crate::Py<$name>;
 
         $crate::impl_exception_boilerplate!($name);
-
-        impl $name {
-            /// Check if a python object is an instance of this exception.
-            ///
-            /// # Safety
-            /// `ptr` must be a valid pointer to a Python object
-            unsafe fn check(ptr: *mut $crate::ffi::PyObject) -> $crate::libc::c_int {
-                ffi::PyObject_TypeCheck(ptr, ffi::$exc_name as *mut _)
-            }
-        }
-
-        $crate::pyobject_native_type_core!($name, $layout, *(ffi::$exc_name as *mut ffi::PyTypeObject), Some("builtins"), $name::check);
+        $crate::pyobject_native_type_core!($name, $layout, *(ffi::$exc_name as *mut ffi::PyTypeObject), Some("builtins"));
     );
     ($name:ident, $legacy_name:ident, $exc_name:ident) => (
         impl_native_exception!($name, $legacy_name, $exc_name, ffi::PyBaseExceptionObject);
@@ -493,7 +437,6 @@ mod test {
     use super::{PyException, PyUnicodeDecodeError};
     use crate::types::{IntoPyDict, PyDict};
     use crate::{PyErr, Python};
-    use std::error::Error;
 
     import_exception!(socket, gaierror);
     import_exception!(email.errors, MessageError);
@@ -580,8 +523,12 @@ mod test {
         let exc = py
             .run("raise Exception('banana')", None, None)
             .expect_err("raising should have given us an error")
-            .into_instance(py);
-        assert_eq!(format!("{:?}", exc.as_ref(py)), "Exception");
+            .into_instance(py)
+            .into_ref(py);
+        assert_eq!(
+            format!("{:?}", exc),
+            exc.repr().unwrap().extract::<String>().unwrap()
+        );
     }
 
     #[test]
@@ -591,12 +538,18 @@ mod test {
         let exc = py
             .run("raise Exception('banana')", None, None)
             .expect_err("raising should have given us an error")
-            .into_instance(py);
-        assert_eq!(exc.to_string(), "Exception: banana");
+            .into_instance(py)
+            .into_ref(py);
+        assert_eq!(
+            exc.to_string(),
+            exc.str().unwrap().extract::<String>().unwrap()
+        );
     }
 
     #[test]
     fn native_exception_chain() {
+        use std::error::Error;
+
         let gil = Python::acquire_gil();
         let py = gil.python();
         let exc = py
@@ -606,10 +559,23 @@ mod test {
                 None,
             )
             .expect_err("raising should have given us an error")
-            .into_instance(py);
-        assert_eq!(exc.to_string(), "Exception: banana");
-        let source = exc.as_ref(py).source().expect("cause should exist");
-        assert_eq!(source.to_string(), "TypeError: peach");
+            .into_instance(py)
+            .into_ref(py);
+
+        if py.version_info() >= (3, 7) {
+            assert_eq!(format!("{:?}", exc), "Exception('banana')");
+        } else {
+            assert_eq!(format!("{:?}", exc), "Exception('banana',)");
+        }
+
+        let source = exc.source().expect("cause should exist");
+
+        if py.version_info() >= (3, 7) {
+            assert_eq!(format!("{:?}", source), "TypeError('peach')");
+        } else {
+            assert_eq!(format!("{:?}", source), "TypeError('peach',)");
+        }
+
         let source_source = source.source();
         assert!(source_source.is_none(), "source_source should be None");
     }
@@ -621,8 +587,8 @@ mod test {
         Python::with_gil(|py| {
             let decode_err = PyUnicodeDecodeError::new_utf8(py, invalid_utf8, err).unwrap();
             assert_eq!(
-                decode_err.to_string(),
-                "UnicodeDecodeError: \'utf-8\' codec can\'t decode byte 0xd8 in position 2: invalid utf-8"
+                format!("{:?}", decode_err),
+                "UnicodeDecodeError('utf-8', b'fo\\xd8o', 2, 3, 'invalid utf-8')"
             );
 
             // Restoring should preserve the same error

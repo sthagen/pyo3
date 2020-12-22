@@ -128,169 +128,99 @@ pub trait PySequenceInplaceRepeatProtocol<'p>:
     type Result: IntoPyCallbackOutput<Self>;
 }
 
+py_len_func!(len, PySequenceLenProtocol, Self::__len__);
+py_binary_func!(concat, PySequenceConcatProtocol, Self::__concat__);
+py_ssizearg_func!(repeat, PySequenceRepeatProtocol, Self::__repeat__);
+py_ssizearg_func!(getitem, PySequenceGetItemProtocol, Self::__getitem__);
+
 #[doc(hidden)]
-impl ffi::PySequenceMethods {
-    pub fn set_len<T>(&mut self)
-    where
-        T: for<'p> PySequenceLenProtocol<'p>,
-    {
-        self.sq_length = py_len_func!(PySequenceLenProtocol, T::__len__);
-    }
-    pub fn set_concat<T>(&mut self)
-    where
-        T: for<'p> PySequenceConcatProtocol<'p>,
-    {
-        self.sq_concat = py_binary_func!(PySequenceConcatProtocol, T::__concat__);
-    }
-    pub fn set_repeat<T>(&mut self)
-    where
-        T: for<'p> PySequenceRepeatProtocol<'p>,
-    {
-        self.sq_repeat = py_ssizearg_func!(PySequenceRepeatProtocol, T::__repeat__);
-    }
-    pub fn set_getitem<T>(&mut self)
-    where
-        T: for<'p> PySequenceGetItemProtocol<'p>,
-    {
-        self.sq_item = py_ssizearg_func!(PySequenceGetItemProtocol, T::__getitem__);
-    }
-    pub fn set_setitem<T>(&mut self)
-    where
-        T: for<'p> PySequenceSetItemProtocol<'p>,
-    {
-        self.sq_ass_item = sq_ass_item_impl::set_item::<T>();
-    }
-    pub fn set_delitem<T>(&mut self)
-    where
-        T: for<'p> PySequenceDelItemProtocol<'p>,
-    {
-        self.sq_ass_item = sq_ass_item_impl::del_item::<T>();
-    }
-    pub fn set_setdelitem<T>(&mut self)
-    where
-        T: for<'p> PySequenceDelItemProtocol<'p> + for<'p> PySequenceSetItemProtocol<'p>,
-    {
-        self.sq_ass_item = sq_ass_item_impl::set_del_item::<T>();
-    }
-    pub fn set_contains<T>(&mut self)
-    where
-        T: for<'p> PySequenceContainsProtocol<'p>,
-    {
-        self.sq_contains = py_binary_func!(PySequenceContainsProtocol, T::__contains__, c_int);
-    }
-    pub fn set_inplace_concat<T>(&mut self)
-    where
-        T: for<'p> PySequenceInplaceConcatProtocol<'p>,
-    {
-        self.sq_inplace_concat = py_binary_func!(
-            PySequenceInplaceConcatProtocol,
-            T::__inplace_concat__,
-            *mut ffi::PyObject,
-            call_mut
-        )
-    }
-    pub fn set_inplace_repeat<T>(&mut self)
-    where
-        T: for<'p> PySequenceInplaceRepeatProtocol<'p>,
-    {
-        self.sq_inplace_repeat = py_ssizearg_func!(
-            PySequenceInplaceRepeatProtocol,
-            T::__inplace_repeat__,
-            call_mut
-        )
-    }
+pub unsafe extern "C" fn setitem<T>(
+    slf: *mut ffi::PyObject,
+    key: ffi::Py_ssize_t,
+    value: *mut ffi::PyObject,
+) -> c_int
+where
+    T: for<'p> PySequenceSetItemProtocol<'p>,
+{
+    crate::callback_body!(py, {
+        let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
+
+        if value.is_null() {
+            return Err(exceptions::PyNotImplementedError::new_err(format!(
+                "Item deletion is not supported by {:?}",
+                stringify!(T)
+            )));
+        }
+
+        let mut slf = slf.try_borrow_mut()?;
+        let value = py.from_borrowed_ptr::<PyAny>(value);
+        let value = value.extract()?;
+        crate::callback::convert(py, slf.__setitem__(key.into(), value))
+    })
 }
 
-/// It can be possible to delete and set items (PySequenceSetItemProtocol and
-/// PySequenceDelItemProtocol implemented), only to delete (PySequenceDelItemProtocol implemented)
-/// or no deleting or setting is possible
-mod sq_ass_item_impl {
-    use super::*;
+#[doc(hidden)]
+pub unsafe extern "C" fn delitem<T>(
+    slf: *mut ffi::PyObject,
+    key: ffi::Py_ssize_t,
+    value: *mut ffi::PyObject,
+) -> c_int
+where
+    T: for<'p> PySequenceDelItemProtocol<'p>,
+{
+    crate::callback_body!(py, {
+        let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
 
-    pub(super) fn set_item<T>() -> Option<ffi::ssizeobjargproc>
-    where
-        T: for<'p> PySequenceSetItemProtocol<'p>,
-    {
-        unsafe extern "C" fn wrap<T>(
-            slf: *mut ffi::PyObject,
-            key: ffi::Py_ssize_t,
-            value: *mut ffi::PyObject,
-        ) -> c_int
-        where
-            T: for<'p> PySequenceSetItemProtocol<'p>,
-        {
-            crate::callback_body!(py, {
-                let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
-
-                if value.is_null() {
-                    return Err(exceptions::PyNotImplementedError::new_err(format!(
-                        "Item deletion is not supported by {:?}",
-                        stringify!(T)
-                    )));
-                }
-
-                let mut slf = slf.try_borrow_mut()?;
-                let value = py.from_borrowed_ptr::<PyAny>(value);
-                let value = value.extract()?;
-                crate::callback::convert(py, slf.__setitem__(key.into(), value))
-            })
+        if value.is_null() {
+            crate::callback::convert(py, slf.borrow_mut().__delitem__(key.into()))
+        } else {
+            Err(PyErr::new::<exceptions::PyNotImplementedError, _>(format!(
+                "Item assignment not supported by {:?}",
+                stringify!(T)
+            )))
         }
-        Some(wrap::<T>)
-    }
-
-    pub(super) fn del_item<T>() -> Option<ffi::ssizeobjargproc>
-    where
-        T: for<'p> PySequenceDelItemProtocol<'p>,
-    {
-        unsafe extern "C" fn wrap<T>(
-            slf: *mut ffi::PyObject,
-            key: ffi::Py_ssize_t,
-            value: *mut ffi::PyObject,
-        ) -> c_int
-        where
-            T: for<'p> PySequenceDelItemProtocol<'p>,
-        {
-            crate::callback_body!(py, {
-                let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
-
-                if value.is_null() {
-                    crate::callback::convert(py, slf.borrow_mut().__delitem__(key.into()))
-                } else {
-                    Err(PyErr::new::<exceptions::PyNotImplementedError, _>(format!(
-                        "Item assignment not supported by {:?}",
-                        stringify!(T)
-                    )))
-                }
-            })
-        }
-        Some(wrap::<T>)
-    }
-
-    pub(super) fn set_del_item<T>() -> Option<ffi::ssizeobjargproc>
-    where
-        T: for<'p> PySequenceSetItemProtocol<'p> + for<'p> PySequenceDelItemProtocol<'p>,
-    {
-        unsafe extern "C" fn wrap<T>(
-            slf: *mut ffi::PyObject,
-            key: ffi::Py_ssize_t,
-            value: *mut ffi::PyObject,
-        ) -> c_int
-        where
-            T: for<'p> PySequenceSetItemProtocol<'p> + for<'p> PySequenceDelItemProtocol<'p>,
-        {
-            crate::callback_body!(py, {
-                let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
-
-                if value.is_null() {
-                    call_mut!(slf, __delitem__; key.into()).convert(py)
-                } else {
-                    let value = py.from_borrowed_ptr::<PyAny>(value);
-                    let mut slf_ = slf.try_borrow_mut()?;
-                    let value = value.extract()?;
-                    slf_.__setitem__(key.into(), value).convert(py)
-                }
-            })
-        }
-        Some(wrap::<T>)
-    }
+    })
 }
+
+#[doc(hidden)]
+pub unsafe extern "C" fn setdelitem<T>(
+    slf: *mut ffi::PyObject,
+    key: ffi::Py_ssize_t,
+    value: *mut ffi::PyObject,
+) -> c_int
+where
+    T: for<'p> PySequenceSetItemProtocol<'p> + for<'p> PySequenceDelItemProtocol<'p>,
+{
+    crate::callback_body!(py, {
+        let slf = py.from_borrowed_ptr::<PyCell<T>>(slf);
+
+        if value.is_null() {
+            call_mut!(slf, __delitem__; key.into()).convert(py)
+        } else {
+            let value = py.from_borrowed_ptr::<PyAny>(value);
+            let mut slf_ = slf.try_borrow_mut()?;
+            let value = value.extract()?;
+            slf_.__setitem__(key.into(), value).convert(py)
+        }
+    })
+}
+
+py_binary_func!(
+    contains,
+    PySequenceContainsProtocol,
+    Self::__contains__,
+    c_int
+);
+py_binary_func!(
+    inplace_concat,
+    PySequenceInplaceConcatProtocol,
+    Self::__inplace_concat__,
+    *mut ffi::PyObject,
+    call_mut
+);
+py_ssizearg_func!(
+    inplace_repeat,
+    PySequenceInplaceRepeatProtocol,
+    Self::__inplace_repeat__,
+    call_mut
+);

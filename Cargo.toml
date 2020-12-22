@@ -1,6 +1,6 @@
 [package]
 name = "pyo3"
-version = "0.12.3"
+version = "0.12.4"
 description = "Bindings to Python interpreter"
 authors = ["PyO3 Project and Contributors <https://github.com/PyO3>"]
 readme = "README.md"
@@ -15,15 +15,16 @@ build = "build.rs"
 edition = "2018"
 
 [dependencies]
+cfg-if = { version = "1.0" }
 ctor = { version = "0.1", optional = true }
-indoc = { version = "0.3.4", optional = true }
+indoc = { version = "1.0.3", optional = true }
 inventory = { version = "0.1.4", optional = true }
 libc = "0.2.62"
 parking_lot = "0.11.0"
 num-bigint = { version = "0.3", optional = true }
 num-complex = { version = "0.3", optional = true }
-paste = { version = "0.1.6", optional = true }
-pyo3cls = { path = "pyo3cls", version = "=0.12.3", optional = true }
+paste = { version = "1.0.3", optional = true }
+pyo3-macros = { path = "pyo3-macros", version = "=0.12.4", optional = true }
 unindent = { version = "0.1.4", optional = true }
 hashbrown = { version = "0.9", optional = true }
 
@@ -31,10 +32,19 @@ hashbrown = { version = "0.9", optional = true }
 assert_approx_eq = "1.1.0"
 trybuild = "1.0.23"
 rustversion = "1.0"
+proptest = { version = "0.10.1", default-features = false, features = ["std"] }
 
 [features]
 default = ["macros"]
-macros = ["ctor", "indoc", "inventory", "paste", "pyo3cls", "unindent"]
+macros = ["ctor", "indoc", "inventory", "paste", "pyo3-macros", "unindent"]
+# Use the Python limited API. See https://www.python.org/dev/peps/pep-0384/ for more.
+abi3 = []
+# With abi3, we can manually set the minimum Python version.
+abi3-py36 = ["abi3-py37"]
+abi3-py37 = ["abi3-py38"]
+abi3-py38 = ["abi3-py39"]
+abi3-py39 = ["abi3"]
+
 # Optimizes PyObject to Vec conversion and so on.
 nightly = []
 
@@ -43,14 +53,9 @@ nightly = []
 # so that the module can also be used with statically linked python interpreters.
 extension-module = []
 
-# The stable cpython abi as defined in PEP 384. Currently broken with
-# many compilation errors. Pull Requests working towards fixing that
-# are welcome.
-# abi3 = []
-
 [workspace]
 members = [
-    "pyo3cls",
-    "pyo3-derive-backend",
+    "pyo3-macros",
+    "pyo3-macros-backend",
     "examples/*"
 ]

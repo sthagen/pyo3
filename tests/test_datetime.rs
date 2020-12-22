@@ -1,3 +1,5 @@
+#![cfg(not(Py_LIMITED_API))]
+
 use pyo3::prelude::*;
 use pyo3::types::IntoPyDict;
 
@@ -36,7 +38,7 @@ macro_rules! assert_check_exact {
         unsafe {
             use pyo3::{AsPyPointer, ffi::*};
             assert!($check_func(($obj).as_ptr()) != 0);
-            assert!(pyo3::paste::expr!([<$check_func Exact>])(($obj).as_ptr()) != 0);
+            assert!(pyo3::paste::paste!([<$check_func Exact>])(($obj).as_ptr()) != 0);
         }
     };
 }
@@ -46,7 +48,7 @@ macro_rules! assert_check_only {
         unsafe {
             use pyo3::{AsPyPointer, ffi::*};
             assert!($check_func(($obj).as_ptr()) != 0);
-            assert!(pyo3::paste::expr!([<$check_func Exact>])(($obj).as_ptr()) == 0);
+            assert!(pyo3::paste::paste!([<$check_func Exact>])(($obj).as_ptr()) == 0);
         }
     };
 }

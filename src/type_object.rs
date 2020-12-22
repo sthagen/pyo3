@@ -3,7 +3,7 @@
 
 use crate::conversion::IntoPyPointer;
 use crate::once_cell::GILOnceCell;
-use crate::pyclass::{initialize_type_object, py_class_attributes, PyClass};
+use crate::pyclass::{create_type_object, py_class_attributes, PyClass};
 use crate::pyclass_init::PyObjectInit;
 use crate::types::{PyAny, PyType};
 use crate::{ffi, AsPyPointer, PyErr, PyNativeType, PyObject, PyResult, Python};
@@ -104,13 +104,13 @@ pub unsafe trait PyTypeInfo: Sized {
     /// PyTypeObject instance for this type.
     fn type_object_raw(py: Python) -> *mut ffi::PyTypeObject;
 
-    /// Check if `*mut ffi::PyObject` is instance of this type
-    fn is_instance(object: &PyAny) -> bool {
+    /// Checks if `object` is an instance of this type or a subclass of this type.
+    fn is_type_of(object: &PyAny) -> bool {
         unsafe { ffi::PyObject_TypeCheck(object.as_ptr(), Self::type_object_raw(object.py())) != 0 }
     }
 
-    /// Check if `*mut ffi::PyObject` is exact instance of this type
-    fn is_exact_instance(object: &PyAny) -> bool {
+    /// Checks if `object` is an instance of this type.
+    fn is_exact_type_of(object: &PyAny) -> bool {
         unsafe { ffi::Py_TYPE(object.as_ptr()) == Self::type_object_raw(object.py()) }
     }
 }
@@ -120,7 +120,7 @@ pub unsafe trait PyTypeInfo: Sized {
 /// This trait is marked unsafe because not fulfilling the contract for type_object
 /// leads to UB.
 ///
-/// See [PyTypeInfo::type_object]
+/// See also [PyTypeInfo::type_object_raw](trait.PyTypeInfo.html#tymethod.type_object_raw).
 pub unsafe trait PyTypeObject {
     /// Returns the safe abstraction over the type object.
     fn type_object(py: Python) -> &PyType;
@@ -157,12 +157,10 @@ impl LazyStaticType {
 
     pub fn get_or_init<T: PyClass>(&self, py: Python) -> *mut ffi::PyTypeObject {
         let type_object = *self.value.get_or_init(py, || {
-            let mut type_object = Box::new(ffi::PyTypeObject_INIT);
-            initialize_type_object::<T>(py, T::MODULE, type_object.as_mut()).unwrap_or_else(|e| {
+            create_type_object::<T>(py, T::MODULE).unwrap_or_else(|e| {
                 e.print(py);
                 panic!("An error occurred while initializing class {}", T::NAME)
-            });
-            Box::into_raw(type_object)
+            })
         });
 
         // We might want to fill the `tp_dict` with python instances of `T`
@@ -204,10 +202,7 @@ impl LazyStaticType {
         // Now we hold the GIL and we can assume it won't be released until we
         // return from the function.
         let result = self.tp_dict_filled.get_or_init(py, move || {
-            let tp_dict = unsafe { (*type_object).tp_dict };
-            let result = initialize_tp_dict(py, tp_dict, items);
-            // See discussion on #982 for why we need this.
-            unsafe { ffi::PyType_Modified(type_object) };
+            let result = initialize_tp_dict(py, type_object as *mut ffi::PyObject, items);
 
             // Initialization successfully complete, can clear the thread list.
             // (No further calls to get_or_init() will try to init, on any thread.)
@@ -226,13 +221,13 @@ impl LazyStaticType {
 
 fn initialize_tp_dict(
     py: Python,
-    tp_dict: *mut ffi::PyObject,
+    type_object: *mut ffi::PyObject,
     items: Vec<(&'static std::ffi::CStr, PyObject)>,
 ) -> PyResult<()> {
     // We hold the GIL: the dictionary update can be considered atomic from
     // the POV of other threads.
     for (key, val) in items {
-        let ret = unsafe { ffi::PyDict_SetItemString(tp_dict, key.as_ptr(), val.into_ptr()) };
+        let ret = unsafe { ffi::PyObject_SetAttrString(type_object, key.as_ptr(), val.into_ptr()) };
         if ret < 0 {
             return Err(PyErr::fetch(py));
         }

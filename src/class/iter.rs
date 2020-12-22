@@ -71,31 +71,8 @@ pub trait PyIterNextProtocol<'p>: PyIterProtocol<'p> {
     type Result: IntoPyCallbackOutput<PyIterNextOutput>;
 }
 
-#[derive(Default)]
-pub struct PyIterMethods {
-    pub tp_iter: Option<ffi::getiterfunc>,
-    pub tp_iternext: Option<ffi::iternextfunc>,
-}
-
-#[doc(hidden)]
-impl PyIterMethods {
-    pub(crate) fn update_typeobj(&self, type_object: &mut ffi::PyTypeObject) {
-        type_object.tp_iter = self.tp_iter;
-        type_object.tp_iternext = self.tp_iternext;
-    }
-    pub fn set_iter<T>(&mut self)
-    where
-        T: for<'p> PyIterIterProtocol<'p>,
-    {
-        self.tp_iter = py_unarys_func!(PyIterIterProtocol, T::__iter__);
-    }
-    pub fn set_iternext<T>(&mut self)
-    where
-        T: for<'p> PyIterNextProtocol<'p>,
-    {
-        self.tp_iternext = py_unarys_func!(PyIterNextProtocol, T::__next__);
-    }
-}
+py_unarys_func!(iter, PyIterIterProtocol, Self::__iter__);
+py_unarys_func!(iternext, PyIterNextProtocol, Self::__next__);
 
 /// Output of `__next__` which can either `yield` the next value in the iteration, or
 /// `return` a value to raise `StopIteration` in Python.

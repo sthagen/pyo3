@@ -72,42 +72,15 @@ pub trait PyMappingReversedProtocol<'p>: PyMappingProtocol<'p> {
     type Result: IntoPyCallbackOutput<PyObject>;
 }
 
-#[doc(hidden)]
-impl ffi::PyMappingMethods {
-    pub fn set_length<T>(&mut self)
-    where
-        T: for<'p> PyMappingLenProtocol<'p>,
-    {
-        self.mp_length = py_len_func!(PyMappingLenProtocol, T::__len__);
-    }
-    pub fn set_getitem<T>(&mut self)
-    where
-        T: for<'p> PyMappingGetItemProtocol<'p>,
-    {
-        self.mp_subscript = py_binary_func!(PyMappingGetItemProtocol, T::__getitem__);
-    }
-    pub fn set_setitem<T>(&mut self)
-    where
-        T: for<'p> PyMappingSetItemProtocol<'p>,
-    {
-        self.mp_ass_subscript = py_func_set!(PyMappingSetItemProtocol, T, __setitem__);
-    }
-    pub fn set_delitem<T>(&mut self)
-    where
-        T: for<'p> PyMappingDelItemProtocol<'p>,
-    {
-        self.mp_ass_subscript = py_func_del!(PyMappingDelItemProtocol, T, __delitem__);
-    }
-    pub fn set_setdelitem<T>(&mut self)
-    where
-        T: for<'p> PyMappingSetItemProtocol<'p> + for<'p> PyMappingDelItemProtocol<'p>,
-    {
-        self.mp_ass_subscript = py_func_set_del!(
-            PyMappingSetItemProtocol,
-            PyMappingDelItemProtocol,
-            T,
-            __setitem__,
-            __delitem__
-        );
-    }
-}
+py_len_func!(len, PyMappingLenProtocol, Self::__len__);
+py_binary_func!(getitem, PyMappingGetItemProtocol, Self::__getitem__);
+py_func_set!(setitem, PyMappingSetItemProtocol, Self::__setitem__);
+py_func_del!(delitem, PyMappingDelItemProtocol, Self::__delitem__);
+py_func_set_del!(
+    setdelitem,
+    PyMappingSetItemProtocol,
+    PyMappingDelItemProtocol,
+    Self,
+    __setitem__,
+    __delitem__
+);

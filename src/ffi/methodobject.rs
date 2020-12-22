@@ -16,38 +16,6 @@ pub unsafe fn PyCFunction_Check(op: *mut PyObject) -> c_int {
 pub type PyCFunction =
     unsafe extern "C" fn(slf: *mut PyObject, args: *mut PyObject) -> *mut PyObject;
 
-#[cfg(all(Py_3_8, not(Py_LIMITED_API)))]
-#[cfg_attr(Py_3_8, link_name = "_PyObject_Vectorcall")]
-pub type PyObject_Vectorcall = unsafe extern "C" fn(
-    slf: *mut PyObject,
-    // positional and keyword arguments
-    args: *const *mut PyObject,
-    // number of position arguments in args, after which values are kwargs
-    nargs: crate::ffi::pyport::Py_ssize_t,
-    // tuple of kwargs, if given, or null
-    kwnames: *mut PyObject,
-) -> *mut PyObject;
-
-#[cfg(all(Py_3_8, not(Py_LIMITED_API)))]
-#[cfg_attr(Py_3_8, link_name = "PyVectorcall_Call")]
-pub type PyVectorcall_Call = unsafe extern "C" fn(
-    obj: *mut PyObject,
-    tuple: *mut PyObject,
-    dict: *mut PyObject,
-) -> *mut PyObject;
-
-#[cfg(all(Py_3_7, not(Py_LIMITED_API)))]
-const PY_VECTORCALL_ARGUMENTS_OFFSET: crate::ffi::pyport::Py_ssize_t =
-    1 << (8 * std::mem::size_of::<usize>() - 1);
-
-#[cfg(all(Py_3_7, not(Py_LIMITED_API)))]
-#[inline(always)]
-pub unsafe fn PyVectorcall_NARGS(
-    n: crate::ffi::pyport::Py_ssize_t,
-) -> crate::ffi::pyport::Py_ssize_t {
-    n & !PY_VECTORCALL_ARGUMENTS_OFFSET
-}
-
 #[cfg(all(Py_3_7, not(Py_LIMITED_API)))]
 pub type _PyCFunctionFast = unsafe extern "C" fn(
     slf: *mut PyObject,
@@ -104,7 +72,7 @@ extern "C" {
         module: *mut PyObject,
     ) -> *mut PyObject;
 
-    #[cfg_attr(PyPy, link_name = "PyPyCFunction_NewEx")]
+    #[cfg_attr(PyPy, link_name = "PyPyCFunction_New")]
     pub fn PyCFunction_New(ml: *mut PyMethodDef, slf: *mut PyObject) -> *mut PyObject;
 }
 
