@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "nightly", feature(specialization))]
 #![allow(clippy::missing_safety_doc)] // FIXME (#698)
-#![deny(warnings)]
 
 //! Rust bindings to the Python interpreter.
 //!
@@ -53,7 +52,7 @@
 //! crate-type = ["cdylib"]
 //!
 //! [dependencies.pyo3]
-//! version = "0.12.4"
+//! version = "0.13.0"
 //! features = ["extension-module"]
 //! ```
 //!
@@ -116,7 +115,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! pyo3 = "0.12.4"
+//! pyo3 = "0.13.0"
 //! ```
 //!
 //! Example program displaying the value of `sys.version`:

@@ -3,6 +3,8 @@ use std::mem;
 use std::os::raw::{c_char, c_int, c_uint, c_ulong, c_void};
 use std::ptr;
 
+pub type FreeFunc = extern "C" fn(*mut c_void) -> c_void;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 #[cfg(not(PyPy))]
@@ -704,7 +706,7 @@ extern "C" {
         arg2: *mut PyObject,
         arg3: *mut PyObject,
     ) -> c_int;
-    #[cfg(not(Py_LIMITED_API))]
+    #[cfg(not(all(Py_LIMITED_API, not(Py_3_10))))]
     pub fn PyObject_GenericGetDict(arg1: *mut PyObject, arg2: *mut c_void) -> *mut PyObject;
     pub fn PyObject_GenericSetDict(
         arg1: *mut PyObject,
@@ -889,4 +891,9 @@ pub fn PyObject_Check(_arg1: *mut PyObject) -> c_int {
 #[inline]
 pub fn PySuper_Check(_arg1: *mut PyObject) -> c_int {
     0
+}
+
+#[cfg(not(PyPy))]
+extern "C" {
+    pub fn _PyObject_GetDictPtr(obj: *mut PyObject) -> *mut *mut PyObject;
 }
