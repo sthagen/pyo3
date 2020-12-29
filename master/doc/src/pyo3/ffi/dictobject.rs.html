@@ -113,29 +113,6 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">pyport</span>::<span class="ident">Py_ssize_t</span>;
@@ -145,33 +122,6 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Type&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDict_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterKey_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterValue_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterItem_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictKeys_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictItems_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictValues_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterKey_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterValue_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterItem_Type</span>: <span class="ident">PyTypeObject</span>;
-}
-
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyDictKeysObject</span> {
-    <span class="ident">_unused</span>: [<span class="ident">u8</span>; <span class="number">0</span>],
-}
-
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyDictObject</span> {
-    <span class="kw">pub</span> <span class="ident">ob_base</span>: <span class="ident">PyObject</span>,
-    <span class="kw">pub</span> <span class="ident">ma_used</span>: <span class="ident">Py_ssize_t</span>,
-    <span class="kw">pub</span> <span class="ident">ma_version_tag</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">ma_keys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyDictKeysObject</span>,
-    <span class="kw">pub</span> <span class="ident">ma_values</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -184,43 +134,14 @@
     (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDict_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictKeys_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
-    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictKeys_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictItems_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
-    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictItems_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictValues_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
-    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictValues_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
-}
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictViewSet_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
-    (<span class="ident">PyDictKeys_Check</span>(<span class="ident">op</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">PyDictItems_Check</span>(<span class="ident">op</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>) <span class="kw">as</span> <span class="ident">c_int</span>
-}
-
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_New&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_New</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyDict_NewPresized</span>(<span class="ident">minused</span>: <span class="ident">Py_ssize_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_GetItem&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_GetItem</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_GetItemWithError</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_SetItem&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_SetItem</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">item</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyDict_SetItem_KnownHash</span>(
-        <span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">item</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">hash</span>: <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">Py_hash_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_DelItem&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_DelItem</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Clear&quot;</span>)]</span>
@@ -231,14 +152,6 @@
         <span class="ident">pos</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Py_ssize_t</span>,
         <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
         <span class="ident">value</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyDict_Next</span>(
-        <span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">pos</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Py_ssize_t</span>,
-        <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">value</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>,
-        <span class="ident">hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">Py_hash_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Keys&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_Keys</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
@@ -252,8 +165,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_Copy</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Contains&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_Contains</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyDict_Contains</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">hash</span>: <span class="ident">Py_ssize_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Update&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_Update</span>(<span class="ident">mp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">other</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_Merge&quot;</span>)]</span>
@@ -269,8 +180,51 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyDict_DelItemString&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyDict_DelItemString</span>(<span class="ident">dp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyObject_GetDictPtr</span>(<span class="ident">obj</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
+<span class="comment">// skipped 3.10 / ex-non-limited PyObject_GenericGetDict</span>
 }
+
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictKeys_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictValues_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictItems_Type</span>: <span class="ident">PyTypeObject</span>;
+}
+
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictKeys_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictKeys_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
+}
+
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictValues_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictValues_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
+}
+
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictItems_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+    (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyDictItems_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
+}
+
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyDictViewSet_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+    (<span class="ident">PyDictKeys_Check</span>(<span class="ident">op</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">PyDictItems_Check</span>(<span class="ident">op</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>) <span class="kw">as</span> <span class="ident">c_int</span>
+}
+
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterKey_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterValue_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictIterItem_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterKey_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterValue_Type</span>: <span class="ident">PyTypeObject</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_3_8</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyDictRevIterItem_Type</span>: <span class="ident">PyTypeObject</span>;
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">PyPy</span>, <span class="ident">Py_LIMITED_API</span>))]</span>
+<span class="comment">// TODO: remove (see https://github.com/PyO3/pyo3/pull/1341#issuecomment-751515985)</span>
+<span class="macro">opaque_struct</span><span class="macro">!</span>(<span class="ident">PyDictObject</span>);
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

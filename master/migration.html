@@ -159,6 +159,8 @@
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
 <h2><a class="header" href="#from-012-to-013" id="from-012-to-013">from 0.12.* to 0.13</a></h2>
+<h3><a class="header" href="#minimum-rust-version-increased-to-rust-145" id="minimum-rust-version-increased-to-rust-145">Minimum Rust version increased to Rust 1.45</a></h3>
+<p>PyO3 <code>0.13</code> makes use of new Rust language features stabilised between Rust 1.40 and Rust 1.45. If you are using a Rust compiler older than Rust 1.45, you will need to update your toolchain to be able to continue using PyO3.</p>
 <h3><a class="header" href="#runtime-changes-to-support-the-cpython-limited-api" id="runtime-changes-to-support-the-cpython-limited-api">Runtime changes to support the CPython limited API</a></h3>
 <p>In PyO3 <code>0.13</code> support was added for compiling against the CPython limited API. This had a number of implications for <em>all</em> PyO3 users, described here.</p>
 <p>The largest of these is that all types created from PyO3 are what CPython calls &quot;heap&quot; types. The specific implications of this are:</p>

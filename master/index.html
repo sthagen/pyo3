@@ -198,7 +198,7 @@ name = &quot;string_sum&quot;
 crate-type = [&quot;cdylib&quot;]
 
 [dependencies.pyo3]
-version = &quot;0.12.4&quot;
+version = &quot;0.13.0&quot;
 features = [&quot;extension-module&quot;]
 </code></pre>
 <p><strong><code>src/lib.rs</code></strong></p>
@@ -246,7 +246,7 @@ Another possibility is to create a new crate to perform the binding.</p>
 <p>If you want your Rust application to create a Python interpreter internally and
 use it to run Python code, add <code>pyo3</code> to your <code>Cargo.toml</code> like this:</p>
 <pre><code class="language-toml">[dependencies]
-pyo3 = &quot;0.12.4&quot;
+pyo3 = &quot;0.13.0&quot;
 </code></pre>
 <p>Example program displaying the value of <code>sys.version</code> and the current user name:</p>
 <pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;

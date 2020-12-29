@@ -58,6 +58,11 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">pyport</span>::<span class="ident">Py_ssize_t</span>;
@@ -86,7 +91,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyBytes_FromString</span>(<span class="ident">arg1</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBytes_FromObject&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyBytes_FromObject</span>(<span class="ident">arg1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBytes_FromFormatV&quot;</span>)]</span>
+    <span class="comment">// skipped PyBytes_FromFormatV</span>
+    <span class="comment">//#[cfg_attr(PyPy, link_name = &quot;PyPyBytes_FromFormatV&quot;)]</span>
     <span class="comment">//pub fn PyBytes_FromFormatV(arg1: *const c_char, arg2: va_list)</span>
     <span class="comment">// -&gt; *mut PyObject;</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBytes_FromFormat&quot;</span>)]</span>
@@ -113,8 +119,12 @@
         <span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
         <span class="ident">len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Py_ssize_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_PyBytes_Resize</span>(<span class="ident">bytes</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>, <span class="ident">newsize</span>: <span class="ident">Py_ssize_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 }
+
+<span class="comment">// skipped F_LJUST</span>
+<span class="comment">// skipped F_SIGN</span>
+<span class="comment">// skipped F_BLANK</span>
+<span class="comment">// skipped F_ALT</span>
+<span class="comment">// skipped F_ZERO</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

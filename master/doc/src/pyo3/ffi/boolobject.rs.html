@@ -31,6 +31,17 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">longobject</span>::<span class="ident">PyLongObject</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
@@ -40,17 +51,19 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBool_Type&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">PyBool_Type</span>: <span class="ident">PyTypeObject</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_PyPy_FalseStruct&quot;</span>)]</span>
-    <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">_Py_FalseStruct</span>: <span class="ident">PyLongObject</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_PyPy_TrueStruct&quot;</span>)]</span>
-    <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">_Py_TrueStruct</span>: <span class="ident">PyLongObject</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBool_FromLong&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyBool_FromLong</span>(<span class="ident">arg1</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyBool_Check</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
     (<span class="ident">Py_TYPE</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PyBool_Type</span>) <span class="kw">as</span> <span class="ident">c_int</span>
+}
+
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_PyPy_FalseStruct&quot;</span>)]</span>
+    <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">_Py_FalseStruct</span>: <span class="ident">PyLongObject</span>;
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;_PyPy_TrueStruct&quot;</span>)]</span>
+    <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">_Py_TrueStruct</span>: <span class="ident">PyLongObject</span>;
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -61,6 +74,15 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">Py_True</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span> {
     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">_Py_TrueStruct</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyLongObject</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>
+}
+
+<span class="comment">// skipped Py_RETURN_TRUE</span>
+<span class="comment">// skipped Py_RETURN_FALSE</span>
+
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyBool_FromLong&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyBool_FromLong</span>(<span class="ident">arg1</span>: <span class="ident">c_long</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

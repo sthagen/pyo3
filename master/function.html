@@ -320,8 +320,8 @@ Type:      builtin_function_or_method
 definitely be possible and very useful, so contributions are welcome. In the meantime, you can do
 the following:</p>
 <h3><a class="header" href="#calling-python-functions-in-rust" id="calling-python-functions-in-rust">Calling Python functions in Rust</a></h3>
-<p>You can pass Python <code>def</code>'d functions and built-in functions to Rust functions <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyFunction.html"><code>PyFunction</code></a>
-corresponds to regular Python functions while <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a> describes built-ins such as
+<p>You can pass Python <code>def</code>'d functions and built-in functions to Rust functions <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyFunction.html"><code>PyFunction</code></a>
+corresponds to regular Python functions while <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a> describes built-ins such as
 <code>repr()</code>.</p>
 <p>You can also use <a href="https://docs.rs/pyo3/latest/pyo3/struct.PyAny.html#tymethod.is_callable"><code>PyAny::is_callable</code></a> to check if you have a callable object. <code>is_callable</code> will
 return <code>true</code> for functions (including lambdas), methods and objects with a <code>__call__</code> method.
@@ -330,7 +330,7 @@ You can call the object with <a href="https://docs.rs/pyo3/latest/pyo3/struct.Py
 with only positional args.</p>
 <h3><a class="header" href="#calling-rust-functions-in-python" id="calling-rust-functions-in-python">Calling Rust functions in Python</a></h3>
 <p>If you have a static function, you can expose it with <code>#[pyfunction]</code> and use <a href="https://docs.rs/pyo3/latest/pyo3/macro.wrap_pyfunction.html"><code>wrap_pyfunction!</code></a>
-to get the corresponding <a href="https://docs.rs/pyo3/0.12.4/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a>. For dynamic functions, e.g. lambdas and functions that
+to get the corresponding <a href="https://docs.rs/pyo3/latest/pyo3/types/struct.PyCFunction.html"><code>PyCFunction</code></a>. For dynamic functions, e.g. lambdas and functions that
 were passed as arguments, you must put them in some kind of owned container, e.g. a <code>Box</code>.
 (A long-term solution will be a special container similar to wasm-bindgen's <code>Closure</code>). You can
 then use a <code>#[pyclass]</code> struct with that container as a field as a way to pass the function over

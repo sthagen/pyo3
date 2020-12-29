@@ -57,9 +57,45 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_double</span>, <span class="ident">c_int</span>};
+
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="comment">// non-limited</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Py_complex</span> {
+    <span class="kw">pub</span> <span class="ident">real</span>: <span class="ident">c_double</span>,
+    <span class="kw">pub</span> <span class="ident">imag</span>: <span class="ident">c_double</span>,
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_sum</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_diff</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_neg</span>(<span class="ident">complex</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_prod</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_quot</span>(<span class="ident">dividend</span>: <span class="ident">Py_complex</span>, <span class="ident">divisor</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_pow</span>(<span class="ident">num</span>: <span class="ident">Py_complex</span>, <span class="ident">exp</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_abs</span>(<span class="ident">arg</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span>;
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_FromCComplex&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_FromCComplex</span>(<span class="ident">v</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_AsCComplex&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_AsCComplex</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+}
+
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="comment">// non-limited</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyComplexObject</span> {
+    <span class="kw">pub</span> <span class="ident">ob_base</span>: <span class="ident">PyObject</span>,
+    <span class="kw">pub</span> <span class="ident">cval</span>: <span class="ident">Py_complex</span>,
+}
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -78,41 +114,15 @@
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="comment">// skipped non-limited PyComplex_FromCComplex</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_FromDoubles&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_FromDoubles</span>(<span class="ident">real</span>: <span class="ident">c_double</span>, <span class="ident">imag</span>: <span class="ident">c_double</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_RealAsDouble&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_RealAsDouble</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_ImagAsDouble&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_ImagAsDouble</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span>;
-}
-
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Py_complex</span> {
-    <span class="kw">pub</span> <span class="ident">real</span>: <span class="ident">c_double</span>,
-    <span class="kw">pub</span> <span class="ident">imag</span>: <span class="ident">c_double</span>,
-}
-
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyComplexObject</span> {
-    <span class="kw">pub</span> <span class="ident">ob_base</span>: <span class="ident">PyObject</span>,
-    <span class="kw">pub</span> <span class="ident">cval</span>: <span class="ident">Py_complex</span>,
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_sum</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_diff</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_neg</span>(<span class="ident">complex</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_prod</span>(<span class="ident">left</span>: <span class="ident">Py_complex</span>, <span class="ident">right</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_quot</span>(<span class="ident">dividend</span>: <span class="ident">Py_complex</span>, <span class="ident">divisor</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_pow</span>(<span class="ident">num</span>: <span class="ident">Py_complex</span>, <span class="ident">exp</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_Py_c_abs</span>(<span class="ident">arg</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_FromCComplex&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_FromCComplex</span>(<span class="ident">v</span>: <span class="ident">Py_complex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">PyPy</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;PyPyComplex_AsCComplex&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyComplex_AsCComplex</span>(<span class="ident">op</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_complex</span>;
+<span class="comment">// skipped non-limited PyComplex_AsCComplex</span>
+<span class="comment">// skipped non-limited _PyComplex_FormatAdvancedWriter</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
