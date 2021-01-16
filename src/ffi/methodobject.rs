@@ -30,6 +30,14 @@ pub type PyCFunctionWithKeywords = unsafe extern "C" fn(
     kwds: *mut PyObject,
 ) -> *mut PyObject;
 
+#[cfg(Py_3_7)]
+pub type _PyCFunctionFastWithKeywords = unsafe extern "C" fn(
+    slf: *mut PyObject,
+    args: *const *mut PyObject,
+    nargs: crate::ffi::pyport::Py_ssize_t,
+    kwnames: *mut PyObject,
+) -> *mut PyObject;
+
 extern "C" {
     #[cfg_attr(PyPy, link_name = "PyPyCFunction_GetFunction")]
     pub fn PyCFunction_GetFunction(f: *mut PyObject) -> Option<PyCFunction>;
@@ -52,10 +60,10 @@ pub struct PyMethodDef {
 }
 
 pub const PyMethodDef_INIT: PyMethodDef = PyMethodDef {
-    ml_name: ::std::ptr::null(),
+    ml_name: std::ptr::null(),
     ml_meth: None,
     ml_flags: 0,
-    ml_doc: ::std::ptr::null(),
+    ml_doc: std::ptr::null(),
 };
 
 impl Default for PyMethodDef {
