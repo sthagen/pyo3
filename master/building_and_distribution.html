@@ -17,12 +17,18 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
+        
         <link rel="icon" href="favicon.svg">
+        
+        
         <link rel="shortcut icon" href="favicon.png">
+        
         <link rel="stylesheet" href="css/variables.css">
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
+        
         <link rel="stylesheet" href="css/print.css" media="print">
+        
 
         <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
@@ -89,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">10.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html" class="active"><strong aria-hidden="true">11.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">12.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">13.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">10.</strong> Features Reference</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">11.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html" class="active"><strong aria-hidden="true">12.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">13.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">14.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -124,9 +130,11 @@
                     <h1 class="menu-title">PyO3 user guide</h1>
 
                     <div class="right-buttons">
+                        
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        
                         
                     </div>
                 </div>
@@ -182,7 +190,7 @@ pyo3 = &quot;0.6&quot;
 <p>There are two ways to distribute your module as a Python package: The old, <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a>, and the new, <a href="https://github.com/PyO3/maturin">maturin</a>. setuptools-rust needs several configuration files (<code>setup.py</code>, <code>MANIFEST.in</code>, <code>build-wheels.sh</code>, etc.). maturin doesn't need any configuration files, however it does not support some functionality of setuptools such as package data (<a href="https://github.com/PyO3/maturin/issues/258">pyo3/maturin#258</a>) and requires a rigid project structure, while setuptools-rust allows (and sometimes requires) configuration with python code.</p>
 <h2><a class="header" href="#py_limited_apiabi3" id="py_limited_apiabi3"><code>Py_LIMITED_API</code>/<code>abi3</code></a></h2>
 <p>By default, Python extension modules can only be used with the same Python version they were compiled against -- if you build an extension module with Python 3.5, you can't import it using Python 3.8. <a href="https://www.python.org/dev/peps/pep-0384/">PEP 384</a> introduced the idea of the limited Python API, which would have a stable ABI enabling extension modules built with it to be used against multiple Python versions. This is also known as <code>abi3</code>.</p>
-<p>Note that <a href="https://github.com/PyO3/maturin">maturin</a> &gt;= 0.9.0 or <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a> &gt;= 0.12.0 is going to support <code>abi3</code> wheels.
+<p>Note that <a href="https://github.com/PyO3/maturin">maturin</a> &gt;= 0.9.0 or <a href="https://github.com/PyO3/setuptools-rust">setuptools-rust</a> &gt;= 0.11.4 support <code>abi3</code> wheels.
 See the <a href="https://github.com/PyO3/maturin/pull/353">corresponding</a> <a href="https://github.com/PyO3/setuptools-rust/pull/82">PRs</a> for more.</p>
 <p>There are three steps involved in making use of <code>abi3</code> when building Python packages as wheels:</p>
 <ol>
@@ -204,8 +212,7 @@ pyo3 = { version = &quot;...&quot;, features = [&quot;abi3&quot;]}
 For example, if you set the <code>abi3-py36</code> feature, your extension wheel can be used on all Python 3 versions from Python 3.6 and up. <code>maturin</code> and <code>setuptools-rust</code> will give the wheel a name like <code>my-extension-1.0-cp36-abi3-manylinux2020_x86_64.whl</code>.
 If you set more that one of these api version feature flags the highest version always wins. For example, with both <code>abi3-py36</code> and <code>abi3-py38</code> set, PyO3 would build a wheel which supports Python 3.8 and up.
 PyO3 is only able to link your extension module to api3 version up to and including your host Python version. E.g., if you set <code>abi3-py38</code> and try to compile the crate with a host of Python 3.6, the build will fail.</p>
-<p>As an advanced feature, you can build PyO3 wheel without calling Python interpreter with
-the environment variable <code>PYO3_NO_PYTHON</code> set, but this only works on *NIX.</p>
+<p>As an advanced feature, you can build PyO3 wheel without calling Python interpreter with the environment variable <code>PYO3_NO_PYTHON</code> set. On unix systems this works unconditionally; on Windows you must also set the <code>RUSTFLAGS</code> evironment variable to contain <code>-L native=/path/to/python/libs</code> so that the linker can find <code>python3.lib</code>.</p>
 <h3><a class="header" href="#missing-features" id="missing-features">Missing features</a></h3>
 <p>Due to limitations in the Python API, there are a few <code>pyo3</code> features that do
 not work when compiling for <code>abi3</code>. These are:</p>
@@ -226,9 +233,14 @@ not work when compiling for <code>abi3</code>. These are:</p>
 <p>See https://github.com/japaric/rust-cross for a primer on cross compiling Rust in general.</p>
 <p>After you've obtained the above, you can build a cross compiled PyO3 module by setting a few extra environment variables:</p>
 <ul>
-<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable must be set to the directory containing the headers for the target's Python interpreter. <strong>It is only necessary if targeting Windows platforms</strong></li>
 <li><code>PYO3_CROSS_LIB_DIR</code>: This variable must be set to the directory containing the target's libpython DSO and the associated <code>_sysconfigdata*.py</code> file.</li>
-<li><code>PYO3_CROSS_PYTHON_VERSION</code>: This variable must be set if there are multiple versions of python compiled for a unix machine.</li>
+<li><code>PYO3_CROSS_PYTHON_VERSION</code>: Major and minor version (e.g. 3.9) of the target Python installation. This variable is only needed if pyo3 cannot determine the version to target by other means:
+<ul>
+<li>From <code>PYO3_CROSS_INCLUDE_DIR</code> or abi3-py3* features when targeting Windows, or</li>
+<li>if there are multiple versions of python present in <code>PYO3_CROSS_LIB_DIR</code> when targeting unix.</li>
+</ul>
+</li>
+<li><code>PYO3_CROSS_INCLUDE_DIR</code>: This variable can optionally be set to the directory containing the headers for the target's Python interpreter when targeting Windows.</li>
 </ul>
 <p>An example might look like the following (assuming your target's sysroot is at <code>/home/pyo3/cross/sysroot</code> and that your target is <code>armv7</code>):</p>
 <pre><code class="language-sh">export PYO3_CROSS_LIB_DIR=&quot;/home/pyo3/cross/sysroot/usr/lib&quot;

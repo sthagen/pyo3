@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/gil.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gil.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/gil.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gil.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../pyo3/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -702,17 +702,133 @@
 <span id="699">699</span>
 <span id="700">700</span>
 <span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
 <span class="doccomment">//! Interaction with python&#39;s global interpreter lock</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">internal_tricks</span>::<span class="ident">Unsendable</span>, <span class="ident">Python</span>};
-<span class="kw">use</span> <span class="ident">parking_lot</span>::{<span class="ident">const_mutex</span>, <span class="ident">Mutex</span>};
+<span class="kw">use</span> <span class="ident">parking_lot</span>::{<span class="ident">const_mutex</span>, <span class="ident">Mutex</span>, <span class="ident">Once</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>::<span class="ident">ManuallyDrop</span>, <span class="ident">ptr</span>::<span class="ident">NonNull</span>, <span class="ident">sync</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>::<span class="ident">ManuallyDrop</span>, <span class="ident">ptr</span>::<span class="ident">NonNull</span>};
 
-<span class="kw">static</span> <span class="ident">START</span>: <span class="ident">sync</span>::<span class="ident">Once</span> <span class="op">=</span> <span class="ident">sync</span>::<span class="ident">Once</span>::<span class="ident">new</span>();
+<span class="kw">static</span> <span class="ident">START</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
 <span class="macro">thread_local</span><span class="macro">!</span> {
     <span class="doccomment">/// This is a internal counter in pyo3 monitoring whether this thread has the GIL.</span>
@@ -750,70 +866,137 @@
 <span class="doccomment">/// If both the Python interpreter and Python threading are already initialized,</span>
 <span class="doccomment">/// this function has no effect.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// # Panic</span>
-<span class="doccomment">/// If the Python interpreter is initialized but Python threading is not,</span>
-<span class="doccomment">/// a panic occurs.</span>
-<span class="doccomment">/// It is not possible to safely access the Python runtime unless the main</span>
-<span class="doccomment">/// thread (the thread which originally initialized Python) also initializes</span>
-<span class="doccomment">/// threading.</span>
+<span class="doccomment">/// # Availability</span>
+<span class="doccomment">/// This function is only available when linking against Python distributions that contain a</span>
+<span class="doccomment">/// shared library.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// When writing an extension module, the `#[pymodule]` macro</span>
-<span class="doccomment">/// will ensure that Python threading is initialized.</span>
+<span class="doccomment">/// This function is not available on PyPy.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// # Panics</span>
+<span class="doccomment">/// - If the Python interpreter is initialized but Python threading is not,</span>
+<span class="doccomment">///   a panic occurs.</span>
+<span class="doccomment">///   It is not possible to safely access the Python runtime unless the main</span>
+<span class="doccomment">///   thread (the thread which originally initialized Python) also initializes</span>
+<span class="doccomment">///   threading.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// use pyo3::prelude::*;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # #[allow(clippy::needless_doctest_main)]</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///     pyo3::prepare_freethreaded_python();</span>
+<span class="doccomment">///     Python::with_gil(|py| {</span>
+<span class="doccomment">///         py.run(&quot;print(&#39;Hello World&#39;)&quot;, None, None)</span>
+<span class="doccomment">///     });</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_freethreaded_python</span>() {
-    <span class="comment">// Protect against race conditions when Python is not yet initialized</span>
-    <span class="comment">// and multiple threads concurrently call &#39;prepare_freethreaded_python()&#39;.</span>
-    <span class="comment">// Note that we do not protect against concurrent initialization of the Python runtime</span>
-    <span class="comment">// by other users of the Python C API.</span>
-    <span class="ident">START</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
+    <span class="comment">// Protect against race conditions when Python is not yet initialized and multiple threads</span>
+    <span class="comment">// concurrently call &#39;prepare_freethreaded_python()&#39;. Note that we do not protect against</span>
+    <span class="comment">// concurrent initialization of the Python runtime by other users of the Python C API.</span>
+    <span class="ident">START</span>.<span class="ident">call_once_force</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span> {
+        <span class="comment">// Use call_once_force because if initialization panics, it&#39;s okay to try again.</span>
         <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">Py_IsInitialized</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// If Python is already initialized, we expect Python threading to also be initialized,</span>
             <span class="comment">// as we can&#39;t make the existing Python main thread acquire the GIL.</span>
             <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>(), <span class="number">0</span>);
         } <span class="kw">else</span> {
-            <span class="comment">// Initialize Python.</span>
-            <span class="comment">// We use Py_InitializeEx() with initsigs=0 to disable Python signal handling.</span>
-            <span class="comment">// Signal handling depends on the notion of a &#39;main thread&#39;, which doesn&#39;t exist in this case.</span>
-            <span class="comment">// Note that the &#39;main thread&#39; notion in Python isn&#39;t documented properly;</span>
-            <span class="comment">// and running Python without one is not officially supported.</span>
+            <span class="ident">ffi</span>::<span class="ident">Py_InitializeEx</span>(<span class="number">0</span>);
 
-            <span class="comment">// PyPy does not support the embedding API</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-            {
-                <span class="ident">ffi</span>::<span class="ident">Py_InitializeEx</span>(<span class="number">0</span>);
-
-                <span class="comment">// Make sure Py_Finalize will be called before exiting.</span>
-                <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">finalize</span>() {
-                    <span class="kw">unsafe</span> {
-                        <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">Py_IsInitialized</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                            <span class="ident">ffi</span>::<span class="ident">PyGILState_Ensure</span>();
-                            <span class="ident">ffi</span>::<span class="ident">Py_Finalize</span>();
-                        }
-                    }
-                }
-                <span class="ident">libc</span>::<span class="ident">atexit</span>(<span class="ident">finalize</span>);
-            }
-
-            <span class="comment">// &gt; Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t have</span>
-            <span class="comment">// &gt; to call it yourself anymore.</span>
+            <span class="comment">// Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t</span>
+            <span class="comment">// have to call it yourself anymore.</span>
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>))]</span>
             <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
             }
-            <span class="comment">// PyEval_InitThreads() will acquire the GIL,</span>
-            <span class="comment">// but we don&#39;t want to hold it at this point</span>
-            <span class="comment">// (it&#39;s not acquired in the other code paths)</span>
-            <span class="comment">// So immediately release the GIL:</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-            <span class="kw">let</span> <span class="ident">_thread_state</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyEval_SaveThread</span>();
-            <span class="comment">// Note that the PyThreadState returned by PyEval_SaveThread is also held in TLS by the Python runtime,</span>
-            <span class="comment">// and will be restored by PyGILState_Ensure.</span>
+
+            <span class="comment">// Release the GIL.</span>
+            <span class="ident">ffi</span>::<span class="ident">PyEval_SaveThread</span>();
         }
     });
 }
 
-<span class="doccomment">/// RAII type that represents the Global Interpreter Lock acquisition. To get hold of a value</span>
-<span class="doccomment">/// of this type, see [`Python::acquire_gil`](struct.Python.html#method.acquire_gil).</span>
+<span class="doccomment">/// Executes the provided closure with an embedded Python interpreter.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This function intializes the Python interpreter, executes the provided closure, and then</span>
+<span class="doccomment">/// finalizes the Python interpreter.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// After execution all Python resources are cleaned up, and no further Python APIs can be called.</span>
+<span class="doccomment">/// Because many Python modules implemented in C do not support multiple Python interpreters in a</span>
+<span class="doccomment">/// single process, it is not safe to call this function more than once. (Many such modules will not</span>
+<span class="doccomment">/// initialize correctly on the second run.)</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Availability</span>
+<span class="doccomment">/// This function is only available when linking against Python distributions that contain a shared</span>
+<span class="doccomment">/// library.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This function is not available on PyPy.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Panics</span>
+<span class="doccomment">/// - If the Python interpreter is already initalized before calling this function.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Safety</span>
+<span class="doccomment">/// - This function should only ever be called once per process (usually as part of the `main`</span>
+<span class="doccomment">///   function). It is also not thread-safe.</span>
+<span class="doccomment">/// - No Python APIs can be used after this function has finished executing.</span>
+<span class="doccomment">/// - The return value of the closure must not contain any Python value, _including_ `PyResult`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// use pyo3::prelude::*;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # #[allow(clippy::needless_doctest_main)]</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///     unsafe {</span>
+<span class="doccomment">///         pyo3::with_embedded_python_interpreter(|py| {</span>
+<span class="doccomment">///             py.run(&quot;print(&#39;Hello World&#39;)&quot;, None, None)</span>
+<span class="doccomment">///         });</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">with_embedded_python_interpreter</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+{
+    <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="ident">ffi</span>::<span class="ident">Py_IsInitialized</span>(),
+        <span class="number">0</span>,
+        <span class="string">&quot;called `with_embedded_python_interpreter` but a Python interpreter is already running.&quot;</span>
+    );
+
+    <span class="ident">ffi</span>::<span class="ident">Py_InitializeEx</span>(<span class="number">0</span>);
+
+    <span class="comment">// Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t have to</span>
+    <span class="comment">// call it yourself anymore.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>))]</span>
+    <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
+    }
+
+    <span class="comment">// Safe: the GIL is already held because of the Py_IntializeEx call.</span>
+    <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">GILPool</span>::<span class="ident">new</span>();
+
+    <span class="comment">// Import the threading module - this ensures that it will associate this thread as the &quot;main&quot;</span>
+    <span class="comment">// thread, which is important to avoid an `AssertionError` at finalization.</span>
+    <span class="ident">pool</span>.<span class="ident">python</span>().<span class="ident">import</span>(<span class="string">&quot;threading&quot;</span>).<span class="ident">unwrap</span>();
+
+    <span class="comment">// Execute the closure.</span>
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">pool</span>.<span class="ident">python</span>());
+
+    <span class="comment">// Drop the pool before finalizing.</span>
+    <span class="ident">drop</span>(<span class="ident">pool</span>);
+
+    <span class="comment">// Finalize the Python interpreter.</span>
+    <span class="ident">ffi</span>::<span class="ident">Py_Finalize</span>();
+
+    <span class="ident">result</span>
+}
+
+<span class="doccomment">/// RAII type that represents the Global Interpreter Lock acquisition. To get hold of a value of</span>
+<span class="doccomment">/// this type, see [`Python::acquire_gil`](struct.Python.html#method.acquire_gil).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">/// ```</span>
@@ -839,10 +1022,59 @@
 
     <span class="doccomment">/// PyO3 internal API for acquiring the GIL. The public API is Python::acquire_gil.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If PyO3 does not yet have a `GILPool` for tracking owned PyObject references, then this</span>
-    <span class="doccomment">/// new `GILGuard` will also contain a `GILPool`.</span>
+    <span class="doccomment">/// If PyO3 does not yet have a `GILPool` for tracking owned PyObject references, then this new</span>
+    <span class="doccomment">/// `GILGuard` will also contain a `GILPool`.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">acquire</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GILGuard</span> {
-        <span class="ident">prepare_freethreaded_python</span>();
+        <span class="comment">// Maybe auto-initialize the GIL:</span>
+        <span class="comment">//  - If auto-initialize feature set and supported, try to initalize the interpreter.</span>
+        <span class="comment">//  - If the auto-initialize feature is set but unsupported, emit hard errors only when the</span>
+        <span class="comment">//    extension-module feature is not activated - extension modules don&#39;t care about</span>
+        <span class="comment">//    auto-initialize so this avoids breaking existing builds.</span>
+        <span class="comment">//  - Otherwise, just check the GIL is initialized.</span>
+        <span class="ident">cfg_if</span>::<span class="macro">cfg_if</span><span class="macro">!</span> {
+            <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span> {
+                <span class="ident">prepare_freethreaded_python</span>();
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extension-module&quot;</span>), <span class="ident">not</span>(<span class="ident">Py_SHARED</span>), <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
+                <span class="macro">compile_error</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(
+                    <span class="string">&quot;The `auto-initialize` feature is not supported when linking Python &quot;</span>,
+                    <span class="string">&quot;statically instead of with a shared library.\n\n&quot;</span>,
+                    <span class="string">&quot;Please disable the `auto-initialize` feature, for example by entering the following &quot;</span>,
+                    <span class="string">&quot;in your cargo.toml:\n\n&quot;</span>,
+                    <span class="string">&quot;    pyo3 = { version = \&quot;&quot;</span>,
+                    <span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>),
+                    <span class="string">&quot;\&quot;, default-features = false }\n\n&quot;</span>,
+                    <span class="string">&quot;Alternatively, compile PyO3 using a Python distribution which contains a shared &quot;</span>,
+                    <span class="string">&quot;libary.&quot;</span>
+                ));
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extension-module&quot;</span>), <span class="ident">PyPy</span>, <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
+                <span class="macro">compile_error</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(
+                    <span class="string">&quot;The `auto-initialize` feature is not supported by PyPy.\n\n&quot;</span>,
+                    <span class="string">&quot;Please disable the `auto-initialize` feature, for example by entering the following &quot;</span>,
+                    <span class="string">&quot;in your cargo.toml:\n\n&quot;</span>,
+                    <span class="string">&quot;    pyo3 = { version = \&quot;&quot;</span>,
+                    <span class="macro">env</span><span class="macro">!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>),
+                    <span class="string">&quot;\&quot;, default-features = false }\n\n&quot;</span>,
+                ));
+            } <span class="kw">else</span> {
+                <span class="comment">// extension module feature enabled and PyPy or static linking</span>
+                <span class="comment">// OR auto-initialize feature not enabled</span>
+                <span class="ident">START</span>.<span class="ident">call_once_force</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="kw">unsafe</span> {
+                    <span class="comment">// Use call_once_force because if there is a panic because the interpreter is</span>
+                    <span class="comment">// not initialized, it&#39;s fine for the user to initialize the interpreter and</span>
+                    <span class="comment">// retry.</span>
+                    <span class="macro">assert_ne</span><span class="macro">!</span>(
+                        <span class="ident">ffi</span>::<span class="ident">Py_IsInitialized</span>(),
+                        <span class="number">0</span>,
+                        <span class="string">&quot;The Python interpreter is not initalized and the `auto-initialize` feature is not enabled.&quot;</span>
+                    );
+                    <span class="macro">assert_ne</span><span class="macro">!</span>(
+                        <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>(),
+                        <span class="number">0</span>,
+                        <span class="string">&quot;Python threading is not initalized and the `auto-initialize` feature is not enabled.&quot;</span>
+                    );
+                });
+            }
+        }
 
         <span class="kw">let</span> <span class="ident">gstate</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyGILState_Ensure</span>() }; <span class="comment">// acquire GIL</span>
 
@@ -929,7 +1161,7 @@
                 <span class="ident">drop</span>(<span class="ident">locked</span>);
                 <span class="ident">out</span>
             }};
-        };
+        }
 
         <span class="comment">// Always increase reference counts first - as otherwise objects which have a</span>
         <span class="comment">// nonzero total reference count might be incorrectly dropped by Python during</span>
