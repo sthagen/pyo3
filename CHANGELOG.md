@@ -10,16 +10,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add unsafe API `with_embedded_python_interpreter` to initalize a Python interpreter, execute a closure, and finalize the interpreter. [#1355](https://github.com/PyO3/pyo3/pull/1355)
 - Add `serde` feature to support `Serialize/Deserialize` for `Py<T>`. [#1366](https://github.com/PyO3/pyo3/pull/1366)
 - Add FFI definition `_PyCFunctionFastWithKeywords` on Python 3.7 and up. [#1384](https://github.com/PyO3/pyo3/pull/1384)
+- Add `PyDateTime::new_with_fold()` method. [#1398](https://github.com/PyO3/pyo3/pull/1398)
 
 ### Changed
 - `prepare_freethreaded_python` will no longer register an `atexit` handler to call `Py_Finalize`. [#1355](https://github.com/PyO3/pyo3/pull/1355)
 - Mark FFI definitions `PyMarshal_WriteObjectToString`, `PyMarshal_ReadObjectFromString` as available in limited API.
 - Mark FFI definitions `PyListObject` and those from `funcobject.h` as requiring non-limited API.  [#1387](https://github.com/PyO3/pyo3/pull/1387)
 - Fix typo in FFI definition `PyFunction_Code` to `PyFunction_GetCode`. [#1387](https://github.com/PyO3/pyo3/pull/1387)
-
+- Mark `PyLayout::py_init`, `PyClassDict::clear_dict`, and `opt_to_pyobj` safe, as they do not perform any unsafe operations. [#1404](https://github.com/PyO3/pyo3/pull/1404)
 
 ### Fixed
 - Fix support for using `r#raw_idents` as argument names in pyfunctions. [#1383](https://github.com/PyO3/pyo3/pull/1383)
+- Fix unqualified `Result` usage in `pyobject_native_type_base`. [#1402](https://github.com/PyO3/pyo3/pull/1402)
+- Fix build on systems where the default Python encoding is not UTF-8. [#1405](https://github.com/PyO3/pyo3/pull/1405)
 
 ## [0.13.1] - 2021-01-10
 ### Added
