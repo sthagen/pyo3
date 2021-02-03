@@ -309,7 +309,6 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
-<span id="309">309</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -357,27 +356,26 @@
     <span class="doccomment">/// (containing unpaired surrogates).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span>: <span class="ident">ffi</span>::<span class="ident">Py_ssize_t</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8AndSize</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">size</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>;
-            <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="self">self</span>.<span class="ident">py</span>()))
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">data</span>, <span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">slice</span>))
+        <span class="kw">let</span> <span class="ident">utf8_slice</span> <span class="op">=</span> {
+            <span class="ident">cfg_if</span>::<span class="macro">cfg_if</span><span class="macro">!</span> {
+                <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>), <span class="ident">Py_3_10</span>))]</span> {
+                    <span class="comment">// PyUnicode_AsUTF8AndSize only available on limited API from Python 3.10 and up.</span>
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span>: <span class="ident">ffi</span>::<span class="ident">Py_ssize_t</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8AndSize</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">size</span>) };
+                    <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_null</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="self">self</span>.<span class="ident">py</span>()));
+                    } <span class="kw">else</span> {
+                        <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>) }
+                    }
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+                        <span class="self">self</span>.<span class="ident">py</span>().<span class="ident">from_owned_ptr_or_err</span>::<span class="op">&lt;</span><span class="ident">PyBytes</span><span class="op">&gt;</span>(<span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8String</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()))<span class="question-mark">?</span>
+                    };
+                    <span class="ident">bytes</span>.<span class="ident">as_bytes</span>()
+                }
             }
-        }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_LIMITED_API</span>)]</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">PyUnicode_AsUTF8String</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>());
-            <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_null</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">PyErr</span>::<span class="ident">fetch</span>(<span class="self">self</span>.<span class="ident">py</span>()))
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">py</span>().<span class="ident">from_owned_ptr</span>::<span class="op">&lt;</span><span class="ident">PyBytes</span><span class="op">&gt;</span>(<span class="ident">data</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">bytes</span>.<span class="ident">as_bytes</span>()))
-            }
-        }
+        };
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">utf8_slice</span>) })
     }
 
     <span class="doccomment">/// Converts the `PyString` into a Rust string.</span>

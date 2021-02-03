@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Appendix D: Logging - PyO3 user guide</title>
+        <title>Useful Crates - PyO3 user guide</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">10.</strong> Features Reference</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">11.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">12.</strong> Building and Distribution</a></li><li class="chapter-item expanded "><a href="pypy.html"><strong aria-hidden="true">13.</strong> PyPy support</a></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">14.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="logging.html" class="active">Appendix D: Logging</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="module.html"><strong aria-hidden="true">1.</strong> Python Modules</a></li><li class="chapter-item expanded "><a href="function.html"><strong aria-hidden="true">2.</strong> Python Functions</a></li><li class="chapter-item expanded "><a href="class.html"><strong aria-hidden="true">3.</strong> Python Classes</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="class/protocols.html"><strong aria-hidden="true">3.1.</strong> Class customizations</a></li></ol></li><li class="chapter-item expanded "><a href="conversions.html"><strong aria-hidden="true">4.</strong> Type Conversions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="conversions/tables.html"><strong aria-hidden="true">4.1.</strong> Mapping of Rust types to Python types</a></li><li class="chapter-item expanded "><a href="conversions/traits.html"><strong aria-hidden="true">4.2.</strong> Conversion traits</a></li></ol></li><li class="chapter-item expanded "><a href="exception.html"><strong aria-hidden="true">5.</strong> Python Exceptions</a></li><li class="chapter-item expanded "><a href="python_from_rust.html"><strong aria-hidden="true">6.</strong> Calling Python from Rust</a></li><li class="chapter-item expanded "><a href="types.html"><strong aria-hidden="true">7.</strong> GIL, mutability and object types</a></li><li class="chapter-item expanded "><a href="parallelism.html"><strong aria-hidden="true">8.</strong> Parallelism</a></li><li class="chapter-item expanded "><a href="debugging.html"><strong aria-hidden="true">9.</strong> Debugging</a></li><li class="chapter-item expanded "><a href="features.html"><strong aria-hidden="true">10.</strong> Features Reference</a></li><li class="chapter-item expanded "><a href="advanced.html"><strong aria-hidden="true">11.</strong> Advanced Topics</a></li><li class="chapter-item expanded "><a href="building_and_distribution.html"><strong aria-hidden="true">12.</strong> Building and Distribution</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="building_and_distribution/pypy.html"><strong aria-hidden="true">12.1.</strong> PyPy support</a></li></ol></li><li class="chapter-item expanded "><a href="ecosystem.html" class="active"><strong aria-hidden="true">13.</strong> Useful Crates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="ecosystem/logging.html"><strong aria-hidden="true">13.1.</strong> Logging</a></li></ol></li><li class="chapter-item expanded "><a href="faq.html"><strong aria-hidden="true">14.</strong> FAQ &amp; Troubleshooting</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><a href="migration.html">Appendix A: Migration Guide</a></li><li class="chapter-item expanded affix "><a href="rust_cpython.html">Appendix B: PyO3 and rust-cpython</a></li><li class="chapter-item expanded affix "><a href="trait_bounds.html">Appendix C: Trait bounds</a></li><li class="chapter-item expanded affix "><a href="changelog.html">CHANGELOG</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -163,73 +163,22 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#logging" id="logging">Logging</a></h1>
-<p>It is desirable if both the Python and Rust parts of the application end up
-logging using the same configuration into the same place.</p>
-<p>This section of the guide briefly discusses how to connect the two languages'
-logging ecosystems together. The recommended way for Python extension modules is
-to configure Rust's logger to send log messages to Python using the <code>pyo3-log</code>
-crate. For users who want to do the opposite and send Python log messages to
-Rust, see the note at the end of this guide.</p>
-<h2><a class="header" href="#using-pyo3-log-to-send-rust-log-messages-to-python" id="using-pyo3-log-to-send-rust-log-messages-to-python">Using <code>pyo3-log</code> to send Rust log messages to Python</a></h2>
-<p>The <a href="https://crates.io/crates/pyo3-log">pyo3-log</a> crate allows sending the messages from the Rust side to Python's
-<a href="https://docs.python.org/3/library/logging.html">logging</a> system. This is mostly suitable for writing native extensions for
-Python programs.</p>
-<p>Use <a href="https://docs.rs/pyo3-log/*/pyo3_log/fn.init.html"><code>pyo3_log::init</code></a> to install the logger in its default configuration.
-It's also possible to tweak its configuration (mostly to tune its performance).</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use log::info;
-use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
-
-#[pyfunction]
-fn log_something() {
-    // This will use the logger installed in `my_module` to send the `info`
-    // message to the Python logging facilities.
-    info!(&quot;Something!&quot;);
-}
-
-#[pymodule]
-fn my_module(_py: Python&lt;'_&gt;, m: &amp;PyModule) -&gt; PyResult&lt;()&gt; {
-    // A good place to install the Rust -&gt; Python logger.
-    pyo3_log::init();
-
-    m.add_function(wrap_pyfunction!(log_something))?;
-    Ok(())
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>Then it is up to the Python side to actually output the messages somewhere.</p>
-<pre><code class="language-python">import logging
-import my_module
-
-FORMAT = '%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s'
-logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.INFO)
-my_module.log_something()
-</code></pre>
-<p>It is important to initialize the Python loggers first, before calling any Rust
-functions that may log. This limitation can be worked around if it is not
-possible to satisfy, read the documentation about <a href="https://docs.rs/pyo3-log/*/pyo3_log/#performance-filtering-and-caching">caching</a>.</p>
-<h2><a class="header" href="#the-python-to-rust-direction" id="the-python-to-rust-direction">The Python to Rust direction</a></h2>
-<p>To best of our knowledge nobody implemented the reverse direction yet, though it
-should be possible. If interested, the <code>pyo3</code> community would be happy to
-provide guidance.</p>
+                        <h1><a class="header" href="#the-pyo3-ecosystem" id="the-pyo3-ecosystem">The PyO3 Ecosystem</a></h1>
+<p>This portion of the guide is dedicated to crates which are external to the main PyO3 project and provide additional functionality you might find useful.</p>
+<p>Because these projects evolve independently of the PyO3 repository the content of these articles may fall out of date over time; please file issues on the PyO3 Github to alert maintainers when this is the case.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="trait_bounds.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="building_and_distribution/pypy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="changelog.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="ecosystem/logging.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -241,13 +190,13 @@ provide guidance.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="trait_bounds.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="building_and_distribution/pypy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="changelog.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="ecosystem/logging.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
