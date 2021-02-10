@@ -147,6 +147,7 @@ about this topic.
  * [dict-derive](https://github.com/gperinazzo/dict-derive) _Derive FromPyObject to automatically transform Python dicts into Rust structs_
  * [pyo3-log](https://github.com/vorner/pyo3-log) _Bridge from Rust to Python logging_
  * [pythonize](https://github.com/davidhewitt/pythonize) _Serde serializer for converting Rust objects to JSON-compatible Python objects_
+ * [pyo3-asyncio](https://github.com/awestlake87/pyo3-asyncio) Utilities for working with Python's Asyncio library and async functions
 
 ## Examples
 
@@ -166,6 +167,7 @@ about this topic.
  * [pyre](https://github.com/Project-Dream-Weaver/Pyre) _Fast Python HTTP server written in Rust_
  * [jsonschema-rs](https://github.com/Stranger6667/jsonschema-rs/tree/master/bindings/python) _Fast JSON Schema validation library_
  * [css-inline](https://github.com/Stranger6667/css-inline/tree/master/bindings/python) _CSS inlining for Python implemented in Rust_
+ * [cryptography](https://github.com/pyca/cryptography/tree/master/src/rust) _Python cryptography library with some functionality in Rust_
 
 ## License
 
