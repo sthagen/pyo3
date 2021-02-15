@@ -314,8 +314,8 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_3_8</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::{
-    <span class="ident">vectorcallfunc</span>, <span class="ident">PyCallable_Check</span>, <span class="ident">PyThreadState</span>, <span class="ident">PyThreadState_GET</span>, <span class="ident">PyTuple_Check</span>,
-    <span class="ident">PyType_HasFeature</span>, <span class="ident">Py_TPFLAGS_HAVE_VECTORCALL</span>,
+    <span class="ident">pyport</span>::<span class="ident">PY_SSIZE_T_MAX</span>, <span class="ident">vectorcallfunc</span>, <span class="ident">PyCallable_Check</span>, <span class="ident">PyThreadState</span>, <span class="ident">PyThreadState_GET</span>,
+    <span class="ident">PyTuple_Check</span>, <span class="ident">PyType_HasFeature</span>, <span class="ident">Py_TPFLAGS_HAVE_VECTORCALL</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_3_8</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">size_t</span>;
@@ -354,7 +354,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_3_8</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">PyVectorcall_NARGS</span>(<span class="ident">n</span>: <span class="ident">size_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Py_ssize_t</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> (<span class="ident">Py_ssize_t</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">size_t</span>));
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> (<span class="ident">PY_SSIZE_T_MAX</span> <span class="kw">as</span> <span class="ident">size_t</span>));
     (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Py_ssize_t</span>) <span class="op">&amp;</span> <span class="op">!</span><span class="ident">PY_VECTORCALL_ARGUMENTS_OFFSET</span>
 }
 

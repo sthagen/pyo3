@@ -637,10 +637,6 @@
 <span id="634">634</span>
 <span id="635">635</span>
 <span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -1238,12 +1234,8 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">debug_str</span>.<span class="ident">starts_with</span>(<span class="string">&quot;PyErr { &quot;</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">debug_str</span>.<span class="ident">ends_with</span>(<span class="string">&quot; }&quot;</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">debug_str</span>
-            .<span class="ident">strip_prefix</span>(<span class="string">&quot;PyErr { &quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">strip_suffix</span>(<span class="string">&quot; }&quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">split</span>(<span class="string">&quot;, &quot;</span>);
+        <span class="comment">// strip &quot;PyErr { &quot; and &quot; }&quot;</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">debug_str</span>[<span class="string">&quot;PyErr { &quot;</span>.<span class="ident">len</span>()..<span class="ident">debug_str</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>].<span class="ident">split</span>(<span class="string">&quot;, &quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">fields</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;type: &lt;class &#39;Exception&#39;&gt;&quot;</span>);
         <span class="kw">if</span> <span class="ident">py</span>.<span class="ident">version_info</span>() <span class="op">&gt;</span><span class="op">=</span> (<span class="number">3</span>, <span class="number">7</span>) {

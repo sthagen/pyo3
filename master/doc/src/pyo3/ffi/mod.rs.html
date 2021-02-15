@@ -216,6 +216,7 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">non_snake_case</span>, <span class="ident">non_upper_case_globals</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">allow</span>(<span class="ident">unused_imports</span>))]</span>
@@ -346,6 +347,10 @@
 <span class="kw">mod</span> <span class="ident">longobject</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">marshal</span>;
 <span class="kw">mod</span> <span class="ident">memoryobject</span>;
+<span class="kw">mod</span> <span class="ident">methodobject</span>; <span class="comment">// TODO: incomplete</span>
+<span class="kw">mod</span> <span class="ident">modsupport</span>; <span class="comment">// TODO: incomplete</span>
+<span class="kw">mod</span> <span class="ident">moduleobject</span>; <span class="comment">// TODO: incomplete</span>
+
 <span class="comment">// skipped namespaceobject.h</span>
 <span class="comment">// skipped odictobject.h</span>
 <span class="comment">// skipped opcode.h</span>
@@ -393,8 +398,6 @@
 <span class="kw">mod</span> <span class="ident">rangeobject</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
 <span class="kw">mod</span> <span class="ident">tupleobject</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
                  <span class="comment">// mod odictobject; TODO new in 3.5</span>
-<span class="kw">mod</span> <span class="ident">methodobject</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
-<span class="kw">mod</span> <span class="ident">moduleobject</span>;
 <span class="kw">mod</span> <span class="ident">setobject</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
                <span class="comment">// mod classobject; TODO excluded by PEP-384</span>
 <span class="kw">mod</span> <span class="ident">pycapsule</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
@@ -410,7 +413,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">Py_LIMITED_API</span>)]</span>
 <span class="kw">mod</span> <span class="ident">pyarena</span> {}
-<span class="kw">mod</span> <span class="ident">modsupport</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">mod</span> <span class="ident">pyarena</span>; <span class="comment">// TODO: incomplete</span>
 <span class="kw">mod</span> <span class="ident">pythonrun</span>; <span class="comment">// TODO some functions need to be moved to pylifecycle</span>

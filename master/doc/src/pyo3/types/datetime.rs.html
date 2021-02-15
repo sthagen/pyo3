@@ -490,7 +490,7 @@
     <span class="kw">fn</span> <span class="ident">get_second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
     <span class="kw">fn</span> <span class="ident">get_microsecond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
+    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Bindings around `datetime.date`</span>
@@ -688,8 +688,8 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyDateTime_DATE_GET_FOLD</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) <span class="kw">as</span> <span class="ident">u8</span> }
+    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">PyDateTime_DATE_GET_FOLD</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) <span class="op">&gt;</span> <span class="number">0</span> }
     }
 }
 
@@ -770,8 +770,8 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">PyPy</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-        <span class="kw">unsafe</span> { <span class="ident">PyDateTime_TIME_GET_FOLD</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) <span class="kw">as</span> <span class="ident">u8</span> }
+    <span class="kw">fn</span> <span class="ident">get_fold</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">PyDateTime_TIME_GET_FOLD</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
     }
 }
 
@@ -853,8 +853,8 @@
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">PyDateTime</span>::<span class="ident">new_with_fold</span>(<span class="ident">py</span>, <span class="number">2021</span>, <span class="number">1</span>, <span class="number">23</span>, <span class="number">20</span>, <span class="number">32</span>, <span class="number">40</span>, <span class="number">341516</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>);
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">PyDateTime</span>::<span class="ident">new_with_fold</span>(<span class="ident">py</span>, <span class="number">2021</span>, <span class="number">1</span>, <span class="number">23</span>, <span class="number">20</span>, <span class="number">32</span>, <span class="number">40</span>, <span class="number">341516</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>);
 
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">unwrap</span>().<span class="ident">get_fold</span>(), <span class="number">0</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">unwrap</span>().<span class="ident">get_fold</span>(), <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">unwrap</span>().<span class="ident">get_fold</span>(), <span class="bool-val">false</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">unwrap</span>().<span class="ident">get_fold</span>(), <span class="bool-val">true</span>);
         });
     }
 }

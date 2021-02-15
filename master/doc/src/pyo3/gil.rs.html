@@ -818,6 +818,10 @@
 <span id="815">815</span>
 <span id="816">816</span>
 <span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -892,6 +896,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">collapsible_if</span>)]</span> <span class="comment">// for if cfg!</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_freethreaded_python</span>() {
     <span class="comment">// Protect against race conditions when Python is not yet initialized and multiple threads</span>
     <span class="comment">// concurrently call &#39;prepare_freethreaded_python()&#39;. Note that we do not protect against</span>
@@ -907,9 +912,10 @@
 
             <span class="comment">// Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t</span>
             <span class="comment">// have to call it yourself anymore.</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>))]</span>
-            <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
+            <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>)) {
+                <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
+                }
             }
 
             <span class="comment">// Release the GIL.</span>
@@ -957,6 +963,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">collapsible_if</span>)]</span> <span class="comment">// for if cfg!</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">with_embedded_python_interpreter</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
@@ -971,9 +978,10 @@
 
     <span class="comment">// Changed in version 3.7: This function is now called by Py_Initialize(), so you don’t have to</span>
     <span class="comment">// call it yourself anymore.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>))]</span>
-    <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
+    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">not</span>(<span class="ident">Py_3_7</span>)) {
+        <span class="kw">if</span> <span class="ident">ffi</span>::<span class="ident">PyEval_ThreadsInitialized</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="ident">ffi</span>::<span class="ident">PyEval_InitThreads</span>();
+        }
     }
 
     <span class="comment">// Safe: the GIL is already held because of the Py_IntializeEx call.</span>

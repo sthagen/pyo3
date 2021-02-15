@@ -171,7 +171,7 @@
 <p>The table below contains the Python type and the corresponding function argument types that will accept them:</p>
 <table><thead><tr><th>Python</th><th align="center">Rust</th><th align="center">Rust (Python-native)</th></tr></thead><tbody>
 <tr><td><code>object</code></td><td align="center">-</td><td align="center"><code>&amp;PyAny</code></td></tr>
-<tr><td><code>str</code></td><td align="center"><code>String</code>, <code>Cow&lt;str&gt;</code>, <code>&amp;str</code></td><td align="center"><code>&amp;PyUnicode</code></td></tr>
+<tr><td><code>str</code></td><td align="center"><code>String</code>, <code>Cow&lt;str&gt;</code>, <code>&amp;str</code>, <code>OsString</code>, <code>PathBuf</code></td><td align="center"><code>&amp;PyUnicode</code></td></tr>
 <tr><td><code>bytes</code></td><td align="center"><code>Vec&lt;u8&gt;</code>, <code>&amp;[u8]</code></td><td align="center"><code>&amp;PyBytes</code></td></tr>
 <tr><td><code>bool</code></td><td align="center"><code>bool</code></td><td align="center"><code>&amp;PyBool</code></td></tr>
 <tr><td><code>int</code></td><td align="center">Any integer type (<code>i32</code>, <code>u32</code>, <code>usize</code>, etc)</td><td align="center"><code>&amp;PyLong</code></td></tr>

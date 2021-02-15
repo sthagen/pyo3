@@ -258,6 +258,7 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
+<span id="258">258</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -271,15 +272,15 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PyMethodDefType</span> {
     <span class="doccomment">/// Represents class `__new__` method</span>
-    <span class="ident">New</span>(<span class="ident">PyMethodDef</span>),
+    <span class="ident">New</span>(<span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">newfunc</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Represents class `__call__` method</span>
-    <span class="ident">Call</span>(<span class="ident">PyMethodDef</span>),
+    <span class="ident">Call</span>(<span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Represents class method</span>
-    <span class="ident">Class</span>(<span class="ident">PyMethodDef</span>),
+    <span class="ident">Class</span>(<span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">PyMethodType</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Represents static method</span>
-    <span class="ident">Static</span>(<span class="ident">PyMethodDef</span>),
+    <span class="ident">Static</span>(<span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">PyMethodType</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Represents normal method</span>
-    <span class="ident">Method</span>(<span class="ident">PyMethodDef</span>),
+    <span class="ident">Method</span>(<span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">PyMethodType</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Represents class attribute, used by `#[attribute]`</span>
     <span class="ident">ClassAttribute</span>(<span class="ident">PyClassAttributeDef</span>),
     <span class="doccomment">/// Represents getter descriptor, used by `#[getter]`</span>
@@ -292,14 +293,12 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PyMethodType</span> {
     <span class="ident">PyCFunction</span>(<span class="ident">ffi</span>::<span class="ident">PyCFunction</span>),
     <span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span>),
-    <span class="ident">PyNewFunc</span>(<span class="ident">ffi</span>::<span class="ident">newfunc</span>),
-    <span class="ident">PyInitFunc</span>(<span class="ident">ffi</span>::<span class="ident">initproc</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyMethodDef</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">MethodT</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_meth</span>: <span class="ident">MethodT</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_flags</span>: <span class="ident">c_int</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>,
 }
@@ -324,7 +323,9 @@
     <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">PyMethodDef</span> {}
+<span class="comment">// Safe because ml_meth (the T) cannot be accessed outside of the crate, so only safe-to-sync values</span>
+<span class="comment">// are stored in this structure.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {}
 
@@ -343,39 +344,42 @@
     <span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="ident">doc</span>.<span class="ident">as_bytes</span>()).<span class="ident">expect</span>(<span class="string">&quot;Document must be terminated with NULL byte&quot;</span>)
 }
 
-<span class="kw">impl</span> <span class="ident">PyMethodDef</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_new_func</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">newfunc</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PyMethodType</span>::<span class="ident">PyNewFunc</span>(<span class="ident">new_func</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ml_meth</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">new_func</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+<span class="kw">impl</span> <span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">newfunc</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Define a `__new__` function.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_func</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">newfunc</span>: <span class="ident">ffi</span>::<span class="ident">newfunc</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">ml_meth</span>: <span class="ident">newfunc</span>,
+            <span class="ident">ml_flags</span>: <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
+            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
         }
     }
+}
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_cfunction_with_keywords</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">func</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ml_meth</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">func</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+<span class="kw">impl</span> <span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Define a `__call__` function.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_func</span>(
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+        <span class="ident">callfunc</span>: <span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span>,
+        <span class="ident">flags</span>: <span class="ident">c_int</span>,
+        <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">ml_meth</span>: <span class="ident">callfunc</span>,
+            <span class="ident">ml_flags</span>: <span class="ident">flags</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
+            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
         }
     }
+}
 
+<span class="kw">impl</span> <span class="ident">PyMethodDef</span><span class="op">&lt;</span><span class="ident">PyMethodType</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Define a function with no `*args` and `**kwargs`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cfunction</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">ffi</span>::<span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
             <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">cfunction</span>),
             <span class="ident">ml_flags</span>: <span class="ident">ffi</span>::<span class="ident">METH_NOARGS</span>,
-            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
-        }
-    }
-
-    <span class="doccomment">/// Define a `__new__` function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_func</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">newfunc</span>: <span class="ident">ffi</span>::<span class="ident">newfunc</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
-            <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyNewFunc</span>(<span class="ident">newfunc</span>),
-            <span class="ident">ml_flags</span>: <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
             <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
         }
     }
@@ -400,8 +404,6 @@
         <span class="kw">let</span> <span class="ident">meth</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ml_meth</span> {
             <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">meth</span>,
             <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>) },
-            <span class="ident">PyMethodType</span>::<span class="ident">PyNewFunc</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>) },
-            <span class="ident">PyMethodType</span>::<span class="ident">PyInitFunc</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>) },
         };
 
         <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {

@@ -170,7 +170,7 @@
 <p><a href="https://github.com/PyO3/pyo3/actions"><img src="https://github.com/PyO3/pyo3/workflows/Test/badge.svg" alt="Actions Status" /></a>
 <a href="https://codecov.io/gh/PyO3/pyo3"><img src="https://codecov.io/gh/PyO3/pyo3/branch/master/graph/badge.svg" alt="codecov" /></a>
 <a href="https://crates.io/crates/pyo3"><img src="http://meritbadge.herokuapp.com/pyo3" alt="crates.io" /></a>
-<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.45+-blue.svg" alt="minimum rustc 1.45" /></a>
+<a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html"><img src="https://img.shields.io/badge/rustc-1.41+-blue.svg" alt="minimum rustc 1.41" /></a>
 <a href="https://gitter.im/PyO3/Lobby"><img src="https://img.shields.io/gitter/room/nwjs/nw.js.svg" alt="Join the dev chat" /></a></p>
 <p><a href="http://www.rust-lang.org/">Rust</a> bindings for <a href="https://www.python.org/">Python</a>. This includes running and interacting with Python code from a Rust binary, as well as writing native Python modules.</p>
 <ul>
@@ -186,9 +186,9 @@
 </ul>
 <p>A comparison with rust-cpython can be found <a href="https://pyo3.rs/master/rust_cpython.html">in the guide</a>.</p>
 <h2><a class="header" href="#usage" id="usage">Usage</a></h2>
-<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.45.0.</p>
+<p>PyO3 supports Python 3.6 and up. The minimum required Rust version is 1.41.</p>
 <p>Building with PyPy is also possible (via cpyext) for Python 3.6, targeted PyPy version is 7.3+.
-Please refer to the <a href="https://pyo3.rs/master/pypy.html">pypy section in the guide</a>.</p>
+Please refer to the <a href="https://pyo3.rs/master/building_and_distribution/pypy.html">pypy section in the guide</a>.</p>
 <p>You can either write a native Python module in Rust, or use Python from a Rust binary.</p>
 <p>However, on some OSs, you need some additional packages. E.g. if you are on <em>Ubuntu 18.04</em>, please run</p>
 <pre><code class="language-bash">sudo apt install python3-dev python-dev
@@ -211,7 +211,7 @@ name = &quot;string_sum&quot;
 crate-type = [&quot;cdylib&quot;]
 
 [dependencies.pyo3]
-version = &quot;0.13.1&quot;
+version = &quot;0.13.2&quot;
 features = [&quot;extension-module&quot;]
 </code></pre>
 <p><strong><code>src/lib.rs</code></strong></p>
@@ -255,7 +255,7 @@ rustflags = [
 <p>If you want your Rust application to create a Python interpreter internally and
 use it to run Python code, add <code>pyo3</code> to your <code>Cargo.toml</code> like this:</p>
 <pre><code class="language-toml">[dependencies.pyo3]
-version = &quot;0.13.1&quot;
+version = &quot;0.13.2&quot;
 features = [&quot;auto-initialize&quot;]
 </code></pre>
 <p>Example program displaying the value of <code>sys.version</code> and the current user name:</p>
