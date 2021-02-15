@@ -142,6 +142,15 @@ fn cross_compiling() -> Result<Option<CrossCompileConfig>> {
         return Ok(None);
     }
 
+    if target == "x86_64-apple-darwin" && host == "aarch64-apple-darwin" {
+        // Not cross-compiling to compile for x86-64 Python from macOS arm64
+        return Ok(None);
+    }
+    if target == "aarch64-apple-darwin" && host == "x86_64-apple-darwin" {
+        // Not cross-compiling to compile for arm64 Python from macOS x86_64
+        return Ok(None);
+    }
+
     if host.starts_with(&format!(
         "{}-{}-{}",
         env::var("CARGO_CFG_TARGET_ARCH")?,
@@ -598,17 +607,25 @@ fn run_python_script(interpreter: &Path, script: &str) -> Result<String> {
 
 fn get_rustc_link_lib(config: &InterpreterConfig) -> String {
     let link_name = if env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() == "windows" {
-        // Link against python3.lib for the stable ABI on Windows.
-        // See https://www.python.org/dev/peps/pep-0384/#linkage
-        //
-        // This contains only the limited ABI symbols.
-        if env::var_os("CARGO_FEATURE_ABI3").is_some() {
-            "pythonXY:python3".to_owned()
-        } else {
+        if env::var("CARGO_CFG_TARGET_ENV").unwrap().as_str() == "gnu" {
+            // https://packages.msys2.org/base/mingw-w64-python
             format!(
-                "pythonXY:python{}{}",
+                "pythonXY:python{}.{}",
                 config.version.major, config.version.minor
             )
+        } else {
+            // Link against python3.lib for the stable ABI on Windows.
+            // See https://www.python.org/dev/peps/pep-0384/#linkage
+            //
+            // This contains only the limited ABI symbols.
+            if env::var_os("CARGO_FEATURE_ABI3").is_some() {
+                "pythonXY:python3".to_owned()
+            } else {
+                format!(
+                    "pythonXY:python{}{}",
+                    config.version.major, config.version.minor
+                )
+            }
         }
     } else {
         match config.version.implementation {

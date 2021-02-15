@@ -663,7 +663,7 @@ pub fn impl_py_method_def_call(spec: &FnSpec, wrapper: &TokenStream) -> TokenStr
         pyo3::class::PyMethodDefType::Call({
             #wrapper
 
-            pyo3::class::PyMethodDef::cfunction_with_keywords(
+            pyo3::class::PyMethodDef::call_func(
                 concat!(stringify!(#python_name), "\0"),
                 __wrap,
                 pyo3::ffi::METH_STATIC,
@@ -703,8 +703,13 @@ pub(crate) fn impl_py_getter_def(
 
 /// Split an argument of pyo3::Python from the front of the arg list, if present
 fn split_off_python_arg<'a>(args: &'a [FnArg<'a>]) -> (Option<&FnArg>, &[FnArg]) {
-    match args {
-        [py, args @ ..] if utils::is_python(&py.ty) => (Some(py), args),
-        args => (None, args),
+    if args
+        .get(0)
+        .map(|py| utils::is_python(&py.ty))
+        .unwrap_or(false)
+    {
+        (Some(&args[0]), &args[1..])
+    } else {
+        (None, args)
     }
 }
