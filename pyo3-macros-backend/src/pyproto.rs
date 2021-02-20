@@ -62,8 +62,7 @@ fn impl_proto_impl(
             }
             // Add non-slot methods to inventory like `#[pymethods]`
             if let Some(m) = proto.get_method(&met.sig.ident) {
-                let name = &met.sig.ident;
-                let fn_spec = FnSpec::parse(&met.sig, &mut met.attrs, false)?;
+                let fn_spec = FnSpec::parse(&mut met.sig, &mut met.attrs, false)?;
 
                 let method = if let FnType::Fn(self_ty) = &fn_spec.tp {
                     pymethod::impl_proto_wrap(ty, &fn_spec, &self_ty)
@@ -79,6 +78,7 @@ fn impl_proto_impl(
                 } else {
                     quote!(0)
                 };
+                let name = &met.sig.ident;
                 // TODO(kngwyu): Set ml_doc
                 py_methods.push(quote! {
                     pyo3::class::PyMethodDefType::Method({
@@ -136,14 +136,14 @@ fn impl_proto_methods(
         // For now we emit this always for buffer methods, even on 3.9+.
         // Maybe in the future we can access Py_3_9 here and define it.
         maybe_buffer_methods = Some(quote! {
-            impl pyo3::class::proto_methods::PyBufferProtocolProcs<#ty>
-                for pyo3::class::proto_methods::PyClassProtocols<#ty>
+            impl pyo3::class::impl_::PyBufferProtocolProcs<#ty>
+                for pyo3::class::impl_::PyClassImplCollector<#ty>
             {
                 fn buffer_procs(
                     self
-                ) -> Option<&'static pyo3::class::proto_methods::PyBufferProcs> {
-                    static PROCS: pyo3::class::proto_methods::PyBufferProcs
-                        = pyo3::class::proto_methods::PyBufferProcs {
+                ) -> Option<&'static pyo3::class::impl_::PyBufferProcs> {
+                    static PROCS: pyo3::class::impl_::PyBufferProcs
+                        = pyo3::class::impl_::PyBufferProcs {
                             bf_getbuffer: Some(pyo3::class::buffer::getbuffer::<#ty>),
                             bf_releasebuffer: Some(pyo3::class::buffer::releasebuffer::<#ty>),
                         };
@@ -174,8 +174,8 @@ fn impl_proto_methods(
     quote! {
         #maybe_buffer_methods
 
-        impl pyo3::class::proto_methods::#slots_trait<#ty>
-            for pyo3::class::proto_methods::PyClassProtocols<#ty>
+        impl pyo3::class::impl_::#slots_trait<#ty>
+            for pyo3::class::impl_::PyClassImplCollector<#ty>
         {
             fn #slots_trait_slots(self) -> &'static [pyo3::ffi::PyType_Slot] {
                 &[#(#tokens),*]
