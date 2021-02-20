@@ -587,12 +587,14 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> {
-    <span class="ident">ctor</span>,      <span class="comment">// Re-exported for pyproto</span>
     <span class="ident">indoc</span>,     <span class="comment">// Re-exported for py_run</span>
     <span class="ident">inventory</span>, <span class="comment">// Re-exported for pymethods</span>
     <span class="ident">paste</span>,     <span class="comment">// Re-exported for wrap_function</span>
     <span class="ident">unindent</span>,  <span class="comment">// Re-exported for py_run</span>
 };
+
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">mod</span> <span class="ident">internal_tricks</span>;
 
 <span class="comment">// The CPython stable ABI does not include PyBuffer.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
@@ -614,8 +616,6 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">freelist</span>;
 <span class="kw">mod</span> <span class="ident">gil</span>;
 <span class="kw">mod</span> <span class="ident">instance</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">mod</span> <span class="ident">internal_tricks</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">marshal</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">once_cell</span>;

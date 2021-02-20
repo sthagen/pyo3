@@ -767,11 +767,13 @@
 <span id="764">764</span>
 <span id="765">765</span>
 <span id="766">766</span>
+<span id="767">767</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Includes `PyCell` implementation.</span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">class</span>::<span class="ident">impl_</span>::<span class="ident">PyClassThreadChecker</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">conversion</span>::{<span class="ident">AsPyPointer</span>, <span class="ident">FromPyPointer</span>, <span class="ident">ToPyObject</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyRuntimeError</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass</span>::{<span class="ident">PyClass</span>, <span class="ident">PyClassThreadChecker</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass</span>::<span class="ident">PyClass</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass_init</span>::<span class="ident">PyClassInitializer</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pyclass_slots</span>::{<span class="ident">PyClassDict</span>, <span class="ident">PyClassWeakRef</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">type_object</span>::{<span class="ident">PyBorrowFlagLayout</span>, <span class="ident">PyLayout</span>, <span class="ident">PySizedLayout</span>, <span class="ident">PyTypeInfo</span>};

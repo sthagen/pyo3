@@ -172,7 +172,9 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <h3><a class="header" href="#added" id="added">Added</a></h3>
 <ul>
 <li>Add conversions between <code>OsStr</code>/<code>OsString</code>/<code>Path</code>/<code>PathBuf</code> and Python strings. <a href="https://github.com/PyO3/pyo3/pull/1379">#1379</a></li>
+<li>Add #[pyo3(from_py_with = &quot;...&quot;)]` attribute for function arguments and struct fields to override the default from-Python conversion. <a href="https://github.com/PyO3/pyo3/pull/1411">#1411</a></li>
 <li>Add FFI definition <code>PyCFunction_CheckExact</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
+<li>Add FFI definition <code>Py_IS_TYPE</code>. <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
 </ul>
 <h3><a class="header" href="#changed" id="changed">Changed</a></h3>
 <ul>
@@ -183,14 +185,21 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
 <li>Remove deprecated exception names <code>BaseException</code> etc. <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
-<li>Remove deprecated ffi definitions <code>PyGetSetDef_INIT</code>, <code>PyGetSetDef_DICT</code>, <code>PyCoro_Check</code>, <code>PyCoroWrapper_Check</code>, and <code>PyAsyncGen_Check</code>. <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
 <li>Remove deprecated redundant methods <code>Python::is_instance</code>, <code>Python::is_subclass</code>, <code>Python::release</code>, <code>Python::xdecref</code>, and <code>Py::from_owned_ptr_or_panic</code>. <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
-<li>Remove ffi definition ``PyMethodDef_INIT`. <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
+<li>Remove many ffi definitions which never existed in the Python C-API:
+<ul>
+<li>(previously deprecated) <code>PyGetSetDef_INIT</code>, <code>PyGetSetDef_DICT</code>, <code>PyCoro_Check</code>, <code>PyCoroWrapper_Check</code>, and <code>PyAsyncGen_Check</code> <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
+<li><code>PyMethodDef_INIT</code> <a href="https://github.com/PyO3/pyo3/pull/1426">#1426</a></li>
+<li><code>PyTypeObject_INIT</code> <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
+<li><code>PyObject_Check</code>, <code>PySuper_Check</code>, and <code>FreeFunc</code> <a href="https://github.com/PyO3/pyo3/pull/1438">#1438</a></li>
+</ul>
+</li>
 </ul>
 <h3><a class="header" href="#fixed" id="fixed">Fixed</a></h3>
 <ul>
 <li>Remove FFI definition <code>PyCFunction_ClearFreeList</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li><code>PYO3_CROSS_LIB_DIR</code> enviroment variable no long required when compiling for x86-64 Python from macOS arm64 and reverse. <a href="https://github.com/PyO3/pyo3/pull/1428">#1428</a></li>
+<li>Fix FFI definition <code>_PyEval_RequestCodeExtraIndex</code> which took an argument of the wrong type. <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12"><a href="https://github.com/pyo3/pyo3/compare/v0.13.1...v0.13.2">0.13.2</a> - 2021-02-12</a></h2>
 <h3><a class="header" href="#packaging" id="packaging">Packaging</a></h3>

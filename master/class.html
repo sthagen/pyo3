@@ -912,34 +912,47 @@ impl pyo3::class::methods::HasMethodsInventory for MyClass {
 }
 pyo3::inventory::collect!(Pyo3MethodsInventoryForMyClass);
 
-impl pyo3::class::proto_methods::PyProtoMethods for MyClass {
-    fn for_each_proto_slot&lt;Visitor: FnMut(pyo3::ffi::PyType_Slot)&gt;(visitor: Visitor) {
+impl pyo3::class::impl_::PyClassImpl for MyClass {
+    type ThreadChecker = pyo3::class::impl_::ThreadCheckerStub&lt;MyClass&gt;;
+
+    fn for_each_method_def(visitor: impl FnMut(&amp;pyo3::class::PyMethodDefType)) {
+        pyo3::inventory::iter::&lt;Pyo3MethodsInventoryForMyClass&gt;
+            .into_iter()
+            .flat_map(pyo3::class::methods::PyMethodsInventory::get)
+            .for_each(visitor)
+    }
+    fn get_new() -&gt; Option&lt;pyo3::ffi::newfunc&gt; {
+        use pyo3::class::impl_::*;
+        let collector = PyClassImplCollector::&lt;MyClass&gt;::new();
+        collector.new_impl()
+    }
+    fn get_call() -&gt; Option&lt;pyo3::ffi::PyCFunctionWithKeywords&gt; {
+        use pyo3::class::impl_::*;
+        let collector = PyClassImplCollector::&lt;MyClass&gt;::new();
+        collector.call_impl()
+    }
+    fn for_each_proto_slot(visitor: impl FnMut(&amp;pyo3::ffi::PyType_Slot)) {
         // Implementation which uses dtolnay specialization to load all slots.
-        use pyo3::class::proto_methods::*;
-        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
-        protocols.object_protocol_slots()
+        use pyo3::class::impl_::*;
+        let collector = PyClassImplCollector::&lt;MyClass&gt;::new();
+        collector.object_protocol_slots()
             .iter()
-            .chain(protocols.number_protocol_slots())
-            .chain(protocols.iter_protocol_slots())
-            .chain(protocols.gc_protocol_slots())
-            .chain(protocols.descr_protocol_slots())
-            .chain(protocols.mapping_protocol_slots())
-            .chain(protocols.sequence_protocol_slots())
-            .chain(protocols.async_protocol_slots())
-            .chain(protocols.buffer_protocol_slots())
-            .cloned()
+            .chain(collector.number_protocol_slots())
+            .chain(collector.iter_protocol_slots())
+            .chain(collector.gc_protocol_slots())
+            .chain(collector.descr_protocol_slots())
+            .chain(collector.mapping_protocol_slots())
+            .chain(collector.sequence_protocol_slots())
+            .chain(collector.async_protocol_slots())
+            .chain(collector.buffer_protocol_slots())
             .for_each(visitor);
     }
 
-    fn get_buffer() -&gt; Option&lt;&amp;'static pyo3::class::proto_methods::PyBufferProcs&gt; {
-        use pyo3::class::proto_methods::*;
-        let protocols = PyClassProtocols::&lt;MyClass&gt;::new();
-        protocols.buffer_procs()
+    fn get_buffer() -&gt; Option&lt;&amp;'static pyo3::class::impl_::PyBufferProcs&gt; {
+        use pyo3::class::impl_::*;
+        let collector = PyClassImplCollector::&lt;MyClass&gt;::new();
+        collector.buffer_procs()
     }
-}
-
-impl pyo3::pyclass::PyClassSend for MyClass {
-    type ThreadChecker = pyo3::pyclass::ThreadCheckerStub&lt;MyClass&gt;;
 }
 <span class="boring">let gil = Python::acquire_gil();
 </span><span class="boring">let py = gil.python();
