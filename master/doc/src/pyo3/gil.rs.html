@@ -1042,7 +1042,7 @@
         <span class="ident">cfg_if</span>::<span class="macro">cfg_if</span><span class="macro">!</span> {
             <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">Py_SHARED</span>, <span class="ident">not</span>(<span class="ident">PyPy</span>)))]</span> {
                 <span class="ident">prepare_freethreaded_python</span>();
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extension-module&quot;</span>), <span class="ident">not</span>(<span class="ident">Py_SHARED</span>), <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">not</span>(<span class="ident">Py_SHARED</span>), <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
                 <span class="macro">compile_error</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(
                     <span class="string">&quot;The `auto-initialize` feature is not supported when linking Python &quot;</span>,
                     <span class="string">&quot;statically instead of with a shared library.\n\n&quot;</span>,
@@ -1054,7 +1054,7 @@
                     <span class="string">&quot;Alternatively, compile PyO3 using a Python distribution which contains a shared &quot;</span>,
                     <span class="string">&quot;libary.&quot;</span>
                 ));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extension-module&quot;</span>), <span class="ident">PyPy</span>, <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;auto-initialize&quot;</span>, <span class="ident">PyPy</span>, <span class="ident">not</span>(<span class="ident">__pyo3_ci</span>)))]</span> {
                 <span class="macro">compile_error</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(
                     <span class="string">&quot;The `auto-initialize` feature is not supported by PyPy.\n\n&quot;</span>,
                     <span class="string">&quot;Please disable the `auto-initialize` feature, for example by entering the following &quot;</span>,

@@ -2757,11 +2757,7 @@ test_word_count_python_sequential                      27.3985 (15.82)    45.452
 <h2><a class="header" href="#features-for-embedding-python-in-rust" id="features-for-embedding-python-in-rust">Features for embedding Python in Rust</a></h2>
 <h3><a class="header" href="#auto-initalize" id="auto-initalize"><code>auto-initalize</code></a></h3>
 <p>This feature changes <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.with_gil"><code>Python::with_gil</code></a> and <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.acquire_gil"><code>Python::acquire_gil</code></a> to automatically initialize a Python interpreter (by calling <a href="https://docs.rs/pyo3/latest/pyo3/fn.prepare_freethreaded_python.html"><code>prepare_freethreaded_python</code></a>) if needed.</p>
-<p>This feature is not needed for extension modules, but for compatibility it is enabled by default until at least the PyO3 0.14 release.</p>
-<p>If you choose not to enable this feature, you should call <code>pyo3::prepare_freethreaded_python()</code> before attempting to call any other Python APIs.</p>
-<blockquote>
-<p>This feature is enabled by default. To disable it, set <code>default-features = false</code> for the <code>pyo3</code> entry in your Cargo.toml.</p>
-</blockquote>
+<p>If you do not enable this feature, you should call <code>pyo3::prepare_freethreaded_python()</code> before attempting to call any other Python APIs.</p>
 <h2><a class="header" href="#advanced-features" id="advanced-features">Advanced Features</a></h2>
 <h3><a class="header" href="#macros-1" id="macros-1"><code>macros</code></a></h3>
 <p>This feature enables a dependency on the <code>pyo3-macros</code> crate, which provides the procedural macros portion of PyO3's API:</p>
@@ -2785,7 +2781,7 @@ test_word_count_python_sequential                      27.3985 (15.82)    45.452
 <li><code>ToBorrowedObject</code> can skip a reference count increase when the provided object is a Python native type.</li>
 </ul>
 <h3><a class="header" href="#serde" id="serde"><code>serde</code></a></h3>
-<p>The <code>serde</code> feature enables (de)serialization of Py<T> objects via <a href="https://serde.rs/">serde</a>.<br />
+<p>The <code>serde</code> feature enables (de)serialization of Py<T> objects via <a href="https://serde.rs/">serde</a>.
 This allows to use <a href="https://serde.rs/derive.html"><code>#[derive(Serialize, Deserialize)</code></a> on structs that hold references to <code>#[pyclass]</code> instances</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -3258,6 +3254,9 @@ crate-type = [&quot;cdylib&quot;, &quot;rlib&quot;]
 <h1><a class="header" href="#migrating-from-older-pyo3-versions" id="migrating-from-older-pyo3-versions">Migrating from older PyO3 versions</a></h1>
 <p>This guide can help you upgrade code through breaking changes from one PyO3 version to the next.
 For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</a>.</p>
+<h2><a class="header" href="#from-013-to-014" id="from-013-to-014">from 0.13.* to 0.14</a></h2>
+<h3><a class="header" href="#auto-initialize-feature-is-now-opt-in" id="auto-initialize-feature-is-now-opt-in"><code>auto-initialize</code> feature is now opt-in</a></h3>
+<p>For projects embedding Python in Rust, PyO3 no longer automatically initalizes a Python interpreter on the first call to <code>Python::with_gil</code> (or <code>Python::acquire_gil</code>) unless the <a href="features.html#auto-initalize"><code>auto-initalize</code> feature</a> is enabled.</p>
 <h2><a class="header" href="#from-012-to-013" id="from-012-to-013">from 0.12.* to 0.13</a></h2>
 <h3><a class="header" href="#minimum-rust-version-increased-to-rust-145" id="minimum-rust-version-increased-to-rust-145">Minimum Rust version increased to Rust 1.45</a></h3>
 <p>PyO3 <code>0.13</code> makes use of new Rust language features stabilised between Rust 1.40 and Rust 1.45. If you are using a Rust compiler older than Rust 1.45, you will need to update your toolchain to be able to continue using PyO3.</p>
@@ -4332,6 +4331,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Change <code>PyTimeAcces::get_fold()</code> to return a <code>bool</code> instead of a <code>u8</code>. <a href="https://github.com/PyO3/pyo3/pull/1397">#1397</a></li>
 <li>Deprecate FFI definition <code>PyCFunction_Call</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>Deprecate FFI definitions <code>PyModule_GetFilename</code>. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
+<li>The <code>auto-initialize</code> feature is no longer enabled by default. <a href="https://github.com/PyO3/pyo3/pull/1443">#1443</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>

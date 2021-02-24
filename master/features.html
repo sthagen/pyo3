@@ -181,11 +181,7 @@
 <h2><a class="header" href="#features-for-embedding-python-in-rust" id="features-for-embedding-python-in-rust">Features for embedding Python in Rust</a></h2>
 <h3><a class="header" href="#auto-initalize" id="auto-initalize"><code>auto-initalize</code></a></h3>
 <p>This feature changes <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.with_gil"><code>Python::with_gil</code></a> and <a href="https://docs.rs/pyo3/latest/pyo3/struct.Python.html#method.acquire_gil"><code>Python::acquire_gil</code></a> to automatically initialize a Python interpreter (by calling <a href="https://docs.rs/pyo3/latest/pyo3/fn.prepare_freethreaded_python.html"><code>prepare_freethreaded_python</code></a>) if needed.</p>
-<p>This feature is not needed for extension modules, but for compatibility it is enabled by default until at least the PyO3 0.14 release.</p>
-<p>If you choose not to enable this feature, you should call <code>pyo3::prepare_freethreaded_python()</code> before attempting to call any other Python APIs.</p>
-<blockquote>
-<p>This feature is enabled by default. To disable it, set <code>default-features = false</code> for the <code>pyo3</code> entry in your Cargo.toml.</p>
-</blockquote>
+<p>If you do not enable this feature, you should call <code>pyo3::prepare_freethreaded_python()</code> before attempting to call any other Python APIs.</p>
 <h2><a class="header" href="#advanced-features" id="advanced-features">Advanced Features</a></h2>
 <h3><a class="header" href="#macros" id="macros"><code>macros</code></a></h3>
 <p>This feature enables a dependency on the <code>pyo3-macros</code> crate, which provides the procedural macros portion of PyO3's API:</p>
@@ -209,7 +205,7 @@
 <li><code>ToBorrowedObject</code> can skip a reference count increase when the provided object is a Python native type.</li>
 </ul>
 <h3><a class="header" href="#serde" id="serde"><code>serde</code></a></h3>
-<p>The <code>serde</code> feature enables (de)serialization of Py<T> objects via <a href="https://serde.rs/">serde</a>.<br />
+<p>The <code>serde</code> feature enables (de)serialization of Py<T> objects via <a href="https://serde.rs/">serde</a>.
 This allows to use <a href="https://serde.rs/derive.html"><code>#[derive(Serialize, Deserialize)</code></a> on structs that hold references to <code>#[pyclass]</code> instances</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
