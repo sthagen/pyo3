@@ -212,51 +212,6 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -338,99 +293,54 @@
 
 <span class="comment">// All traits describing slots, as well as the fallback implementations for unimplemented protos</span>
 <span class="comment">//</span>
-<span class="comment">// Protos which are implented use dtolnay specialization to implement for PyClassImplCollector&lt;T&gt;.</span>
+<span class="comment">// Protos which are implemented use dtolnay specialization to implement for PyClassImplCollector&lt;T&gt;.</span>
 <span class="comment">//</span>
 <span class="comment">// See https://github.com/dtolnay/case-studies/blob/master/autoref-specialization/README.md</span>
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyObjectProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">object_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">slots_trait</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">trait</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
+        }
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
+                <span class="kw-2">&amp;</span>[]
+            }
+        }
+    };
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyObjectProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">object_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyObjectProtocolSlots</span>, <span class="ident">object_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyDescrProtocolSlots</span>, <span class="ident">descr_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyGCProtocolSlots</span>, <span class="ident">gc_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyIterProtocolSlots</span>, <span class="ident">iter_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyMappingProtocolSlots</span>, <span class="ident">mapping_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyNumberProtocolSlots</span>, <span class="ident">number_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyAsyncProtocolSlots</span>, <span class="ident">async_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PySequenceProtocolSlots</span>, <span class="ident">sequence_protocol_slots</span>);
+<span class="macro">slots_trait</span><span class="macro">!</span>(<span class="ident">PyBufferProtocolSlots</span>, <span class="ident">buffer_protocol_slots</span>);
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">methods_trait</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>: <span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">trait</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">PyMethodDefType</span>];
+        }
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">function_name</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">PyMethodDefType</span>] {
+                <span class="kw-2">&amp;</span>[]
+            }
+        }
+    };
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyDescrProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">descr_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyDescrProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">descr_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyGCProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">gc_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyGCProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">gc_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyIterProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">iter_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyIterProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">iter_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyMappingProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">mapping_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyMappingProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">mapping_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyNumberProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">number_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyNumberProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">number_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyAsyncProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">async_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyAsyncProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">async_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PySequenceProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">sequence_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PySequenceProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">sequence_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PyBufferProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">buffer_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>];
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PyBufferProtocolSlots</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">PyClassImplCollector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">buffer_protocol_slots</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">ffi</span>::<span class="ident">PyType_Slot</span>] {
-        <span class="kw-2">&amp;</span>[]
-    }
-}
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyObjectProtocolMethods</span>, <span class="ident">object_protocol_methods</span>);
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyAsyncProtocolMethods</span>, <span class="ident">async_protocol_methods</span>);
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyContextProtocolMethods</span>, <span class="ident">context_protocol_methods</span>);
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyDescrProtocolMethods</span>, <span class="ident">descr_protocol_methods</span>);
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyMappingProtocolMethods</span>, <span class="ident">mapping_protocol_methods</span>);
+<span class="macro">methods_trait</span><span class="macro">!</span>(<span class="ident">PyNumberProtocolMethods</span>, <span class="ident">number_protocol_methods</span>);
 
 <span class="comment">// On Python &lt; 3.9 setting the buffer protocol using slots doesn&#39;t work, so these procs are used</span>
 <span class="comment">// on those versions to set the slots manually (on the limited API).</span>

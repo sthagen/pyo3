@@ -846,9 +846,7 @@ pyclass dependent on whether there is an impl block, we'd need to implement the 
 <code>#[pyclass]</code> and override the implementation in <code>#[pymethods]</code>.
 To enable this, we use a static registry type provided by <a href="https://github.com/dtolnay/inventory">inventory</a>,
 which allows us to collect <code>impl</code>s from arbitrary source code by exploiting some binary trick.
-See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_macros_backend::py_class</code> for more details.
-Also for <code>#[pyproto]</code>, we use a similar, but more task-specific registry and
-initialize it using the <a href="https://github.com/mmastrac/rust-ctor">ctor</a> crate.</p>
+See <a href="https://github.com/dtolnay/inventory#how-it-works">inventory: how it works</a> and <code>pyo3_macros_backend::py_class</code> for more details.</p>
 <p>Specifically, the following implementation is generated:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -916,9 +914,17 @@ impl pyo3::class::impl_::PyClassImpl for MyClass {
     type ThreadChecker = pyo3::class::impl_::ThreadCheckerStub&lt;MyClass&gt;;
 
     fn for_each_method_def(visitor: impl FnMut(&amp;pyo3::class::PyMethodDefType)) {
-        pyo3::inventory::iter::&lt;Pyo3MethodsInventoryForMyClass&gt;
+        use pyo3::class::impl_::*;
+        let collector = PyClassImplCollector::&lt;MyClass&gt;::new();
+        pyo3::inventory::iter::&lt;&lt;MyClass as pyo3::class::methods::HasMethodsInventory&gt;::Methods&gt;
             .into_iter()
             .flat_map(pyo3::class::methods::PyMethodsInventory::get)
+            .chain(collector.object_protocol_methods())
+            .chain(collector.async_protocol_methods())
+            .chain(collector.context_protocol_methods())
+            .chain(collector.descr_protocol_methods())
+            .chain(collector.mapping_protocol_methods())
+            .chain(collector.number_protocol_methods())
             .for_each(visitor)
     }
     fn get_new() -&gt; Option&lt;pyo3::ffi::newfunc&gt; {

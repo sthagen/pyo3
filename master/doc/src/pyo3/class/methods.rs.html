@@ -202,6 +202,16 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -230,16 +240,26 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PyMethodType</span> {
-    <span class="ident">PyCFunction</span>(<span class="ident">ffi</span>::<span class="ident">PyCFunction</span>),
-    <span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span>),
+    <span class="ident">PyCFunction</span>(<span class="ident">PyCFunction</span>),
+    <span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">PyCFunctionWithKeywords</span>),
 }
 
+<span class="comment">// These two newtype structs serve no purpose other than wrapping the raw ffi types (which are</span>
+<span class="comment">// function pointers) - because function pointers aren&#39;t allowed in const fn, but types wrapping</span>
+<span class="comment">// them are!</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyCFunction</span>(<span class="kw">pub</span> <span class="ident">ffi</span>::<span class="ident">PyCFunction</span>);
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyCFunctionWithKeywords</span>(<span class="kw">pub</span> <span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span>);
+
+<span class="comment">// TODO: it would be nice to use CStr in these types, but then the constructors can&#39;t be const fn</span>
+<span class="comment">// until `CStr::from_bytes_with_nul_unchecked` is const fn.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PyMethodDef</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_flags</span>: <span class="ident">c_int</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ml_doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
@@ -279,42 +299,42 @@
 
 <span class="kw">impl</span> <span class="ident">PyMethodDef</span> {
     <span class="doccomment">/// Define a function with no `*args` and `**kwargs`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cfunction</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">ffi</span>::<span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cfunction</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">ml_name</span>: <span class="ident">name</span>,
             <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">cfunction</span>),
             <span class="ident">ml_flags</span>: <span class="ident">ffi</span>::<span class="ident">METH_NOARGS</span>,
-            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
+            <span class="ident">ml_doc</span>: <span class="ident">doc</span>,
         }
     }
 
     <span class="doccomment">/// Define a function that can take `*args` and `**kwargs`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cfunction_with_keywords</span>(
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cfunction_with_keywords</span>(
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">cfunction</span>: <span class="ident">ffi</span>::<span class="ident">PyCFunctionWithKeywords</span>,
+        <span class="ident">cfunction</span>: <span class="ident">PyCFunctionWithKeywords</span>,
         <span class="ident">flags</span>: <span class="ident">c_int</span>,
         <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">ml_name</span>: <span class="ident">name</span>,
             <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">cfunction</span>),
             <span class="ident">ml_flags</span>: <span class="ident">flags</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
-            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
+            <span class="ident">ml_doc</span>: <span class="ident">doc</span>,
         }
     }
 
     <span class="doccomment">/// Convert `PyMethodDef` to Python method definition struct `ffi::PyMethodDef`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_method_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {
         <span class="kw">let</span> <span class="ident">meth</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ml_meth</span> {
-            <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">meth</span>,
-            <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>) },
+            <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">meth</span>.<span class="number">0</span>,
+            <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>.<span class="number">0</span>) },
         };
 
         <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {
-            <span class="ident">ml_name</span>: <span class="self">self</span>.<span class="ident">ml_name</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="self">self</span>.<span class="ident">ml_name</span>).<span class="ident">as_ptr</span>(),
             <span class="ident">ml_meth</span>: <span class="prelude-val">Some</span>(<span class="ident">meth</span>),
             <span class="ident">ml_flags</span>: <span class="self">self</span>.<span class="ident">ml_flags</span>,
-            <span class="ident">ml_doc</span>: <span class="self">self</span>.<span class="ident">ml_doc</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="self">self</span>.<span class="ident">ml_doc</span>).<span class="ident">as_ptr</span>(),
         }
     }
 }
