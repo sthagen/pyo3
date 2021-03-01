@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecate FFI definition `PyCFunction_Call` for Python 3.9 and later. [#1425](https://github.com/PyO3/pyo3/pull/1425)
 - Deprecate FFI definitions `PyModule_GetFilename`. [#1425](https://github.com/PyO3/pyo3/pull/1425)
 - The `auto-initialize` feature is no longer enabled by default. [#1443](https://github.com/PyO3/pyo3/pull/1443)
+- Change `PyCFunction::new()` and `PyCFunction::new_with_keywords()` to take `&'static str` arguments rather than implicitly copying (and leaking) them. [#1450](https://github.com/PyO3/pyo3/pull/1450)
 
 ### Removed
 - Remove deprecated exception names `BaseException` etc. [#1426](https://github.com/PyO3/pyo3/pull/1426)
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove FFI definition `PyCFunction_ClearFreeList` for Python 3.9 and later. [#1425](https://github.com/PyO3/pyo3/pull/1425)
 - `PYO3_CROSS_LIB_DIR` enviroment variable no long required when compiling for x86-64 Python from macOS arm64 and reverse. [#1428](https://github.com/PyO3/pyo3/pull/1428)
 - Fix FFI definition `_PyEval_RequestCodeExtraIndex` which took an argument of the wrong type. [#1429](https://github.com/PyO3/pyo3/pull/1429)
+- Fix FFI definition `PyIndex_Check` missing with the `abi3` feature. [#1436](https://github.com/PyO3/pyo3/pull/1436)
 
 ## [0.13.2] - 2021-02-12
 ### Packaging
