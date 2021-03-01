@@ -182,6 +182,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Deprecate FFI definition <code>PyCFunction_Call</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>Deprecate FFI definitions <code>PyModule_GetFilename</code>. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>The <code>auto-initialize</code> feature is no longer enabled by default. <a href="https://github.com/PyO3/pyo3/pull/1443">#1443</a></li>
+<li>Change <code>PyCFunction::new()</code> and <code>PyCFunction::new_with_keywords()</code> to take <code>&amp;'static str</code> arguments rather than implicitly copying (and leaking) them. <a href="https://github.com/PyO3/pyo3/pull/1450">#1450</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
@@ -201,6 +202,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Remove FFI definition <code>PyCFunction_ClearFreeList</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li><code>PYO3_CROSS_LIB_DIR</code> enviroment variable no long required when compiling for x86-64 Python from macOS arm64 and reverse. <a href="https://github.com/PyO3/pyo3/pull/1428">#1428</a></li>
 <li>Fix FFI definition <code>_PyEval_RequestCodeExtraIndex</code> which took an argument of the wrong type. <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
+<li>Fix FFI definition <code>PyIndex_Check</code> missing with the <code>abi3</code> feature. <a href="https://github.com/PyO3/pyo3/pull/1436">#1436</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12"><a href="https://github.com/pyo3/pyo3/compare/v0.13.1...v0.13.2">0.13.2</a> - 2021-02-12</a></h2>
 <h3><a class="header" href="#packaging" id="packaging">Packaging</a></h3>

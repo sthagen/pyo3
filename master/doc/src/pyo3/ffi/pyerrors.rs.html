@@ -412,15 +412,9 @@
 <span id="409">409</span>
 <span id="410">410</span>
 <span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">PyPy</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">objectabstract</span>::<span class="ident">PyObject_CallFunction</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">pyport</span>::<span class="ident">Py_ssize_t</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">PyPy</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>};
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
@@ -579,9 +573,11 @@
     <span class="ident">end</span>: <span class="ident">Py_ssize_t</span>,
     <span class="ident">_reason</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PyObject</span> {
-    <span class="kw">return</span> <span class="ident">PyObject_CallFunction</span>(
+    <span class="kw">return</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">PyObject_CallFunction</span>(
         <span class="ident">PyExc_UnicodeDecodeError</span>,
-        <span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="string">b&quot;sy#nns\0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_ptr</span>(),
+        <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="string">b&quot;sy#nns\0&quot;</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">as_ptr</span>(),
         <span class="ident">encoding</span>,
         <span class="ident">object</span>,
         <span class="ident">length</span>,

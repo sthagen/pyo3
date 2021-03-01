@@ -212,11 +212,24 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ffi</span>, <span class="ident">PyObject</span>, <span class="ident">Python</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_int</span>;
 
@@ -288,15 +301,6 @@
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">PySetterDef</span> {}
 
-<span class="kw">fn</span> <span class="ident">get_name</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
-    <span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="ident">name</span>.<span class="ident">as_bytes</span>())
-        .<span class="ident">expect</span>(<span class="string">&quot;Method name must be terminated with NULL byte&quot;</span>)
-}
-
-<span class="kw">fn</span> <span class="ident">get_doc</span>(<span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
-    <span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="ident">doc</span>.<span class="ident">as_bytes</span>()).<span class="ident">expect</span>(<span class="string">&quot;Document must be terminated with NULL byte&quot;</span>)
-}
-
 <span class="kw">impl</span> <span class="ident">PyMethodDef</span> {
     <span class="doccomment">/// Define a function with no `*args` and `**kwargs`.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cfunction</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -324,18 +328,18 @@
     }
 
     <span class="doccomment">/// Convert `PyMethodDef` to Python method definition struct `ffi::PyMethodDef`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_method_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_method_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ffi</span>::<span class="ident">PyMethodDef</span>, <span class="ident">NulByteInString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">meth</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ml_meth</span> {
             <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">meth</span>.<span class="number">0</span>,
             <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">meth</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">meth</span>.<span class="number">0</span>) },
         };
 
-        <span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {
-            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="self">self</span>.<span class="ident">ml_name</span>).<span class="ident">as_ptr</span>(),
+        <span class="prelude-val">Ok</span>(<span class="ident">ffi</span>::<span class="ident">PyMethodDef</span> {
+            <span class="ident">ml_name</span>: <span class="ident">get_name</span>(<span class="self">self</span>.<span class="ident">ml_name</span>)<span class="question-mark">?</span>.<span class="ident">as_ptr</span>(),
             <span class="ident">ml_meth</span>: <span class="prelude-val">Some</span>(<span class="ident">meth</span>),
             <span class="ident">ml_flags</span>: <span class="self">self</span>.<span class="ident">ml_flags</span>,
-            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="self">self</span>.<span class="ident">ml_doc</span>).<span class="ident">as_ptr</span>(),
-        }
+            <span class="ident">ml_doc</span>: <span class="ident">get_doc</span>(<span class="self">self</span>.<span class="ident">ml_doc</span>)<span class="question-mark">?</span>.<span class="ident">as_ptr</span>(),
+        })
     }
 }
 
@@ -343,7 +347,7 @@
     <span class="doccomment">/// Define a class attribute.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">meth</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="kw">fn</span>(<span class="ident">Python</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>(),
             <span class="ident">meth</span>,
         }
     }
@@ -363,9 +367,9 @@
     <span class="doccomment">/// Define a getter.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">getter</span>: <span class="ident">ffi</span>::<span class="ident">getter</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>(),
             <span class="ident">meth</span>: <span class="ident">getter</span>,
-            <span class="ident">doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
+            <span class="ident">doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>).<span class="ident">unwrap</span>(),
         }
     }
 
@@ -385,9 +389,9 @@
     <span class="doccomment">/// Define a setter.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">setter</span>: <span class="ident">ffi</span>::<span class="ident">setter</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>),
+            <span class="ident">name</span>: <span class="ident">get_name</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>(),
             <span class="ident">meth</span>: <span class="ident">setter</span>,
-            <span class="ident">doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>),
+            <span class="ident">doc</span>: <span class="ident">get_doc</span>(<span class="ident">doc</span>).<span class="ident">unwrap</span>(),
         }
     }
 
@@ -423,6 +427,28 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HasMethodsInventory</span> {
     <span class="kw">type</span> <span class="ident">Methods</span>: <span class="ident">PyMethodsInventory</span>;
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">NulByteInString</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>);
+
+<span class="kw">fn</span> <span class="ident">get_name</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>, <span class="ident">NulByteInString</span><span class="op">&gt;</span> {
+    <span class="ident">extract_cstr_or_leak_cstring</span>(<span class="ident">name</span>, <span class="string">&quot;Function name cannot contain NUL byte.&quot;</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">get_doc</span>(<span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>, <span class="ident">NulByteInString</span><span class="op">&gt;</span> {
+    <span class="ident">extract_cstr_or_leak_cstring</span>(<span class="ident">doc</span>, <span class="string">&quot;Document cannot contain NUL byte.&quot;</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">extract_cstr_or_leak_cstring</span>(
+    <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+    <span class="ident">err_msg</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">CStr</span>, <span class="ident">NulByteInString</span><span class="op">&gt;</span> {
+    <span class="ident">CStr</span>::<span class="ident">from_bytes_with_nul</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>())
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">c_string</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">Box</span>::<span class="ident">leak</span>(<span class="ident">c_string</span>.<span class="ident">into_boxed_c_str</span>()))
+        })
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">NulByteInString</span>(<span class="ident">err_msg</span>))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

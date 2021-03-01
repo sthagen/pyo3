@@ -214,9 +214,6 @@
 <span id="211">211</span>
 <span id="212">212</span>
 <span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">non_snake_case</span>, <span class="ident">non_upper_case_globals</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">Py_LIMITED_API</span>, <span class="ident">allow</span>(<span class="ident">unused_imports</span>))]</span>
@@ -232,6 +229,7 @@
     };
 }
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">abstract_</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">bltinmodule</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">boolobject</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">bytearrayobject</span>::<span class="kw-2">*</span>;
@@ -267,7 +265,6 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">modsupport</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">moduleobject</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">object</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">objectabstract</span>::<span class="kw-2">*</span>; <span class="comment">// FIXME: no matching objectabstract.h in cpython master</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">objimpl</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">osmodule</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">pyarena</span>::<span class="kw-2">*</span>;
@@ -296,8 +293,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">Py_LIMITED_API</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">cpython</span>::<span class="kw-2">*</span>;
-
-<span class="comment">// skipped abstract.h</span>
+<span class="kw">mod</span> <span class="ident">abstract_</span>;
 <span class="comment">// skipped asdl.h</span>
 <span class="comment">// skipped ast.h</span>
 <span class="kw">mod</span> <span class="ident">bltinmodule</span>;
@@ -419,8 +415,6 @@
                <span class="comment">//mod pylifecycle; // TODO new in 3.5</span>
 <span class="kw">mod</span> <span class="ident">osmodule</span>;
 <span class="kw">mod</span> <span class="ident">sysmodule</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
-
-<span class="kw">mod</span> <span class="ident">objectabstract</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
 
 <span class="comment">// mod pyctype; TODO excluded by PEP-384</span>
 <span class="kw">mod</span> <span class="ident">pystrtod</span>; <span class="comment">// TODO supports PEP-384 only; needs adjustment for Python 3.3 and 3.5</span>
