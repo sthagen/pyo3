@@ -198,6 +198,10 @@
 <blockquote>
 <p>This feature is enabled by default. To disable it, set <code>default-features = false</code> for the <code>pyo3</code> entry in your Cargo.toml.</p>
 </blockquote>
+<h3><a class="header" href="#multiple-pymethods" id="multiple-pymethods"><code>multiple-pymethods</code></a></h3>
+<p>This feature enables a dependency on <code>inventory</code>, which enables each <code>#[pyclass]</code> to have more than one <code>#[pymethods]</code> block.</p>
+<p>Most users should only need a single <code>#[pymethods]</code> per <code>#[pyclass]</code>. In addition, not all platforms (e.g. Wasm) are supported by <code>inventory</code>. For this reason this feature is not enabled by default, meaning fewer dependencies and faster compilation for the majority of users.</p>
+<p>See <a href="class.html#implementation-details">the <code>#[pyclass]</code> implementation details</a> for more information.</p>
 <h3><a class="header" href="#nightly" id="nightly"><code>nightly</code></a></h3>
 <p>The <code>nightly</code> feature needs the nightly Rust compiler. This allows PyO3 to use Rust's unstable specialization feature to apply the following optimizations:</p>
 <ul>

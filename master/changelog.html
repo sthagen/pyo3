@@ -169,12 +169,18 @@ PyO3 versions, please see the <a href="https://pyo3.rs/master/migration.html">mi
 <p>The format is based on <a href="http://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>
 and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0132headunreleaseda" id="a-hrefhttpsgithubcompyo3pyo3comparev0132headunreleaseda"><a href="https://github.com/pyo3/pyo3/compare/v0.13.2...HEAD">Unreleased</a></a></h2>
+<h3><a class="header" href="#packaging" id="packaging">Packaging</a></h3>
+<ul>
+<li>Update <code>num-bigint</code> optional dependency to 0.4. <a href="https://github.com/PyO3/pyo3/pull/1481">#1481</a></li>
+<li>Update <code>num-complex</code> optional dependency to 0.4. <a href="https://github.com/PyO3/pyo3/pull/1482">#1482</a></li>
+</ul>
 <h3><a class="header" href="#added" id="added">Added</a></h3>
 <ul>
 <li>Add conversions between <code>OsStr</code>/<code>OsString</code>/<code>Path</code>/<code>PathBuf</code> and Python strings. <a href="https://github.com/PyO3/pyo3/pull/1379">#1379</a></li>
 <li>Add #[pyo3(from_py_with = &quot;...&quot;)]` attribute for function arguments and struct fields to override the default from-Python conversion. <a href="https://github.com/PyO3/pyo3/pull/1411">#1411</a></li>
 <li>Add FFI definition <code>PyCFunction_CheckExact</code> for Python 3.9 and later. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>Add FFI definition <code>Py_IS_TYPE</code>. <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
+<li>Add FFI definition <code>_Py_InitializeMain</code>. <a href="https://github.com/PyO3/pyo3/pull/1473">#1473</a></li>
 </ul>
 <h3><a class="header" href="#changed" id="changed">Changed</a></h3>
 <ul>
@@ -183,6 +189,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Deprecate FFI definitions <code>PyModule_GetFilename</code>. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>The <code>auto-initialize</code> feature is no longer enabled by default. <a href="https://github.com/PyO3/pyo3/pull/1443">#1443</a></li>
 <li>Change <code>PyCFunction::new()</code> and <code>PyCFunction::new_with_keywords()</code> to take <code>&amp;'static str</code> arguments rather than implicitly copying (and leaking) them. <a href="https://github.com/PyO3/pyo3/pull/1450">#1450</a></li>
+<li>The <code>call/call0/call1</code> methods of <code>PyModule</code> have been renamed to <code>call_function</code> etc. for consistency with <code>call</code> and <code>call_method</code> on <code>PyAny</code>. The old names are still present, but deprecated. <a href="https://github.com/PyO3/pyo3/pull/1467">#1467</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
@@ -203,9 +210,11 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li><code>PYO3_CROSS_LIB_DIR</code> enviroment variable no long required when compiling for x86-64 Python from macOS arm64 and reverse. <a href="https://github.com/PyO3/pyo3/pull/1428">#1428</a></li>
 <li>Fix FFI definition <code>_PyEval_RequestCodeExtraIndex</code> which took an argument of the wrong type. <a href="https://github.com/PyO3/pyo3/pull/1429">#1429</a></li>
 <li>Fix FFI definition <code>PyIndex_Check</code> missing with the <code>abi3</code> feature. <a href="https://github.com/PyO3/pyo3/pull/1436">#1436</a></li>
+<li>Fix incorrect <code>TypeError</code> raised when keyword-only argument passed along with a positional argument in <code>*args</code>. <a href="https://github.com/PyO3/pyo3/pull/1440">#1440</a></li>
+<li>Fix inability to use a named lifetime for <code>&amp;PyTuple</code> of <code>*args</code> in <code>#[pyfunction]</code>. <a href="https://github.com/PyO3/pyo3/pull/1440">#1440</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12"><a href="https://github.com/pyo3/pyo3/compare/v0.13.1...v0.13.2">0.13.2</a> - 2021-02-12</a></h2>
-<h3><a class="header" href="#packaging" id="packaging">Packaging</a></h3>
+<h3><a class="header" href="#packaging-1" id="packaging-1">Packaging</a></h3>
 <ul>
 <li>Lower minimum supported Rust version to 1.41. <a href="https://github.com/PyO3/pyo3/pull/1421">#1421</a></li>
 </ul>
@@ -263,7 +272,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Fix missing <code>Py_INCREF</code> on heap type objects on Python versions before 3.8. <a href="https://github.com/PyO3/pyo3/pull/1365">#1365</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0124v01300130a---2020-12-22" id="a-hrefhttpsgithubcompyo3pyo3comparev0124v01300130a---2020-12-22"><a href="https://github.com/pyo3/pyo3/compare/v0.12.4...v0.13.0">0.13.0</a> - 2020-12-22</a></h2>
-<h3><a class="header" href="#packaging-1" id="packaging-1">Packaging</a></h3>
+<h3><a class="header" href="#packaging-2" id="packaging-2">Packaging</a></h3>
 <ul>
 <li>Drop support for Python 3.5 (as it is now end-of-life). <a href="https://github.com/PyO3/pyo3/pull/1250">#1250</a></li>
 <li>Bump minimum supported Rust version to 1.45. <a href="https://github.com/PyO3/pyo3/pull/1272">#1272</a></li>
@@ -287,6 +296,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Add FFI definitions for <code>PyBuffer_SizeFromFormat</code>, <code>PyObject_LengthHint</code>, <code>PyObject_CallNoArgs</code>, <code>PyObject_CallOneArg</code>, <code>PyObject_CallMethodNoArgs</code>, <code>PyObject_CallMethodOneArg</code>, <code>PyObject_VectorcallDict</code>, and <code>PyObject_VectorcallMethod</code>. <a href="https://github.com/PyO3/pyo3/pull/1287">#1287</a></li>
 <li>Add conversions between <code>u128</code>/<code>i128</code> and <code>PyLong</code> for PyPy. <a href="https://github.com/PyO3/pyo3/pull/1310">#1310</a></li>
 <li>Add <code>Python::version()</code> and <code>Python::version_info()</code> to get the running interpreter version. <a href="https://github.com/PyO3/pyo3/pull/1322">#1322</a></li>
+<li>Add conversions for tuples of length 10, 11, and 12. <a href="https://github.com/PyO3/pyo3/pull/1454">#1454</a></li>
 </ul>
 <h3><a class="header" href="#changed-2" id="changed-2">Changed</a></h3>
 <ul>

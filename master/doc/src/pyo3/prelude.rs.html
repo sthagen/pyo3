@@ -47,6 +47,6 @@
 <span class="comment">// PyModule is only part of the prelude because we need it for the pymodule function</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">PyAny</span>, <span class="ident">PyModule</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::{<span class="ident">pyclass</span>, <span class="ident">pyfunction</span>, <span class="ident">pymethods</span>, <span class="ident">pymodule</span>, <span class="ident">pyproto</span>, <span class="ident">FromPyObject</span>};
+<span class="kw">pub</span> <span class="kw">use</span> {<span class="kw">crate</span>::<span class="ident">proc_macro</span>::<span class="kw-2">*</span>, <span class="ident">pyo3_macros</span>::<span class="ident">FromPyObject</span>};
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "pyo3";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

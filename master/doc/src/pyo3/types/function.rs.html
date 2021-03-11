@@ -83,13 +83,13 @@
 <span id="80">80</span>
 <span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">derive_utils</span>::<span class="ident">PyFunctionArguments</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyValueError</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::<span class="ident">methods</span>::{<span class="self">self</span>, <span class="ident">PyMethodDef</span>},
     <span class="ident">ffi</span>, <span class="ident">AsPyPointer</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">derive_utils</span>::<span class="ident">PyFunctionArguments</span>, <span class="ident">methods</span>::<span class="ident">NulByteInString</span>};
 
 <span class="doccomment">/// Represents a builtin Python function object.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
@@ -139,7 +139,7 @@
         <span class="kw">let</span> (<span class="ident">py</span>, <span class="ident">module</span>) <span class="op">=</span> <span class="ident">py_or_module</span>.<span class="ident">into_py_and_maybe_module</span>();
         <span class="kw">let</span> <span class="ident">def</span> <span class="op">=</span> <span class="ident">method_def</span>
             .<span class="ident">as_method_def</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">NulByteInString</span>(<span class="ident">err</span>)<span class="op">|</span> <span class="ident">PyValueError</span>::<span class="ident">new_err</span>(<span class="ident">err</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">PyValueError</span>::<span class="ident">new_err</span>(<span class="ident">err</span>.<span class="number">0</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> (<span class="ident">mod_ptr</span>, <span class="ident">module_name</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">module</span> {
             <span class="kw">let</span> <span class="ident">mod_ptr</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">as_ptr</span>();
             <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">name</span>()<span class="question-mark">?</span>.<span class="ident">into_py</span>(<span class="ident">py</span>);

@@ -54,33 +54,8 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::<span class="ident">pystate</span>::<span class="ident">PyThreadState</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_3_8</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">PY_LIMITED_API</span>, <span class="ident">PyPy</span>))))]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ffi</span>::{<span class="ident">PyConfig</span>, <span class="ident">PyPreConfig</span>, <span class="ident">PyStatus</span>, <span class="ident">Py_ssize_t</span>};
 
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">wchar_t</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>};
@@ -132,27 +107,6 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyOS_getsig</span>(<span class="ident">arg1</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyOS_sighandler_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">PyOS_setsig</span>(<span class="ident">arg1</span>: <span class="ident">c_int</span>, <span class="ident">arg2</span>: <span class="ident">PyOS_sighandler_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyOS_sighandler_t</span>;
-}
-
-<span class="comment">// &quot;private&quot; functions in cpython/pylifecycle.h accepted in PEP 587</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">Py_3_8</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">PY_LIMITED_API</span>, <span class="ident">PyPy</span>))))]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;pythonXY&quot;</span>))]</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">Py_PreInitialize</span>(<span class="ident">src_config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PyPreConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyStatus</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">Py_PreInitializeFromBytesArgs</span>(
-        <span class="ident">src_config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PyPreConfig</span>,
-        <span class="ident">argc</span>: <span class="ident">Py_ssize_t</span>,
-        <span class="ident">argv</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyStatus</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">Py_PreInitializeFromArgs</span>(
-        <span class="ident">src_config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PyPreConfig</span>,
-        <span class="ident">argc</span>: <span class="ident">Py_ssize_t</span>,
-        <span class="ident">argv</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">wchar_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyStatus</span>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">Py_InitializeFromConfig</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PyConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyStatus</span>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">Py_RunMain</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "pyo3";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

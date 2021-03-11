@@ -693,6 +693,7 @@
 <span id="690">690</span>
 <span id="691">691</span>
 <span id="692">692</span>
+<span id="693">693</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 <span class="comment">//</span>
@@ -1185,12 +1186,12 @@
                 .<span class="ident">unwrap</span>();
             <span class="comment">// Checks if Python Long -&gt; Rust BigUint conversion is correct if N is small</span>
             <span class="kw">let</span> <span class="ident">py_result</span>: <span class="ident">BigUint</span> <span class="op">=</span>
-                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">400</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call_function1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">400</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rs_result</span>, <span class="ident">py_result</span>);
             <span class="comment">// Checks if Python Long -&gt; Rust BigUint conversion is correct if N is large</span>
             <span class="kw">let</span> <span class="ident">rs_result</span>: <span class="ident">BigUint</span> <span class="op">=</span> <span class="ident">rust_fib</span>(<span class="number">2000</span>);
             <span class="kw">let</span> <span class="ident">py_result</span>: <span class="ident">BigUint</span> <span class="op">=</span>
-                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">2000</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call_function1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">2000</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rs_result</span>, <span class="ident">py_result</span>);
         }
 
@@ -1208,12 +1209,12 @@
                 .<span class="ident">unwrap</span>();
             <span class="comment">// Checks if Python Long -&gt; Rust BigInt conversion is correct if N is small</span>
             <span class="kw">let</span> <span class="ident">py_result</span>: <span class="ident">BigInt</span> <span class="op">=</span>
-                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call1</span>(<span class="string">&quot;fib_neg&quot;</span>, (<span class="number">400</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call_function1</span>(<span class="string">&quot;fib_neg&quot;</span>, (<span class="number">400</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rs_result</span>, <span class="ident">py_result</span>);
             <span class="comment">// Checks if Python Long -&gt; Rust BigInt conversion is correct if N is large</span>
             <span class="kw">let</span> <span class="ident">rs_result</span> <span class="op">=</span> <span class="ident">rust_fib</span>::<span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span>(<span class="number">2000</span>) <span class="op">*</span> <span class="op">-</span><span class="number">1</span>;
             <span class="kw">let</span> <span class="ident">py_result</span>: <span class="ident">BigInt</span> <span class="op">=</span>
-                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call1</span>(<span class="string">&quot;fib_neg&quot;</span>, (<span class="number">2000</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call_function1</span>(<span class="string">&quot;fib_neg&quot;</span>, (<span class="number">2000</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rs_result</span>, <span class="ident">py_result</span>);
         }
 
@@ -1246,7 +1247,8 @@
             <span class="kw">let</span> <span class="ident">gil</span> <span class="op">=</span> <span class="ident">Python</span>::<span class="ident">acquire_gil</span>();
             <span class="kw">let</span> <span class="ident">py</span> <span class="op">=</span> <span class="ident">gil</span>.<span class="ident">python</span>();
             <span class="kw">let</span> <span class="ident">fib</span> <span class="op">=</span> <span class="ident">python_fib</span>(<span class="ident">py</span>);
-            <span class="kw">let</span> <span class="ident">zero</span>: <span class="ident">BigInt</span> <span class="op">=</span> <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">0</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">zero</span>: <span class="ident">BigInt</span> <span class="op">=</span>
+                <span class="ident">FromPyObject</span>::<span class="ident">extract</span>(<span class="ident">fib</span>.<span class="ident">call_function1</span>(<span class="string">&quot;fib&quot;</span>, (<span class="number">0</span>,)).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">zero</span>, <span class="ident">BigInt</span>::<span class="ident">from</span>(<span class="number">0</span>));
         }
 

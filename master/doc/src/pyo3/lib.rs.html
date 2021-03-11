@@ -418,6 +418,16 @@
 <span id="415">415</span>
 <span id="416">416</span>
 <span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">specialization</span>))]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">missing_safety_doc</span>)]</span> <span class="comment">// FIXME (#698)</span>
@@ -587,11 +597,13 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> {
-    <span class="ident">indoc</span>,     <span class="comment">// Re-exported for py_run</span>
-    <span class="ident">inventory</span>, <span class="comment">// Re-exported for pymethods</span>
-    <span class="ident">paste</span>,     <span class="comment">// Re-exported for wrap_function</span>
-    <span class="ident">unindent</span>,  <span class="comment">// Re-exported for py_run</span>
+    <span class="ident">indoc</span>,    <span class="comment">// Re-exported for py_run</span>
+    <span class="ident">paste</span>,    <span class="comment">// Re-exported for wrap_function</span>
+    <span class="ident">unindent</span>, <span class="comment">// Re-exported for py_run</span>
 };
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multiple-pymethods&quot;</span>))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inventory</span>; <span class="comment">// Re-exported for `#[pyclass]` and `#[pymethods]` with `multiple-pymethods`.</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">internal_tricks</span>;
@@ -637,7 +649,15 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proc_macro</span> {
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::<span class="ident">pymodule</span>;
     <span class="doccomment">/// The proc macro attributes</span>
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::{<span class="ident">pyclass</span>, <span class="ident">pyfunction</span>, <span class="ident">pymethods</span>, <span class="ident">pyproto</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::{<span class="ident">pyfunction</span>, <span class="ident">pyproto</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multiple-pymethods&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::{<span class="ident">pyclass</span>, <span class="ident">pymethods</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;multiple-pymethods&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pyo3_macros</span>::{
+        <span class="ident">pyclass_with_inventory</span> <span class="kw">as</span> <span class="ident">pyclass</span>, <span class="ident">pymethods_with_inventory</span> <span class="kw">as</span> <span class="ident">pymethods</span>,
+    };
 }
 
 <span class="doccomment">/// Returns a function that takes a [Python] instance and returns a Python function.</span>
@@ -774,7 +794,7 @@
             <span class="comment">// panic before flushing. This is where this hack comes into place</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">py</span>.<span class="ident">run</span>(<span class="string">&quot;import sys; sys.stderr.flush()&quot;</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
                 .<span class="ident">unwrap</span>();
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>.<span class="ident">to_string</span>())
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>)
         }
     }};
 }

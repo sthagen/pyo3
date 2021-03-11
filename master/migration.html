@@ -169,6 +169,9 @@ For a detailed list of all changes, see the <a href="changelog.html">CHANGELOG</
 <h2><a class="header" href="#from-013-to-014" id="from-013-to-014">from 0.13.* to 0.14</a></h2>
 <h3><a class="header" href="#auto-initialize-feature-is-now-opt-in" id="auto-initialize-feature-is-now-opt-in"><code>auto-initialize</code> feature is now opt-in</a></h3>
 <p>For projects embedding Python in Rust, PyO3 no longer automatically initalizes a Python interpreter on the first call to <code>Python::with_gil</code> (or <code>Python::acquire_gil</code>) unless the <a href="features.html#auto-initalize"><code>auto-initalize</code> feature</a> is enabled.</p>
+<h3><a class="header" href="#new-multiple-pymethods-feature" id="new-multiple-pymethods-feature">New <code>multiple-pymethods</code> feature</a></h3>
+<p><code>#[pymethods]</code> have been reworked with a simpler default implementation which removes the dependency on the <code>inventory</code> crate. This reduces dependencies and compile times for the majority of users.</p>
+<p>The limitation of the new default implementation is that it cannot support multiple <code>#[pymethods]</code> blocks for the same <code>#[pyclass]</code>. If you need this functionality, you must enable the <code>multiple-pymethods</code> feature which will switch <code>#[pymethods]</code> to the inventory-based implementation.</p>
 <h2><a class="header" href="#from-012-to-013" id="from-012-to-013">from 0.12.* to 0.13</a></h2>
 <h3><a class="header" href="#minimum-rust-version-increased-to-rust-145" id="minimum-rust-version-increased-to-rust-145">Minimum Rust version increased to Rust 1.45</a></h3>
 <p>PyO3 <code>0.13</code> makes use of new Rust language features stabilised between Rust 1.40 and Rust 1.45. If you are using a Rust compiler older than Rust 1.45, you will need to update your toolchain to be able to continue using PyO3.</p>

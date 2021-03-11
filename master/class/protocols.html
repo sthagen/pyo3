@@ -223,7 +223,7 @@ The return type must be <code>PyResult&lt;T&gt;</code> where <code>T</code> is o
 </li>
 </ul>
 <h3><a class="header" href="#emulating-numeric-types" id="emulating-numeric-types">Emulating numeric types</a></h3>
-<p>The [<code>PyNumberProtocol</code>] trait allows <a href="https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types">emulate numeric types</a>.</p>
+<p>The <a href="https://docs.rs/pyo3/latest/pyo3/class/number/trait.PyNumberProtocol.html"><code>PyNumberProtocol</code></a> trait allows <a href="https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types">emulate numeric types</a>.</p>
 <ul>
 <li><code>fn __add__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
 <li><code>fn __sub__(lhs: impl FromPyObject, rhs: impl FromPyObject) -&gt; PyResult&lt;impl ToPyObject&gt;</code></li>
