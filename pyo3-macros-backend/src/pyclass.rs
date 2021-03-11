@@ -1,6 +1,7 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
 
 use crate::method::{FnType, SelfType};
+use crate::pyimpl::PyClassMethodsType;
 use crate::pymethod::{
     impl_py_getter_def, impl_py_setter_def, impl_wrap_getter, impl_wrap_setter, PropertyType,
 };
@@ -154,7 +155,11 @@ impl PyClassArgs {
     }
 }
 
-pub fn build_py_class(class: &mut syn::ItemStruct, attr: &PyClassArgs) -> syn::Result<TokenStream> {
+pub fn build_py_class(
+    class: &mut syn::ItemStruct,
+    attr: &PyClassArgs,
+    methods_type: PyClassMethodsType,
+) -> syn::Result<TokenStream> {
     let text_signature = utils::parse_text_signature_attrs(
         &mut class.attrs,
         &get_class_python_name(&class.ident, attr),
@@ -178,7 +183,7 @@ pub fn build_py_class(class: &mut syn::ItemStruct, attr: &PyClassArgs) -> syn::R
         bail_spanned!(class.fields.span() => "#[pyclass] can only be used with C-style structs");
     }
 
-    impl_class(&class.ident, &attr, doc, descriptors)
+    impl_class(&class.ident, &attr, doc, descriptors, methods_type)
 }
 
 /// Parses `#[pyo3(get, set)]`
@@ -210,7 +215,7 @@ fn parse_descriptors(item: &mut syn::Field) -> syn::Result<Vec<FnType>> {
     Ok(descs)
 }
 
-/// To allow multiple #[pymethods]/#[pyproto] block, we define inventory types.
+/// To allow multiple #[pymethods] block, we define inventory types.
 fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
     // Try to build a unique type for better error messages
     let name = format!("Pyo3MethodsInventoryFor{}", cls.unraw());
@@ -221,7 +226,7 @@ fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
         pub struct #inventory_cls {
             methods: Vec<pyo3::class::PyMethodDefType>,
         }
-        impl pyo3::class::methods::PyMethodsInventory for #inventory_cls {
+        impl pyo3::class::impl_::PyMethodsInventory for #inventory_cls {
             fn new(methods: Vec<pyo3::class::PyMethodDefType>) -> Self {
                 Self { methods }
             }
@@ -230,7 +235,7 @@ fn impl_methods_inventory(cls: &syn::Ident) -> TokenStream {
             }
         }
 
-        impl pyo3::class::methods::HasMethodsInventory for #cls {
+        impl pyo3::class::impl_::HasMethodsInventory for #cls {
             type Methods = #inventory_cls;
         }
 
@@ -247,6 +252,7 @@ fn impl_class(
     attr: &PyClassArgs,
     doc: syn::LitStr,
     descriptors: Vec<(syn::Field, Vec<FnType>)>,
+    methods_type: PyClassMethodsType,
 ) -> syn::Result<TokenStream> {
     let cls_name = get_class_python_name(cls, attr).to_string();
 
@@ -338,7 +344,17 @@ fn impl_class(
         quote! {}
     };
 
-    let impl_inventory = impl_methods_inventory(&cls);
+    let (impl_inventory, iter_py_methods) = match methods_type {
+        PyClassMethodsType::Specialization => (None, quote! { collector.py_methods().iter() }),
+        PyClassMethodsType::Inventory => (
+            Some(impl_methods_inventory(&cls)),
+            quote! {
+                pyo3::inventory::iter::<<Self as pyo3::class::impl_::HasMethodsInventory>::Methods>
+                    .into_iter()
+                    .flat_map(pyo3::class::impl_::PyMethodsInventory::get)
+            },
+        ),
+    };
 
     let base = &attr.base;
     let flags = &attr.flags;
@@ -428,10 +444,9 @@ fn impl_class(
 
             fn for_each_method_def(visitor: impl FnMut(&pyo3::class::PyMethodDefType)) {
                 use pyo3::class::impl_::*;
-                let collector = PyClassImplCollector::<#cls>::new();
-                pyo3::inventory::iter::<<#cls as pyo3::class::methods::HasMethodsInventory>::Methods>
-                    .into_iter()
-                    .flat_map(pyo3::class::methods::PyMethodsInventory::get)
+                let collector = PyClassImplCollector::<Self>::new();
+                #iter_py_methods
+                    .chain(collector.py_class_descriptors())
                     .chain(collector.object_protocol_methods())
                     .chain(collector.async_protocol_methods())
                     .chain(collector.context_protocol_methods())
@@ -442,19 +457,19 @@ fn impl_class(
             }
             fn get_new() -> Option<pyo3::ffi::newfunc> {
                 use pyo3::class::impl_::*;
-                let collector = PyClassImplCollector::<#cls>::new();
+                let collector = PyClassImplCollector::<Self>::new();
                 collector.new_impl()
             }
             fn get_call() -> Option<pyo3::ffi::PyCFunctionWithKeywords> {
                 use pyo3::class::impl_::*;
-                let collector = PyClassImplCollector::<#cls>::new();
+                let collector = PyClassImplCollector::<Self>::new();
                 collector.call_impl()
             }
 
             fn for_each_proto_slot(visitor: impl FnMut(&pyo3::ffi::PyType_Slot)) {
                 // Implementation which uses dtolnay specialization to load all slots.
                 use pyo3::class::impl_::*;
-                let collector = PyClassImplCollector::<#cls>::new();
+                let collector = PyClassImplCollector::<Self>::new();
                 collector.object_protocol_slots()
                     .iter()
                     .chain(collector.number_protocol_slots())
@@ -470,7 +485,7 @@ fn impl_class(
 
             fn get_buffer() -> Option<&'static pyo3::class::impl_::PyBufferProcs> {
                 use pyo3::class::impl_::*;
-                let collector = PyClassImplCollector::<#cls>::new();
+                let collector = PyClassImplCollector::<Self>::new();
                 collector.buffer_procs()
             }
         }
@@ -513,10 +528,12 @@ fn impl_descriptors(
         .collect::<syn::Result<_>>()?;
 
     Ok(quote! {
-        pyo3::inventory::submit! {
-            #![crate = pyo3] {
-                type Inventory = <#cls as pyo3::class::methods::HasMethodsInventory>::Methods;
-                <Inventory as pyo3::class::methods::PyMethodsInventory>::new(vec![#(#py_methods),*])
+        impl pyo3::class::impl_::PyClassDescriptors<#cls>
+            for pyo3::class::impl_::PyClassImplCollector<#cls>
+        {
+            fn py_class_descriptors(self) -> &'static [pyo3::class::methods::PyMethodDefType] {
+                static METHODS: &[pyo3::class::methods::PyMethodDefType] = &[#(#py_methods),*];
+                METHODS
             }
         }
     })

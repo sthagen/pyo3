@@ -1,14 +1,13 @@
 // Copyright (c) 2017-present PyO3 Project and Contributors
 //! Code generation for the function that initializes a python module and adds classes and function.
 
-use crate::method;
-use crate::pyfunction::{PyFunctionArgAttrs, PyFunctionAttr};
-use crate::pymethod;
-use crate::pymethod::get_arg_names;
+use crate::method::{self, FnArg};
+use crate::pyfunction::PyFunctionAttr;
+use crate::pymethod::{check_generic, get_arg_names, impl_arg_params};
 use crate::utils;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
-use syn::{spanned::Spanned, Ident};
+use syn::{spanned::Spanned, Ident, Result};
 
 /// Generates the function that is called by the python interpreter to initialize the native
 /// module
@@ -25,7 +24,7 @@ pub fn py_init(fnname: &Ident, name: &Ident, doc: syn::LitStr) -> TokenStream {
             const NAME: &'static str = concat!(stringify!(#name), "\0");
             static MODULE_DEF: ModuleDef = unsafe { ModuleDef::new(NAME) };
 
-            pyo3::callback_body!(_py, { MODULE_DEF.make_module(#doc, #fnname) })
+            pyo3::callback::handle_panic(|_py| { MODULE_DEF.make_module(#doc, #fnname) })
         }
     }
 }
@@ -55,26 +54,6 @@ pub fn process_functions_in_module(func: &mut syn::ItemFn) -> syn::Result<()> {
 
     func.block.stmts = stmts;
     Ok(())
-}
-
-/// Transforms a rust fn arg parsed with syn into a method::FnArg
-fn wrap_fn_argument(cap: &mut syn::PatType) -> syn::Result<method::FnArg> {
-    let arg_attrs = PyFunctionArgAttrs::from_attrs(&mut cap.attrs)?;
-
-    let (mutability, by_ref, ident) = match &*cap.pat {
-        syn::Pat::Ident(patid) => (&patid.mutability, &patid.by_ref, &patid.ident),
-        _ => bail_spanned!(cap.pat.span() => "unsupported argument"),
-    };
-
-    Ok(method::FnArg {
-        name: ident,
-        mutability,
-        by_ref,
-        ty: &cap.ty,
-        optional: utils::option_type_argument(&cap.ty),
-        py: utils::is_python(&cap.ty),
-        attrs: arg_attrs,
-    })
 }
 
 /// Extracts the data from the #[pyfn(...)] attribute of a function
@@ -143,36 +122,26 @@ pub fn add_fn_to_module(
     python_name: Ident,
     pyfn_attrs: PyFunctionAttr,
 ) -> syn::Result<TokenStream> {
-    let mut arguments = Vec::new();
+    check_generic(&func.sig)?;
 
-    for (i, input) in func.sig.inputs.iter_mut().enumerate() {
-        match input {
-            syn::FnArg::Receiver(_) => {
-                bail_spanned!(input.span() => "unexpected receiver for #[pyfn]");
-            }
-            syn::FnArg::Typed(cap) => {
-                if pyfn_attrs.pass_module && i == 0 {
-                    if let syn::Type::Reference(tyref) = cap.ty.as_ref() {
-                        if let syn::Type::Path(typath) = tyref.elem.as_ref() {
-                            if typath
-                                .path
-                                .segments
-                                .last()
-                                .map(|seg| seg.ident == "PyModule")
-                                .unwrap_or(false)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                    bail_spanned!(
-                        cap.span() => "expected &PyModule as first argument with `pass_module`"
-                    );
-                } else {
-                    arguments.push(wrap_fn_argument(cap)?);
-                }
-            }
-        }
+    let mut arguments = func
+        .sig
+        .inputs
+        .iter_mut()
+        .map(FnArg::parse)
+        .collect::<syn::Result<Vec<_>>>()?;
+
+    if pyfn_attrs.pass_module {
+        const PASS_MODULE_ERR: &str = "expected &PyModule as first argument with `pass_module`";
+        ensure_spanned!(
+            !arguments.is_empty(),
+            func.span() => PASS_MODULE_ERR
+        );
+        let arg = arguments.remove(0);
+        ensure_spanned!(
+            type_is_pymodule(arg.ty),
+            arg.ty.span() => PASS_MODULE_ERR
+        );
     }
 
     let ty = method::get_return_info(&func.sig.output);
@@ -197,7 +166,7 @@ pub fn add_fn_to_module(
 
     let name = &func.sig.ident;
     let wrapper_ident = format_ident!("__pyo3_raw_{}", name);
-    let wrapper = function_c_wrapper(name, &wrapper_ident, &spec, pyfn_attrs.pass_module);
+    let wrapper = function_c_wrapper(name, &wrapper_ident, &spec, pyfn_attrs.pass_module)?;
     Ok(quote! {
         #wrapper
         pub(crate) fn #function_wrapper_ident<'a>(
@@ -217,38 +186,55 @@ pub fn add_fn_to_module(
     })
 }
 
+fn type_is_pymodule(ty: &syn::Type) -> bool {
+    if let syn::Type::Reference(tyref) = ty {
+        if let syn::Type::Path(typath) = tyref.elem.as_ref() {
+            if typath
+                .path
+                .segments
+                .last()
+                .map(|seg| seg.ident == "PyModule")
+                .unwrap_or(false)
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Generate static function wrapper (PyCFunction, PyCFunctionWithKeywords)
 fn function_c_wrapper(
     name: &Ident,
     wrapper_ident: &Ident,
     spec: &method::FnSpec<'_>,
     pass_module: bool,
-) -> TokenStream {
+) -> Result<TokenStream> {
     let names: Vec<Ident> = get_arg_names(&spec);
     let cb;
     let slf_module;
     if pass_module {
         cb = quote! {
-            #name(_slf, #(#names),*)
+            pyo3::callback::convert(_py, #name(_slf, #(#names),*))
         };
         slf_module = Some(quote! {
             let _slf = _py.from_borrowed_ptr::<pyo3::types::PyModule>(_slf);
         });
     } else {
         cb = quote! {
-            #name(#(#names),*)
+            pyo3::callback::convert(_py, #name(#(#names),*))
         };
         slf_module = None;
     };
-    let body = pymethod::impl_arg_params(spec, None, cb);
-    quote! {
+    let body = impl_arg_params(spec, None, cb)?;
+    Ok(quote! {
         unsafe extern "C" fn #wrapper_ident(
             _slf: *mut pyo3::ffi::PyObject,
             _args: *mut pyo3::ffi::PyObject,
             _kwargs: *mut pyo3::ffi::PyObject) -> *mut pyo3::ffi::PyObject
         {
             const _LOCATION: &'static str = concat!(stringify!(#name), "()");
-            pyo3::callback_body!(_py, {
+            pyo3::callback::handle_panic(|_py| {
                 #slf_module
                 let _args = _py.from_borrowed_ptr::<pyo3::types::PyTuple>(_args);
                 let _kwargs: Option<&pyo3::types::PyDict> = _py.from_borrowed_ptr_or_opt(_kwargs);
@@ -256,5 +242,5 @@ fn function_c_wrapper(
                 #body
             })
         }
-    }
+    })
 }
