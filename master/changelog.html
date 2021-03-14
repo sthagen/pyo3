@@ -189,7 +189,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Deprecate FFI definitions <code>PyModule_GetFilename</code>. <a href="https://github.com/PyO3/pyo3/pull/1425">#1425</a></li>
 <li>The <code>auto-initialize</code> feature is no longer enabled by default. <a href="https://github.com/PyO3/pyo3/pull/1443">#1443</a></li>
 <li>Change <code>PyCFunction::new()</code> and <code>PyCFunction::new_with_keywords()</code> to take <code>&amp;'static str</code> arguments rather than implicitly copying (and leaking) them. <a href="https://github.com/PyO3/pyo3/pull/1450">#1450</a></li>
-<li>The <code>call/call0/call1</code> methods of <code>PyModule</code> have been renamed to <code>call_function</code> etc. for consistency with <code>call</code> and <code>call_method</code> on <code>PyAny</code>. The old names are still present, but deprecated. <a href="https://github.com/PyO3/pyo3/pull/1467">#1467</a></li>
+<li>Deprecate <code>PyModule</code> methods <code>call</code>, <code>call0</code>, <code>call1</code> and <code>get</code>. <a href="https://github.com/PyO3/pyo3/pull/1492">#1492</a></li>
 </ul>
 <h3><a class="header" href="#removed" id="removed">Removed</a></h3>
 <ul>
