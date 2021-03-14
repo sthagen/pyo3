@@ -2387,6 +2387,50 @@ def leaky_relu(x, slope=0.01):
 </span>})
 <span class="boring">}
 </span></code></pre></pre>
+<h2><a class="header" href="#need-to-use-a-context-manager-from-rust" id="need-to-use-a-context-manager-from-rust">Need to use a context manager from Rust?</a></h2>
+<p>Use context managers by directly invoking <code>__enter__</code> and <code>__exit__</code>.</p>
+<pre><pre class="playground"><code class="language-rust">use pyo3::prelude::*;
+use pyo3::types::PyModule;
+
+fn main() {   
+    Python::with_gil(|py| {
+        let custom_manager = PyModule::from_code(py, r#&quot;
+class House(object):
+    def __init__(self, address):
+        self.address = address
+    def __enter__(self):
+        print(f&quot;Welcome to {self.address}!&quot;)
+    def __exit__(self, type, value, traceback):
+        if type:
+            print(f&quot;Sorry you had {type} trouble at {self.address}&quot;)
+        else:
+            print(f&quot;Thank you for visiting {self.address}, come again soon!&quot;)
+
+        &quot;#, &quot;house.py&quot;, &quot;house&quot;).unwrap();
+        
+        let house = custom_manager.call_function1(&quot;House&quot;, (&quot;123 Main Street&quot;,)).unwrap();
+
+        house.call_method0(&quot;__enter__&quot;).unwrap();
+
+        let result = py.eval(&quot;undefined_variable + 1&quot;, None, None);
+        
+        // If the eval threw an exception we'll pass it through to the context manager. 
+        // Otherwise, __exit__  is called with empty arguments (Python &quot;None&quot;).
+        match result {
+            Ok(_) =&gt; {
+                let none = py.None();
+                house.call_method1(&quot;__exit__&quot;, (&amp;none, &amp;none, &amp;none)).unwrap();
+            },
+            Err(e) =&gt; {
+                house.call_method1(
+                    &quot;__exit__&quot;,
+                    (e.ptype(py), e.pvalue(py), e.ptraceback(py))
+                ).unwrap();
+            }
+        }
+    })
+}
+</code></pre></pre>
 <h1><a class="header" href="#gil-lifetimes-mutability-and-python-object-types" id="gil-lifetimes-mutability-and-python-object-types">GIL lifetimes, mutability and Python object types</a></h1>
 <p>On first glance, PyO3 provides a huge number of different types that can be used
 to wrap or refer to Python objects.  This page delves into the details and gives
@@ -4361,6 +4405,7 @@ and this project adheres to <a href="http://semver.org/spec/v2.0.0.html">Semanti
 <li>Fix FFI definition <code>PyIndex_Check</code> missing with the <code>abi3</code> feature. <a href="https://github.com/PyO3/pyo3/pull/1436">#1436</a></li>
 <li>Fix incorrect <code>TypeError</code> raised when keyword-only argument passed along with a positional argument in <code>*args</code>. <a href="https://github.com/PyO3/pyo3/pull/1440">#1440</a></li>
 <li>Fix inability to use a named lifetime for <code>&amp;PyTuple</code> of <code>*args</code> in <code>#[pyfunction]</code>. <a href="https://github.com/PyO3/pyo3/pull/1440">#1440</a></li>
+<li>Fix inability to add <code>#[text_signature]</code> to some <code>#[pyproto]</code> methods. <a href="https://github.com/PyO3/pyo3/pull/1483">#1483</a></li>
 </ul>
 <h2><a class="header" href="#a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12" id="a-hrefhttpsgithubcompyo3pyo3comparev0131v01320132a---2021-02-12"><a href="https://github.com/pyo3/pyo3/compare/v0.13.1...v0.13.2">0.13.2</a> - 2021-02-12</a></h2>
 <h3><a class="header" href="#packaging-1" id="packaging-1">Packaging</a></h3>

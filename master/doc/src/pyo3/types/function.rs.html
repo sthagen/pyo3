@@ -77,11 +77,6 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">derive_utils</span>::<span class="ident">PyFunctionArguments</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exceptions</span>::<span class="ident">PyValueError</span>;
@@ -108,12 +103,7 @@
         <span class="ident">py_or_module</span>: <span class="ident">PyFunctionArguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">internal_new</span>(
-            <span class="ident">PyMethodDef</span>::<span class="ident">cfunction_with_keywords</span>(
-                <span class="ident">name</span>,
-                <span class="ident">methods</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">fun</span>),
-                <span class="number">0</span>,
-                <span class="ident">doc</span>,
-            ),
+            <span class="ident">PyMethodDef</span>::<span class="ident">cfunction_with_keywords</span>(<span class="ident">name</span>, <span class="ident">methods</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">fun</span>), <span class="ident">doc</span>),
             <span class="ident">py_or_module</span>,
         )
     }
@@ -126,7 +116,7 @@
         <span class="ident">py_or_module</span>: <span class="ident">PyFunctionArguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PyResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">internal_new</span>(
-            <span class="ident">PyMethodDef</span>::<span class="ident">cfunction</span>(<span class="ident">name</span>, <span class="ident">methods</span>::<span class="ident">PyCFunction</span>(<span class="ident">fun</span>), <span class="ident">doc</span>),
+            <span class="ident">PyMethodDef</span>::<span class="ident">noargs</span>(<span class="ident">name</span>, <span class="ident">methods</span>::<span class="ident">PyCFunction</span>(<span class="ident">fun</span>), <span class="ident">doc</span>),
             <span class="ident">py_or_module</span>,
         )
     }

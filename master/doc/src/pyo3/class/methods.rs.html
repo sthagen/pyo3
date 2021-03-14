@@ -193,6 +193,10 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2017-present PyO3 Project and Contributors</span>
 
@@ -278,7 +282,7 @@
 
 <span class="kw">impl</span> <span class="ident">PyMethodDef</span> {
     <span class="doccomment">/// Define a function with no `*args` and `**kwargs`.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cfunction</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">noargs</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">cfunction</span>: <span class="ident">PyCFunction</span>, <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ml_name</span>: <span class="ident">name</span>,
             <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyCFunction</span>(<span class="ident">cfunction</span>),
@@ -291,15 +295,19 @@
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">cfunction_with_keywords</span>(
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
         <span class="ident">cfunction</span>: <span class="ident">PyCFunctionWithKeywords</span>,
-        <span class="ident">flags</span>: <span class="ident">c_int</span>,
         <span class="ident">doc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ml_name</span>: <span class="ident">name</span>,
             <span class="ident">ml_meth</span>: <span class="ident">PyMethodType</span>::<span class="ident">PyCFunctionWithKeywords</span>(<span class="ident">cfunction</span>),
-            <span class="ident">ml_flags</span>: <span class="ident">flags</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
+            <span class="ident">ml_flags</span>: <span class="ident">ffi</span>::<span class="ident">METH_VARARGS</span> <span class="op">|</span> <span class="ident">ffi</span>::<span class="ident">METH_KEYWORDS</span>,
             <span class="ident">ml_doc</span>: <span class="ident">doc</span>,
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">ml_flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">flags</span>;
+        <span class="self">self</span>
     }
 
     <span class="doccomment">/// Convert `PyMethodDef` to Python method definition struct `ffi::PyMethodDef`</span>
